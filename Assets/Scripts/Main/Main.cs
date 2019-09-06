@@ -17,20 +17,31 @@ public class Main : MonoBehaviour
 
     private IEnumerator _Main()
     {
-        //Enter Splash Screen View
-        SceneModel.Instance.LoadScene(SceneEnum.SplashScreen);
-        yield return null;
-        var splashView = FindObjectOfType<SplashScreenView>();
-        yield return splashView.Run();
+        while(true)
+        {
+            //Enter Splash Screen View
+            SceneModel.Instance.LoadScene(SceneEnum.SplashScreen);
+            yield return null;
+            var splashView = FindObjectOfType<SplashScreenPanel>();
+            yield return splashView.Run();
 
-        //Enter Map View
+            //Enter Map View
+            yield return _SwitchScene(SceneEnum.Map);
+
+            //Enter Battle View
+            yield return _SwitchScene(SceneEnum.Battle);
+
+            yield return null;
+        }
+    }
+
+    private IEnumerator _SwitchScene(SceneEnum target)
+    {
         SceneModel.Instance.LoadScene(SceneEnum.Loading);
         yield return null;
-        var loadingView = FindObjectOfType<LoadingSceneView>();
-        yield return loadingView.Enter();
-        
-
-
-        yield return null;
+        var loadingView = FindObjectOfType<LoadingScenePanel>();
+        yield return loadingView.Enter(target);
+        var targetView = FindObjectOfType<AsyncLoadingScenePanel>();
+        yield return targetView.Enter();
     }
 }

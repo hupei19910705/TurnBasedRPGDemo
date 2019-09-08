@@ -17,21 +17,22 @@ public class Main : MonoBehaviour
 
     private IEnumerator _Main()
     {
-        while(true)
+        TeamData teamData = _FakeTeamData();
+
+        while (true)
         {
-            //Enter Splash Screen View
-            SceneModel.Instance.LoadScene(SceneEnum.SplashScreen);
-            yield return null;
-            var splashView = FindObjectOfType<SplashScreenPanel>();
-            yield return splashView.Run();
+            //Enter Splash Screen Scene
+            yield return _SplashScreen();
 
-            //Enter Map View
-            yield return _SwitchScene(SceneEnum.Map);
+            while (true)
+            {
+                //Enter Map Scene
+                yield return _Map();
 
-            //Enter Battle View
-            yield return _SwitchScene(SceneEnum.Battle);
-
-            yield return null;
+                //Enter Battle Scene
+                yield return _Battle(teamData);
+                teamData = _FakeTeamData();
+            }
         }
     }
 
@@ -41,7 +42,102 @@ public class Main : MonoBehaviour
         yield return null;
         var loadingView = FindObjectOfType<LoadingScenePanel>();
         yield return loadingView.Enter(target);
-        var targetView = FindObjectOfType<AsyncLoadingScenePanel>();
-        yield return targetView.Enter();
+    }
+
+    private IEnumerator _SplashScreen()
+    {
+        SceneModel.Instance.LoadScene(SceneEnum.SplashScreen);
+        yield return null;
+        var splashView = FindObjectOfType<SplashScreenPanel>();
+        yield return splashView.Run();
+    }
+
+    private IEnumerator _Map()
+    {
+        yield return _SwitchScene(SceneEnum.Map);
+
+        var mapPanel = FindObjectOfType<MapPanel>();
+        mapPanel.Initialize();
+        IMapPresenter mapPresenter = mapPanel.MapPresenter;
+        yield return mapPresenter.Run();
+    }
+
+    private IEnumerator _Battle(TeamData teamData)
+    {
+        yield return _SwitchScene(SceneEnum.Battle);
+
+        var enemiesData = _FakeEnemiesData();
+
+        var battlePanel = FindObjectOfType<BattlePanel>();
+        battlePanel.Initialize(teamData, enemiesData);
+        IBattlePresenter battlePresenter = battlePanel.BattlePresenter;
+        yield return battlePresenter.Run();
+    }
+
+    private TeamData _FakeTeamData()
+    {
+        const string warriorHeadKey = "warrior-sheet-249x100";
+        const string wizardHeadKey = "wizard-sheet-b-161x106";
+        const string deathKey = "S_Death01";
+
+        //Fake Team Members
+        var member0 = new TeamMemberData("大壮", MemberJob.Warrior, 200, 80, warriorHeadKey, deathKey, 80, 5, 0,1);
+        member0.SetSkills(new Dictionary<SkillType, List<Skill>>
+        {
+            { SkillType.GeneralAttack,new List<Skill>{ new Skill(SkillType.GeneralAttack,"10000","普通攻击")} },
+            { SkillType.Physical,new List<Skill>{ new Skill(SkillType.GeneralAttack,"20001","物理技能1", "S_Physic01") } }
+        });
+
+        var member1 = new TeamMemberData("二柱", MemberJob.Wizard, 150, 120, wizardHeadKey, deathKey, 130, 3, 3,1);
+        member1.SetSkills(new Dictionary<SkillType, List<Skill>>
+        {
+            { SkillType.GeneralAttack,new List<Skill>{ new Skill(SkillType.GeneralAttack,"10000","普通攻击")} },
+            { SkillType.Magic,new List<Skill>{ new Skill(SkillType.GeneralAttack,"30001","魔法技能1", "S_Magic01") } }
+        });
+
+        var member2 = new TeamMemberData("三柱", MemberJob.Warrior, 200, 80, warriorHeadKey, deathKey, 80, 5, 2,1);
+        member2.SetSkills(new Dictionary<SkillType, List<Skill>>
+        {
+            { SkillType.GeneralAttack,new List<Skill>{ new Skill(SkillType.GeneralAttack,"10000","普通攻击")} },
+            { SkillType.Physical,new List<Skill>{ new Skill(SkillType.GeneralAttack,"20001", "物理技能1", "S_Physic01") } }
+        });
+        Dictionary<int, TeamMemberData> members = new Dictionary<int, TeamMemberData>
+        {
+            { member0.Pos,member0},
+            { member1.Pos,member1},
+            { member2.Pos,member2},
+        };
+
+        //Fake BackPack
+        var item0 = new Item(ItemType.Potion, "10000", 3,"红药水",50,0, "P_Red03");
+        var item1 = new Item(ItemType.Potion, "10001", 18,"大红药水",200,2, "P_Red01");
+        var item2 = new Item(ItemType.Potion, "10000", 3,"红药水",50,5,"P_Red03");
+        var item3 = new Item(ItemType.Potion, "20000", 5,"蓝药水",50,9, "P_Blue03");
+
+        //Fake TeamData
+        var teamData = new TeamData(members,new Dictionary<ItemType, List<Item>>());
+        teamData.AddItems(new List<Item> { item0, item1, item2, item3 });
+
+        return teamData;
+    }
+
+    private Dictionary<int,EnemyData> _FakeEnemiesData()
+    {
+        var enemy0 = new EnemyData("蛇", EnemyType.Snake, 300, 30, 2, 0, 1, 30);
+        enemy0.SetDropItems(new List<DropItem> { new DropItem(new Item(ItemType.Potion, "10000", "红药水", 50, 0, "P_Red03"), 10) });
+        var enemy1 = new EnemyData("猪", EnemyType.Pig, 400, 30, 2, 1, 1, 40);
+        enemy1.SetDropItems(new List<DropItem> { new DropItem(new Item(ItemType.Potion, "10000", "红药水", 50, 0, "P_Red03"), 20) });
+        var enemy2 = new EnemyData("黑猪", EnemyType.DarkPig, 500, 40, 2, 2, 1, 50);
+        enemy2.SetDropItems(new List<DropItem> { new DropItem(new Item(ItemType.Potion, "10001", "大红药水", 200, 2, "P_Red01"), 10) });
+        var enemy3 = new EnemyData("蝙蝠", EnemyType.Bat, 250, 50, 1, 5, 1, 50);
+        enemy3.SetDropItems(new List<DropItem> { new DropItem(new Item(ItemType.Potion, "20000", "蓝药水", 50, 9, "P_Blue03"), 20) });
+
+        return new Dictionary<int, EnemyData>
+        {
+            {enemy0.Pos,enemy0 },
+            {enemy1.Pos,enemy1 },
+            {enemy2.Pos,enemy2 },
+            {enemy3.Pos,enemy3 },
+        };
     }
 }

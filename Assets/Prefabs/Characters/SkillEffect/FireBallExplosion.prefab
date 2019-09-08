@@ -12,6 +12,7 @@ GameObject:
   - component: {fileID: 5661308978238287407}
   - component: {fileID: 5661308978238287404}
   - component: {fileID: 5661308978238287405}
+  - component: {fileID: 2039508312}
   m_Layer: 5
   m_Name: FireBallExplosionSprite
   m_TagString: Untagged
@@ -94,6 +95,19 @@ Animator:
   m_HasTransformHierarchy: 1
   m_AllowConstantClipSamplingOptimization: 1
   m_KeepAnimatorControllerStateOnDisable: 0
+--- !u!114 &2039508312
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 5661308978238287403}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 611881e0e8420da459ba02a1269f1e72, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  _root: {fileID: 5894564686962374837}
 --- !u!1 &6677373656936331645
 GameObject:
   m_ObjectHideFlags: 0

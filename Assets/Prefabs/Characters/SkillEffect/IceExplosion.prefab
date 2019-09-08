@@ -48,6 +48,7 @@ GameObject:
   - component: {fileID: 7525344129612322140}
   - component: {fileID: 7525344129612322141}
   - component: {fileID: 7525344129612322142}
+  - component: {fileID: 1034851871}
   m_Layer: 5
   m_Name: IceExplosionSprite
   m_TagString: Untagged
@@ -130,3 +131,16 @@ Animator:
   m_HasTransformHierarchy: 1
   m_AllowConstantClipSamplingOptimization: 1
   m_KeepAnimatorControllerStateOnDisable: 0
+--- !u!114 &1034851871
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 7525344129612322136}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 611881e0e8420da459ba02a1269f1e72, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  _root: {fileID: 4785372034176971426}

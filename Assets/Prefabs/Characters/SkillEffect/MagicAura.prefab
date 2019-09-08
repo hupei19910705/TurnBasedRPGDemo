@@ -12,6 +12,7 @@ GameObject:
   - component: {fileID: 4741769521777856548}
   - component: {fileID: 4741769521777856549}
   - component: {fileID: 4741769521777856550}
+  - component: {fileID: 965350009}
   m_Layer: 5
   m_Name: MagicAuraSprite
   m_TagString: Untagged
@@ -94,6 +95,19 @@ Animator:
   m_HasTransformHierarchy: 1
   m_AllowConstantClipSamplingOptimization: 1
   m_KeepAnimatorControllerStateOnDisable: 0
+--- !u!114 &965350009
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 4741769521777856568}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 611881e0e8420da459ba02a1269f1e72, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  _root: {fileID: 8094503879878855065}
 --- !u!1 &5191897896237477503
 GameObject:
   m_ObjectHideFlags: 0

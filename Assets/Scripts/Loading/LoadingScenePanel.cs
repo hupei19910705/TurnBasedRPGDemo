@@ -5,11 +5,6 @@ using UnityEngine;
 using UnityEngine.UI;
 using Utility.GameUtility;
 
-public abstract class AsyncLoadingScenePanel : MonoBehaviour
-{
-    public abstract IEnumerator Enter();
-}
-
 public class LoadingScenePanel : MonoBehaviour
 {
     [SerializeField]

@@ -240,7 +240,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 3f5446b4ce026e94f9eb4b9115dedd10, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  _battleBtn: {fileID: 1200465008}
+  _mapView: {fileID: 827881213}
 --- !u!4 &165597487
 Transform:
   m_ObjectHideFlags: 0
@@ -442,6 +442,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: db8af0351ee924346bf61d4a5d6dc728, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  _battleBtn: {fileID: 1200465008}
 --- !u!1 &1026632669
 GameObject:
   m_ObjectHideFlags: 0
@@ -534,7 +535,7 @@ GameObject:
   - component: {fileID: 1200465009}
   - component: {fileID: 1200465008}
   m_Layer: 5
-  m_Name: Battle
+  m_Name: BattleBtn
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0

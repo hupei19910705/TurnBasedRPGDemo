@@ -20,7 +20,6 @@ public class SplashScreenPanel : MonoBehaviour
 
     public IEnumerator Run()
     {
-        _leave = false;
         _Register();
 
         while (!_leave)

@@ -4,38 +4,20 @@ using UnityEngine;
 using UnityEngine.UI;
 using Utility.GameUtility;
 
-public class MapPanel : AsyncLoadingScenePanel
+public class MapPanel : MonoBehaviour
 { 
-    [SerializeField] private Button _battleBtn = null;
-
-    private bool _leave = false;
+    [SerializeField] private MapView _mapView = null;
+    
+    [HideInInspector]
+    public IMapPresenter MapPresenter { get; private set; }
 
     private void Start()
     {
         SceneModel.Instance.GoToStartScene();
     }
 
-    public override IEnumerator Enter()
+    public void Initialize()
     {
-        _Register();
-
-        while (!_leave)
-            yield return null;
-    }
-
-    private void _Register()
-    {
-        _UnRegister();
-        _battleBtn.onClick.AddListener(_Leave);
-    }
-
-    private void _UnRegister()
-    {
-        _battleBtn.onClick.RemoveAllListeners();
-    }
-
-    private void _Leave()
-    {
-        _leave = true;
+        MapPresenter = new MapPresenter(_mapView) as IMapPresenter;
     }
 }

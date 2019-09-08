@@ -9,8 +9,34 @@ public interface IMapPresenter
 
 public class MapPresenter : IMapPresenter
 {
+    private bool _leave = false;
+    private IMapView _view;
+
+    public MapPresenter(IMapView view)
+    {
+        _view = view;
+    }
+
     public IEnumerator Run()
     {
-        yield return null;
+        _RegisterEvents();
+        _view.Enter();
+        while (!_leave)
+            yield return null;
+    }
+
+    private void _RegisterEvents()
+    {
+        _view.LeaveToBattle += _LeaveToBattle;
+    }
+
+    private void _UnRegisterEvents()
+    {
+        _view.LeaveToBattle -= _LeaveToBattle;
+    }
+
+    private void _LeaveToBattle()
+    {
+        _leave = true;
     }
 }

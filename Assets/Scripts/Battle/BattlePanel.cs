@@ -3,18 +3,19 @@ using System.Collections.Generic;
 using UnityEngine;
 using Utility.GameUtility;
 
-public class BattlePanel : AsyncLoadingScenePanel
+public class BattlePanel : MonoBehaviour
 {
-    private bool _leave = false;
+    [SerializeField] private BattleView _battleView = null;
 
+    [HideInInspector] public IBattlePresenter BattlePresenter { get; private set; }
+    
     private void Start()
     {
         SceneModel.Instance.GoToStartScene();
     }
 
-    public override IEnumerator Enter()
+    public void Initialize(TeamData teamData,Dictionary<int,EnemyData> enemiesData)
     {
-        while(!_leave)
-            yield return null;
+        BattlePresenter = new BattlePresenter(_battleView, teamData, enemiesData) as IBattlePresenter;
     }
 }

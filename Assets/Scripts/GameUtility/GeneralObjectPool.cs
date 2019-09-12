@@ -44,5 +44,11 @@ namespace Utility.GameUtility
             obj.transform.SetParent(_root);
             _objects.Enqueue(obj);
         }
+
+        public Bounds GetPrefabBounds()
+        {
+            var rect = _prefab.GetComponent<RectTransform>().rect;
+            return new Bounds(rect.center, rect.size);
+        }
     }
 }

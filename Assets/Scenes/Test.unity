@@ -193,7 +193,7 @@ MonoBehaviour:
   m_StartAxis: 0
   m_CellSize: {x: 100, y: 100}
   m_Spacing: {x: 50, y: 50}
-  m_Constraint: 1
+  m_Constraint: 2
   m_ConstraintCount: 1
 --- !u!1 &139950597
 GameObject:
@@ -288,11 +288,12 @@ MonoBehaviour:
   _viewport: {fileID: 470555805}
   _content: {fileID: 88791103}
   _isHorizontal: 1
-  _isVertical: 1
+  _isVertical: 0
   _isElastic: 1
   _elasticity: 0.05
-  _slidingSpeed: 100
-  _widthCount: 2
+  _maxSlidingSpeed: 100
+  _minSlidingSpeed: 5
+  _widthCount: 10
 --- !u!1 &209242042
 GameObject:
   m_ObjectHideFlags: 0

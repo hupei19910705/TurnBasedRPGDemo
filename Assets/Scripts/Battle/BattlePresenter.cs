@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using UnityEngine;
+using Utility;
 
 public interface IBattlePresenter
 {
@@ -12,10 +13,14 @@ public class BattlePresenter : IBattlePresenter
     private IBattleView _view = null;
     private TeamData _teamData = null;
     private Dictionary<int, EnemyData> _enemiesData = null;
+    
     private bool _leave = false;
-    private int _curMemberIdx = -1;
+    private int _curHeroIdx = -1;
     private int _curEnemyIdx = -1;
-    private int _targetMemberIdx = -1;
+    private int _targetHeroIdx = -1;
+    private int _selectTargetHeroIdx = -1;
+
+    private SerialCoroutines _serialCor = new SerialCoroutines();
 
     public BattlePresenter(
         IBattleView view,
@@ -34,10 +39,10 @@ public class BattlePresenter : IBattlePresenter
 
         while (!_leave)
         {
-            if(_CheckIsMembersTurnEnd())
+            if(_CheckIsHeroTurnEnd())
             {
                 yield return _EnemiesTurn();
-                _ActiveMembersTurn();
+                _ActiveHeroTurn();
             }
             yield return null;
         }
@@ -48,23 +53,27 @@ public class BattlePresenter : IBattlePresenter
         _UnRegister();
         _view.SelectMember += _SelectMember;
         _view.SelectEnemy += _SelectEnemy;
-        _view.MemberEndTurn += _MemberEndTurn;
+        _view.HeroEndTurn += _MemberEndTurn;
         _view.MemberDamageEffect += _MemberDamageEffect;
         _view.EnemyDamageEffect += _EnemyDamageEffect;
+        _view.UseItem += _UseItem;
+        _view.SetTargetHero += _SetTargetHero;
     }
 
     private void _UnRegister()
     {
         _view.SelectMember -= _SelectMember;
         _view.SelectEnemy -= _SelectEnemy;
-        _view.MemberEndTurn -= _MemberEndTurn;
+        _view.HeroEndTurn -= _MemberEndTurn;
         _view.MemberDamageEffect -= _MemberDamageEffect;
         _view.EnemyDamageEffect -= _EnemyDamageEffect;
+        _view.UseItem -= _UseItem;
+        _view.SetTargetHero -= _SetTargetHero;
     }
 
     private void _SelectMember(bool select,int pos)
     {
-        _curMemberIdx = select ? pos : -1;
+        _curHeroIdx = select ? pos : -1;
     }
 
     private void _SelectEnemy(int pos)
@@ -74,12 +83,12 @@ public class BattlePresenter : IBattlePresenter
 
     private void _MemberEndTurn(int pos)
     {
-        _teamData.Members[pos].SetEndTurnFlag(true);
+        _teamData.Heroes[pos].SetEndTurnFlag(true);
     }
 
-    private bool _CheckIsMembersTurnEnd()
+    private bool _CheckIsHeroTurnEnd()
     {
-        foreach(var member in _teamData.Members.Values.ToList())
+        foreach(var member in _teamData.Heroes.Values.ToList())
         {
             if (!member.IsAlive)
                 continue;
@@ -91,14 +100,14 @@ public class BattlePresenter : IBattlePresenter
 
     private IEnumerator _EnemiesTurn()
     {
-        _targetMemberIdx = _GetAliveMemberIndex();
+        _targetHeroIdx = _GetAliveMemberIndex();
         foreach (var enemy in _enemiesData.Values)
         {
-            if (enemy.IsAlive && _targetMemberIdx != -1)
+            if (enemy.IsAlive && _targetHeroIdx != -1)
             {
-                yield return _view.RunEnemyTurn(enemy.Pos, _targetMemberIdx);
-                if (!_teamData.Members[_targetMemberIdx].IsAlive)
-                    _targetMemberIdx = _GetAliveMemberIndex();
+                yield return _view.RunEnemyTurn(enemy.Pos, _targetHeroIdx);
+                if (!_teamData.Heroes[_targetHeroIdx].IsAlive)
+                    _targetHeroIdx = _GetAliveMemberIndex();
             }
         }
     }
@@ -107,22 +116,22 @@ public class BattlePresenter : IBattlePresenter
     {
         for (int i = 0; i < 6; i++)
         {
-            if (_teamData.Members.ContainsKey(i) && _teamData.Members[i].IsAlive)
+            if (_teamData.Heroes.ContainsKey(i) && _teamData.Heroes[i].IsAlive)
                 return i;
         }
         _leave = true;
         return -1;
     }
 
-    private void _ActiveMembersTurn()
+    private void _ActiveHeroTurn()
     {
-        foreach(var member in _teamData.Members.Values.ToList())
+        foreach(var hero in _teamData.Heroes.Values.ToList())
         {
-            if (!member.IsAlive)
+            if (!hero.IsAlive)
                 continue;
-            member.SetEndTurnFlag(false);
+            hero.SetEndTurnFlag(false);
         }
-        _view.ActiveMemberElement();
+        _view.ActiveHeroElement();
     }
 
     private void _MemberDamageEffect(double attack)
@@ -135,7 +144,7 @@ public class BattlePresenter : IBattlePresenter
 
     private void _EnemyDamageEffect(double attack)
     {
-        var member = _teamData.Members[_targetMemberIdx];
+        var member = _teamData.Heroes[_targetHeroIdx];
         member.BeHit(attack);
     }
 
@@ -145,5 +154,27 @@ public class BattlePresenter : IBattlePresenter
             if (enemy.IsAlive)
                 return true;
         return false;
+    }
+
+    private void _SetTargetHero(int pos)
+    {
+        _selectTargetHeroIdx = pos;
+    }
+
+    private void _UseItem(Item item)
+    {
+        switch (item.Type)
+        {
+            case ItemType.RedPotion:
+                _teamData.Heroes[_selectTargetHeroIdx].ChangeHp(item.EffectValue);
+                break;
+            case ItemType.BluePotion:
+                _teamData.Heroes[_selectTargetHeroIdx].ChangeMp(item.EffectValue);
+                break;
+            default:
+                return;
+        }
+        item.RemoveNum(1);
+        _teamData.FreshBackpack(item.Pos);
     }
 }

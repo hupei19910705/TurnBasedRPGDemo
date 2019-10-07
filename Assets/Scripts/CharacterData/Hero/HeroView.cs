@@ -5,47 +5,52 @@ using UnityEngine;
 using UnityEngine.UI;
 using UnityEngine.EventSystems;
 
-public class MemberView : MonoBehaviour
+public class HeroView : MonoBehaviour,IPointerDownHandler
 {
     [SerializeField] private Animator _animator = null;
     [SerializeField] private Transform _skillEffectPos = null;
     [SerializeField] private Transform _leftLocate = null;
     [SerializeField] private Transform _rightLocate = null;
+    [SerializeField] private Transform _topLocate = null;
+    [SerializeField] private Transform _bottomLocate = null;
     [SerializeField] private Slider _hpSlider = null;
     [SerializeField] private Slider _mpSlider = null;
     [SerializeField] private Transform _root = null;
 
     public Transform LeftLocate { get { return _leftLocate; } }
     public Transform FrontLocate { get { return _rightLocate; } }
+    public Transform TopLocate { get { return _topLocate; } }
+    public Transform BottomLocate { get { return _bottomLocate; } }
     public Transform SkillEffectPos { get { return _skillEffectPos; } }
 
-    public event Action<double> MemberDamageEffect;
-    public event Action<int> MemberEndTurn;
+    public event Action<double> HeroDamageEffect;
+    public event Action<int> HeroEndTurn;
+    public event Action<int> SetTargetHero;
 
     private const float MOVING_SPEED = 50f;
     private const string GENERAL_ATTACK_TRIGGER_KEY = "GeneralAttack";
     private const string MEMBER_HIT_TRIGGER_KEY = "BeHit";
 
     private bool _isAttacking = false;
-    private TeamMemberData _memberData;
+    private HeroData _heroData;
     private double _attackMultiple = 1;
 
-    public void SetData(TeamMemberData data)
+    public void SetData(HeroData data)
     {
-        _memberData = data;
+        _heroData = data;
         ChangeHpSliderValue();
         ChangeMpSliderValue();
     }
 
     public void ChangeHpSliderValue()
     {
-        var value = (float)(_memberData.CurrentHp / _memberData.MaxHp * 100f);
+        var value = (float)(_heroData.CurrentHp / _heroData.MaxHp * 100f);
         _hpSlider.value = value;
     }
 
     public void ChangeMpSliderValue()
     {
-        var value = (float)(_memberData.CurrentMp / _memberData.MaxMp * 100f);
+        var value = (float)(_heroData.CurrentMp / _heroData.MaxMp * 100f);
         _mpSlider.value = value;
     }
 
@@ -62,8 +67,8 @@ public class MemberView : MonoBehaviour
 
         yield return _MoveToTarget(oriPos);
         _root.localPosition = Vector3.zero;
-        if (MemberEndTurn != null)
-            MemberEndTurn(_memberData.Pos);
+        if (HeroEndTurn != null)
+            HeroEndTurn(_heroData.Pos);
     }
 
     private IEnumerator _MoveToTarget(Vector3 target)
@@ -83,8 +88,8 @@ public class MemberView : MonoBehaviour
 
     public void DamageEffect()
     {
-        if (MemberDamageEffect != null)
-            MemberDamageEffect(_memberData.Attack * _attackMultiple);
+        if (HeroDamageEffect != null)
+            HeroDamageEffect(_heroData.Attack * _attackMultiple);
     }
 
     public void BeHit()
@@ -92,5 +97,11 @@ public class MemberView : MonoBehaviour
         ChangeHpSliderValue();
         ChangeMpSliderValue();
         _animator.SetTrigger(MEMBER_HIT_TRIGGER_KEY);
+    }
+
+    public void OnPointerDown(PointerEventData eventData)
+    {
+        if (SetTargetHero != null)
+            SetTargetHero(_heroData.Pos);
     }
 }

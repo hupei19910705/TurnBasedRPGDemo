@@ -6,6 +6,7 @@ using Utility.GameUtility;
 public class BattlePanel : MonoBehaviour
 {
     [SerializeField] private BattleView _battleView = null;
+    [SerializeField] private InfoView _infoView = null;
 
     [HideInInspector] public IBattlePresenter BattlePresenter { get; private set; }
     
@@ -16,6 +17,7 @@ public class BattlePanel : MonoBehaviour
 
     public void Initialize(TeamData teamData,Dictionary<int,EnemyData> enemiesData)
     {
+        _battleView.Initialize(_infoView);
         BattlePresenter = new BattlePresenter(_battleView, teamData, enemiesData) as IBattlePresenter;
     }
 }

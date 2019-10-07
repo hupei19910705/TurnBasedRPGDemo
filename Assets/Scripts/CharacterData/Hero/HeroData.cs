@@ -3,13 +3,13 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
-public enum MemberJob
+public enum HeroJob
 {
     Warrior,
     Wizard
 }
 
-public class TeamMemberData
+public class HeroData
 {
     private static int _serial = 0;
     private string _id;
@@ -26,7 +26,7 @@ public class TeamMemberData
         }
     }
     public string Name { get; private set; }
-    public MemberJob Job { get; private set; }
+    public HeroJob Job { get; private set; }
     public double OriginHp { get; private set; }
     public double MaxHp { get; private set; }
     public double CurrentHp { get; private set; }
@@ -46,7 +46,7 @@ public class TeamMemberData
     private const string HEAD_IMAGE_KEY_PREFIX = "Texture/Characters/Team Member/";
     private const string DEATH_IMAGE_KEY_PREFIX = "Texture/Icons/Death/";
 
-    public TeamMemberData(string name,MemberJob job,int hp,int mp,string headImageKey,string deathImageKey,double attack,double defence,int pos,int level)
+    public HeroData(string name,HeroJob job,int hp,int mp,string headImageKey,string deathImageKey,double attack,double defence,int pos,int level)
     {
         Name = name;
         Job = job;
@@ -88,6 +88,27 @@ public class TeamMemberData
 
     public void BeHit(double attack)
     {
+        ChangeHp(Math.Max(1, (attack - Defence)));
         CurrentHp = (int)Math.Max(0, Math.Floor(CurrentHp - Math.Max(1, (attack - Defence))));
+    }
+
+    public bool ChangeHp(double changeValue)
+    {
+        if (!IsAlive || (int)Math.Floor(MaxHp - CurrentHp) == 0)
+            return false;
+
+        CurrentHp += changeValue;
+        CurrentHp = Math.Floor(Mathf.Lerp(0f, (float)MaxHp, (float)(CurrentHp / MaxHp)));
+        return true;
+    }
+
+    public bool ChangeMp(double changeValue)
+    {
+        if (!IsAlive || (int)Math.Floor(MaxMp - CurrentMp) == 0)
+            return false;
+
+        CurrentMp += changeValue;
+        CurrentMp = Math.Floor(Mathf.Lerp(0f, (float)MaxMp, (float)(CurrentMp / MaxMp)));
+        return true;
     }
 }

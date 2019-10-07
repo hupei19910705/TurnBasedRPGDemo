@@ -4,20 +4,20 @@ using UnityEngine;
 
 namespace Utility.GameUtility
 {
-    public class TeamMemberObjectPool : GeneralObjectPool
+    public class HeroObjectPool : GeneralObjectPool
     {
         [SerializeField] private GameObject _warriorPrefab = null;
         [SerializeField] private GameObject _wizardPrefab = null;
 
-        private Dictionary<MemberJob, Queue<GameObject>> _memberObjects = new Dictionary<MemberJob, Queue<GameObject>>();
+        private Dictionary<HeroJob, Queue<GameObject>> _memberObjects = new Dictionary<HeroJob, Queue<GameObject>>();
 
-        private GameObject _GetPrefabByMemberJob(MemberJob job)
+        private GameObject _GetPrefabByMemberJob(HeroJob job)
         {
             switch (job)
             {
-                case MemberJob.Warrior:
+                case HeroJob.Warrior:
                     return _warriorPrefab;
-                case MemberJob.Wizard:
+                case HeroJob.Wizard:
                     return _wizardPrefab;
             }
             return _warriorPrefab;
@@ -26,21 +26,21 @@ namespace Utility.GameUtility
         public override void InitPool(int count = DEFAULT_INIT_COUNT)
         {
             _memberObjects.Clear();
-            _memberObjects.Add(MemberJob.Warrior, new Queue<GameObject>());
-            _memberObjects.Add(MemberJob.Wizard, new Queue<GameObject>());
+            _memberObjects.Add(HeroJob.Warrior, new Queue<GameObject>());
+            _memberObjects.Add(HeroJob.Wizard, new Queue<GameObject>());
 
             for (int i = 0; i < count; i++)
             {
                 var warriorObj = Instantiate(_warriorPrefab, _root);
                 warriorObj.SetActive(false);
-                _memberObjects[MemberJob.Warrior].Enqueue(warriorObj);
+                _memberObjects[HeroJob.Warrior].Enqueue(warriorObj);
                 var wizardObj = Instantiate(_wizardPrefab, _root);
                 wizardObj.SetActive(false);
-                _memberObjects[MemberJob.Wizard].Enqueue(wizardObj);
+                _memberObjects[HeroJob.Wizard].Enqueue(wizardObj);
             }
         }
 
-        public GameObject GetInstance(MemberJob job)
+        public GameObject GetInstance(HeroJob job)
         {
             GameObject obj = null;
 
@@ -53,7 +53,7 @@ namespace Utility.GameUtility
             return obj;
         }
 
-        public void ReturnInstance(MemberJob job, GameObject obj)
+        public void ReturnInstance(HeroJob job, GameObject obj)
         {
             obj.SetActive(false);
             obj.transform.SetParent(_root);

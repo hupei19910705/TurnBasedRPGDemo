@@ -4,7 +4,7 @@ using UnityEngine;
 
 namespace Utility.GameUtility
 {
-    public class EnemyMemberObjectPool : GeneralObjectPool
+    public class EnemyObjectPool : GeneralObjectPool
     {
         [SerializeField] private GameObject _snakePrefab = null;
         [SerializeField] private GameObject _pigPrefab = null;

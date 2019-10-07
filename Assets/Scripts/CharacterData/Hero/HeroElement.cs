@@ -5,7 +5,7 @@ using UnityEngine;
 using UnityEngine.UI;
 using Utility.GameUtility;
 
-public class MemberElement : MonoBehaviour
+public class HeroElement : MonoBehaviour
 {
     [SerializeField] private Image _headImage = null;
     [SerializeField] private Text _nameText = null;
@@ -17,13 +17,13 @@ public class MemberElement : MonoBehaviour
     [SerializeField] private GameObject _indicator = null;
     [SerializeField] private Toggle _toggle = null;
 
-    public event Action<bool,int> SelectMember;
+    public event Action<bool,int> SelectHero;
 
-    private TeamMemberData _memberData;
+    private HeroData _heroData;
 
-    public void SetData(TeamMemberData data,ToggleGroup toggleGroup)
+    public void SetData(HeroData data,ToggleGroup toggleGroup)
     {
-        _memberData = data;
+        _heroData = data;
         _toggle.onValueChanged.RemoveAllListeners();
         _toggle.onValueChanged.AddListener(SelectElement);
         _toggle.group = toggleGroup;
@@ -31,7 +31,7 @@ public class MemberElement : MonoBehaviour
         _LoadHeadImage(data.HeadImageKey);
         _nameText.text = data.Name;
         _jobText.text = data.Job.ToString();
-        UpdateStatus();
+        FreshHeroElementStatus();
     }
 
     private void _LoadHeadImage(string path)
@@ -42,8 +42,8 @@ public class MemberElement : MonoBehaviour
     public void SelectElement(bool select)
     {
         _indicator.SetActive(select);
-        if (SelectMember != null)
-            SelectMember(select, _memberData.Pos);
+        if (SelectHero != null)
+            SelectHero(select, _heroData.Pos);
     }
 
     public void LockToggle(bool isLock)
@@ -57,12 +57,14 @@ public class MemberElement : MonoBehaviour
         _toggle.isOn = value;
     }
 
-    public void UpdateStatus()
+    public void FreshHeroElementStatus()
     {
-        _levelText.text = _memberData.Level.ToString();
-        _expText.text = string.Format("{0}/{1}", _memberData.Exp, BattleUtility.Instance.GetLevelUpExpByLevel(_memberData.Level));
-        _hpText.text = string.Format("{0}/{1}", _memberData.CurrentHp, _memberData.MaxHp);
-        _mpText.text = string.Format("{0}/{1}", _memberData.CurrentMp, _memberData.MaxMp);
-        LockToggle(!_memberData.IsAlive || _memberData.IsTurnEnd);
+        _levelText.text = _heroData.Level.ToString();
+        _expText.text = string.Format("{0}/{1}", _heroData.Exp, BattleUtility.Instance.GetLevelUpExpByLevel(_heroData.Level));
+        _hpText.text = string.Format("{0}/{1}", _heroData.CurrentHp, _heroData.MaxHp);
+        _mpText.text = string.Format("{0}/{1}", _heroData.CurrentMp, _heroData.MaxMp);
+        var lockToggle = !_heroData.IsAlive || _heroData.IsTurnEnd;
+        if(lockToggle)
+            LockToggle(true);
     }
 }

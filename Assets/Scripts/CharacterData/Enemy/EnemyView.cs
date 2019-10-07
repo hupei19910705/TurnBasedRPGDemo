@@ -11,9 +11,13 @@ public class EnemyView : MonoBehaviour,IPointerDownHandler
     [SerializeField] private Transform _skillEffectPos = null;
     [SerializeField] private Slider _hpSlider = null;
     [SerializeField] private Transform _leftLocate = null;
+    [SerializeField] private Transform _topLocate = null;
+    [SerializeField] private Transform _bottomLocate = null;
     [SerializeField] private Transform _root = null;
 
     public Transform FrontLocate { get { return _leftLocate; } }
+    public Transform TopLocate { get { return _topLocate; } }
+    public Transform BottomLocate { get { return _bottomLocate; } }
     public Transform SkillEffectPos { get { return _skillEffectPos; } }
 
     public event Action<int> SelectEnemy;

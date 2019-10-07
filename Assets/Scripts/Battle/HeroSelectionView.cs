@@ -4,7 +4,7 @@ using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.UI;
 
-public class MemberSelectionView : MonoBehaviour
+public class HeroSelectionView : MonoBehaviour
 {
     [SerializeField] private Button _attackBtn = null;
     [SerializeField] private Toggle _showSkillToggle = null;

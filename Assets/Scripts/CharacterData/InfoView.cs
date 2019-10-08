@@ -7,32 +7,34 @@ using UnityEngine.UI;
 
 public interface IInfoView
 {
-    void Show(string name, int count, string desc, int pos, Action useAction);
+    void Show(string name,string subText, string desc, int flag, Action useAction, bool useAble = true);
     void EndShow();
     event Action HideArrowAndSelectImage;
-    int Pos { get; }
+    int Flag { get; }
 }
 
 public class InfoView : MonoBehaviour, IInfoView
 {
     [SerializeField] private Text _name = null;
-    [SerializeField] private Text _count = null;
+    [SerializeField] private Text _subText = null;
     [SerializeField] private Text _desc = null;
+    [SerializeField] private Text _tip = null;
     [SerializeField] private Button _useBtn = null;
     [SerializeField] private Button _cancelBtn = null;
 
-    public event Action HideArrowAndSelectImage;
-    public int Pos { get; private set; } = -1;
+    [SerializeField] private Color _titleColor = default;
 
-    public void Show(string name,int count ,string desc,int pos, Action useAction)
+    public event Action HideArrowAndSelectImage;
+    public int Flag { get; private set; } = -1;
+
+    public void Show(string name,string subText ,string desc,int flag, Action useAction,bool useAble = true)
     {
         gameObject.SetActive(true);
 
         _name.text = name;
-        _count.gameObject.SetActive(count > 0);
-        _count.text = "数量:" + count;
+        _subText.text = subText;
         _desc.text = desc;
-        Pos = pos;
+        Flag = flag;
 
         _useBtn.onClick.RemoveAllListeners();
         _cancelBtn.onClick.RemoveAllListeners();
@@ -44,6 +46,20 @@ public class InfoView : MonoBehaviour, IInfoView
             EndShow();
         });
         _cancelBtn.onClick.AddListener(EndShow);
+
+        _tip.gameObject.SetActive(!useAble);
+        if (!useAble)
+        {
+            _tip.color = Color.red;
+            _tip.text = "无法使用";
+            _useBtn.interactable = false;
+            _subText.color = Color.red;
+        }
+        else
+        {
+            _useBtn.interactable = true;
+            _subText.color = _titleColor;
+        }
     }
 
     public void EndShow()

@@ -9,33 +9,47 @@ public class SkillEffectView : MonoBehaviour
 
     private Transform _defaultRoot = null;
 
-    private const float MOVING_SPEED = 50f;
-    private ParallelCoroutines _parallelCor = new ParallelCoroutines();
+    private bool _playFinished = false;
+    public bool Ballistic { get; private set; }
 
-    public void Init(Transform transform)
+    public void Init(Transform transform,bool ballistic = false)
     {
         _defaultRoot = transform;
+        Ballistic = ballistic;
     }
 
-    public void PlaySkillEffect(Transform target,bool needMove = false)
+    public void LocateTo(Transform locate)
     {
-        if(!needMove)
-        {
-            _root.SetParent(target,false);
-            _root.localPosition = Vector3.zero;
-            _root.gameObject.SetActive(true);
-        }
-        else
-        {
-            _parallelCor.Add(_MoveToTarget(target.position));
-            StartCoroutine(_parallelCor.Execute());
-        }
+        _root.SetParent(locate, false);
+        _root.localPosition = Vector3.zero;
+        _root.gameObject.SetActive(true);
     }
 
-    private IEnumerator _MoveToTarget(Vector3 target)
+    public IEnumerator PlaySkillAni(Transform target)
+    {
+        if (Ballistic)
+            yield break;
+
+        _playFinished = false;
+        LocateTo(target);
+
+        while (!_playFinished)
+            yield return null;
+    }
+
+    public IEnumerator PlaySkillAni(Transform target, float speed)
+    {
+        if (!Ballistic)
+            yield break;
+
+        _playFinished = false;
+        yield return _MoveToTarget(target.position, speed);
+    }
+
+    private IEnumerator _MoveToTarget(Vector3 target,float moveSpeed)
     {
         _root.gameObject.SetActive(true);
-        var speed = (target - _root.position).normalized * MOVING_SPEED;
+        var speed = (target - _root.position).normalized * moveSpeed;
         while (Mathf.Abs((target - _root.position).x) > Mathf.Abs(speed.x))
         {
             _root.position += speed;
@@ -43,7 +57,6 @@ public class SkillEffectView : MonoBehaviour
         }
         _root.position = target;
         PlayFinish();
-        StopCoroutine(_parallelCor.Execute());
     }
 
     public void PlayFinish()
@@ -51,5 +64,6 @@ public class SkillEffectView : MonoBehaviour
         _root.gameObject.SetActive(false);
         _root.SetParent(_defaultRoot,false);
         _root.localPosition = Vector3.zero;
+        _playFinished = true;
     }
 }

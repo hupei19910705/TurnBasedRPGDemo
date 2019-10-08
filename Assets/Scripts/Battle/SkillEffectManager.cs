@@ -1,15 +1,16 @@
 ﻿using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using UnityEngine.Events;
 
-public enum SkillEffetType
+public enum SkillVariety
 {
     FireBall,
-    FireBallExplotion,
     Hit,
-    IceExplotion,
+    Ice,
     MagicAura
 }
+
 public class SkillEffectManager : MonoBehaviour
 {
     [SerializeField] private SkillEffectView _fireBall = null;
@@ -20,28 +21,65 @@ public class SkillEffectManager : MonoBehaviour
 
     public void Init()
     {
-        _fireBall.Init(transform);
+        _fireBall.Init(transform, true);
         _fireBallExplotion.Init(transform);
         _hit.Init(transform);
         _iceExplotion.Init(transform);
         _magicAura.Init(transform);
     }
 
-    public SkillEffectView GetSkillEffectByType(SkillEffetType type)
+    public IEnumerator PlaySkillEffect(Skill skill,Transform fromTrans,Transform targetTrans,UnityAction callBack)
     {
-        switch(type)
+        bool callBackInvoked = false;
+        var variety = skill == null ? SkillVariety.Hit : skill.Variety;
+        var skillEffects = _GetSkillEffects(variety);
+
+        if (skillEffects == null || skillEffects.Count == 0)
+            yield break;
+
+        for (int i = 0; i < skillEffects.Count; i++)
         {
-            case SkillEffetType.FireBall:
-                return _fireBall;
-            case SkillEffetType.FireBallExplotion:
-                return _fireBallExplotion;
-            case SkillEffetType.Hit:
-                return _hit;
-            case SkillEffetType.IceExplotion:
-                return _iceExplotion;
-            case SkillEffetType.MagicAura:
-                return _magicAura;
+            if (skillEffects[i].Ballistic)
+            {
+                skillEffects[i].LocateTo(fromTrans);
+                yield return skillEffects[i].PlaySkillAni(targetTrans, skill.MoveSpeed);
+                if (!callBackInvoked && callBack != null)
+                {
+                    callBack();
+                    callBackInvoked = true;
+                }
+            }
+            else
+            {
+                yield return skillEffects[i].PlaySkillAni(targetTrans);
+                if (!callBackInvoked && callBack != null)
+                {
+                    callBack();
+                    callBackInvoked = true;
+                }
+            }
         }
-        return _fireBallExplotion;
+    }
+
+    private List<SkillEffectView> _GetSkillEffects(SkillVariety variety)
+    {
+        List<SkillEffectView> list = new List<SkillEffectView>();
+        switch(variety)
+        {
+            case SkillVariety.FireBall:
+                list.Add(_fireBall);
+                list.Add(_fireBallExplotion);
+                break;
+            case SkillVariety.Hit:
+                list.Add(_hit);
+                break;
+            case SkillVariety.Ice:
+                list.Add(_iceExplotion);
+                break;
+            case SkillVariety.MagicAura:
+                list.Add(_magicAura);
+                break;
+        }
+        return list;
     }
 }

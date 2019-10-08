@@ -51,27 +51,29 @@ public class BattlePresenter : IBattlePresenter
     private void _Register()
     {
         _UnRegister();
-        _view.SelectMember += _SelectMember;
+        _view.SelectHero += _SelectHero;
         _view.SelectEnemy += _SelectEnemy;
-        _view.HeroEndTurn += _MemberEndTurn;
-        _view.MemberDamageEffect += _MemberDamageEffect;
-        _view.EnemyDamageEffect += _EnemyDamageEffect;
+        _view.HeroEndTurn += _HeroEndTurn;
+        _view.EnemyBeHit += _EnemyBeHit;
+        _view.HeroBeHit += _HeroBeHit;
         _view.UseItem += _UseItem;
         _view.SetTargetHero += _SetTargetHero;
+        _view.UseSkill += _UseSkill;
     }
 
     private void _UnRegister()
     {
-        _view.SelectMember -= _SelectMember;
+        _view.SelectHero -= _SelectHero;
         _view.SelectEnemy -= _SelectEnemy;
-        _view.HeroEndTurn -= _MemberEndTurn;
-        _view.MemberDamageEffect -= _MemberDamageEffect;
-        _view.EnemyDamageEffect -= _EnemyDamageEffect;
+        _view.HeroEndTurn -= _HeroEndTurn;
+        _view.EnemyBeHit -= _EnemyBeHit;
+        _view.HeroBeHit -= _HeroBeHit;
         _view.UseItem -= _UseItem;
         _view.SetTargetHero -= _SetTargetHero;
+        _view.UseSkill -= _UseSkill;
     }
 
-    private void _SelectMember(bool select,int pos)
+    private void _SelectHero(bool select,int pos)
     {
         _curHeroIdx = select ? pos : -1;
     }
@@ -81,7 +83,7 @@ public class BattlePresenter : IBattlePresenter
         _curEnemyIdx = pos;
     }
 
-    private void _MemberEndTurn(int pos)
+    private void _HeroEndTurn(int pos)
     {
         _teamData.Heroes[pos].SetEndTurnFlag(true);
     }
@@ -134,7 +136,7 @@ public class BattlePresenter : IBattlePresenter
         _view.ActiveHeroElement();
     }
 
-    private void _MemberDamageEffect(double attack)
+    private void _EnemyBeHit(double attack)
     {
         var enemy = _enemiesData[_curEnemyIdx];
         enemy.BeHit(attack);
@@ -142,7 +144,7 @@ public class BattlePresenter : IBattlePresenter
             _leave = true;
     }
 
-    private void _EnemyDamageEffect(double attack)
+    private void _HeroBeHit(double attack)
     {
         var member = _teamData.Heroes[_targetHeroIdx];
         member.BeHit(attack);
@@ -176,5 +178,18 @@ public class BattlePresenter : IBattlePresenter
         }
         item.RemoveNum(1);
         _teamData.FreshBackpack(item.Pos);
+    }
+
+    private void _UseSkill(Skill skill)
+    {
+        var targetEnemy = _enemiesData[_curEnemyIdx];
+        var curHero = _teamData.Heroes[_curHeroIdx];
+
+        curHero.ChangeMp(-skill.MpCost);
+
+        if (skill.EffectType == EffectType.Constant)
+            targetEnemy.BeHit(skill.EffectValue, EffectType.Constant);
+        else
+            targetEnemy.BeHit(skill.Multiple * curHero.Attack, EffectType.Multiple);
     }
 }

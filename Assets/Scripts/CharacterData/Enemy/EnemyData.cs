@@ -57,8 +57,24 @@ public class EnemyData
         DropItems = dropItems;
     }
 
-    public void BeHit(double attack)
+    public void BeHit(double attack,EffectType effectType = EffectType.Multiple)
     {
-        CurrentHp = (int)Math.Max(0, Math.Floor(CurrentHp - Math.Max(1, (attack - Defence))));
+        var changeVlaue = attack - Defence;
+        if (effectType == EffectType.Constant)
+            changeVlaue = attack;
+
+        changeVlaue = Math.Max(1, changeVlaue);
+
+        ChangeHp(-changeVlaue);
+    }
+
+    public bool ChangeHp(double changeValue)
+    {
+        if (!IsAlive)
+            return false;
+
+        CurrentHp += changeValue;
+        CurrentHp = Math.Floor(Mathf.Lerp(0f, (float)MaxHp, (float)(CurrentHp / MaxHp)));
+        return true;
     }
 }

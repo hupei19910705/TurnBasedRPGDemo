@@ -39,7 +39,7 @@ public class HeroData
     public double Attack { get; private set; }
     public double Defence { get; private set; }
     public int Pos;
-    public Dictionary<SkillType,List<Skill>> Skills { get; private set; }
+    public Dictionary<string,Skill> Skills { get; private set; }
     public bool IsAlive { get { return CurrentHp > 0; } }
     public bool IsTurnEnd { get; private set; }
 
@@ -62,23 +62,17 @@ public class HeroData
         IsTurnEnd = false;
     }
 
-    public void SetSkills(Dictionary<SkillType, List<Skill>> skills)
+    public void SetSkills(Dictionary<string,Skill> skills)
     {
         Skills = skills;
     }
 
     public void AddSkill(Skill skill)
     {
-        if(Skills.ContainsKey(skill.Type))
-        {
-            foreach(var s in Skills[skill.Type])
-            {
-                if (!string.Equals(s.ID, skill.ID))
-                    Skills[skill.Type].Add(skill);
-            }
-        }
+        if (Skills.ContainsKey(skill.ID) && Skills[skill.ID].SkillLv > skill.SkillLv)
+            Skills[skill.ID] = skill;
         else
-            Skills.Add(skill.Type, new List<Skill> { skill });
+            Skills.Add(skill.ID, skill);
     }
 
     public void SetEndTurnFlag(bool endTurn)
@@ -86,10 +80,15 @@ public class HeroData
         IsTurnEnd = endTurn;
     }
 
-    public void BeHit(double attack)
+    public void BeHit(double attack, EffectType effectType = EffectType.Multiple)
     {
-        ChangeHp(Math.Max(1, (attack - Defence)));
-        CurrentHp = (int)Math.Max(0, Math.Floor(CurrentHp - Math.Max(1, (attack - Defence))));
+        var changeVlaue = attack - Defence;
+        if (effectType == EffectType.Constant)
+            changeVlaue = attack;
+
+        changeVlaue = Math.Max(1, changeVlaue);
+
+        ChangeHp(-changeVlaue);
     }
 
     public bool ChangeHp(double changeValue)
@@ -104,7 +103,7 @@ public class HeroData
 
     public bool ChangeMp(double changeValue)
     {
-        if (!IsAlive || (int)Math.Floor(MaxMp - CurrentMp) == 0)
+        if (!IsAlive)
             return false;
 
         CurrentMp += changeValue;

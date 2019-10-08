@@ -46,12 +46,19 @@ public class HeroView : MonoBehaviour,IPointerDownHandler
     {
         var value = (float)(_heroData.CurrentHp / _heroData.MaxHp * 100f);
         _hpSlider.value = value;
+        _CheckAlive();
     }
 
     public void ChangeMpSliderValue()
     {
         var value = (float)(_heroData.CurrentMp / _heroData.MaxMp * 100f);
         _mpSlider.value = value;
+    }
+
+    private void _CheckAlive()
+    {
+        if (!_heroData.IsAlive)
+            _root.gameObject.SetActive(false);
     }
 
     public IEnumerator GeneralAttack(Vector3 target)

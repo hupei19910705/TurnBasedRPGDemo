@@ -93,7 +93,7 @@ public class HeroData
 
     public bool ChangeHp(double changeValue)
     {
-        if (!IsAlive || (int)Math.Floor(MaxHp - CurrentHp) == 0)
+        if (!IsAlive)
             return false;
 
         CurrentHp += changeValue;

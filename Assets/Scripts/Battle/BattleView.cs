@@ -12,7 +12,6 @@ public interface IBattleView
     void Enter(TeamData teamData,Dictionary<int, EnemyData> enemiesData);
     IEnumerator RunEnemyTurn(int enemyPos, int targetMemberPos);
     void ActiveHeroElement();
-    void SetTargetEnemy(int pos);
 
     event Action<bool, int> SelectHero;
     event Action<int> SelectEnemy;
@@ -58,7 +57,6 @@ public class BattleView : MonoBehaviour, IBattleView
     [SerializeField] private MemberGroupView _enemyMemberGroupView = null;
     [SerializeField] private EnemyObjectPool _enemyMemberPool = null;
     [SerializeField] private Transform _enemySelectArrow = null;
-    [SerializeField] private Transform _enemyTargetArrow = null;
 
     [Header("Other")]
     [SerializeField] private Transform _defaultArrowRoot = null;
@@ -157,7 +155,7 @@ public class BattleView : MonoBehaviour, IBattleView
         _heroSelectionView.OnGeneralAttack += _HeroGeneralAttack;
         _heroSelectionView.ListSkills += _ListSkills;
         _heroSelectionView.ListItems += _ListItems;
-        _heroSelectionView.OnSkip += _CurHeroEndTurn;
+        _heroSelectionView.OnSkip += _Skip;
     }
 
     private void _UnRegisterEvents()
@@ -165,15 +163,15 @@ public class BattleView : MonoBehaviour, IBattleView
         _heroSelectionView.OnGeneralAttack -= _HeroGeneralAttack;
         _heroSelectionView.ListSkills -= _ListSkills;
         _heroSelectionView.ListItems -= _ListItems;
-        _heroSelectionView.OnSkip -= _CurHeroEndTurn;
+        _heroSelectionView.OnSkip -= _Skip;
     }
 
     private void _InitHeroes()
     {
-        foreach (var member in _teamData.Heroes.Values.ToList())
+        foreach (var hero in _teamData.Heroes.Values.ToList())
         {
-            _SetHeroView(member);
-            _SetHeroElement(member);
+            _SetHeroView(hero);
+            _SetHeroElement(hero);
         }
     }
 
@@ -192,7 +190,6 @@ public class BattleView : MonoBehaviour, IBattleView
             return;
         if (SelectEnemy != null)
             SelectEnemy(_curEnemyIdx);
-        _enemySelectArrow.gameObject.SetActive(true);
         _SelectEnemy(_curEnemyIdx);
     }
 
@@ -280,19 +277,24 @@ public class BattleView : MonoBehaviour, IBattleView
         if (!_operable)
             return;
         _operable = false;
+
         _SetTopTipText(BattleOperationType.HeroTurn);
         if (_curEnemyIdx == -1)
             _curEnemyIdx = _enemiesData.First().Key;
 
-        var heroElement = _heroElements[_curHeroIdx];
-        heroElement.SelectElement(false);
-        heroElement.LockToggle(true);
         _parallelCor.Add(_HeroGeneralAtk());
     }
 
     private IEnumerator _HeroGeneralAtk()
     {
-        yield return _heroViews[_curHeroIdx].GeneralAttack(_enemyViews[_curEnemyIdx].FrontLocate.position);
+        var heroView = _heroViews[_curHeroIdx];
+        var heroElement = _heroElements[_curHeroIdx];
+        var enemyView = _enemyViews[_curEnemyIdx];
+
+        yield return heroView.GeneralAttack(enemyView.FrontLocate.position);
+
+        heroElement.SelectElement(false);
+        heroElement.LockToggle(true);
         _operable = true;
     }
 
@@ -302,23 +304,25 @@ public class BattleView : MonoBehaviour, IBattleView
             EnemyBeHit(attack);
 
         _parallelCor.Add(_PlayHeroSkill(null));
-
-        if (!_enemiesData[_curEnemyIdx].IsAlive)
-            _SetFirstEnemyArrow();
     }
 
-    private void _CurHeroEndTurn()
+    private void _Skip()
     {
         if (!_operable)
             return;
         _operable = false;
+        _CurHeroEndTurn();
+        _operable = true;
+    }
+
+    private void _CurHeroEndTurn()
+    {
         _SetTopTipText(BattleOperationType.HeroTurn);
         if (HeroEndTurn != null)
             HeroEndTurn(_curHeroIdx);
         var heroElement = _heroElements[_curHeroIdx];
         heroElement.SelectElement(false);
         heroElement.LockToggle(true);
-        _operable = true;
     }
 
     public void ActiveHeroElement()
@@ -347,7 +351,6 @@ public class BattleView : MonoBehaviour, IBattleView
     {
         if (HeroBeHit != null)
             HeroBeHit(attack);
-        _heroElements[_targetHeroIdx].FreshHeroElementStatus();
 
         _parallelCor.Add(_PlayEnemySkill(null));
     }
@@ -559,12 +562,7 @@ public class BattleView : MonoBehaviour, IBattleView
 
         _parallelCor.Add(_PlayHeroSkill(skill));
 
-        if (!_enemiesData[_curEnemyIdx].IsAlive)
-            _SetFirstEnemyArrow();
-
-        _FreshAllHeroStatus();
-        _FreshAllSkillView();
-        _CurHeroEndTurn();
+        
     }
 
     private void _FreshAllSkillView()
@@ -577,22 +575,34 @@ public class BattleView : MonoBehaviour, IBattleView
     private IEnumerator _PlayHeroSkill(Skill skill)
     {
         var enemyView = _enemyViews[_curEnemyIdx];
-        yield return _skillEffectManager.PlaySkillEffect(skill, _heroViews[_curHeroIdx].SkillEffectPos, enemyView.SkillEffectPos,enemyView.BeHit);
+        yield return _skillEffectManager.PlaySkillEffect(skill, _heroViews[_curHeroIdx].SkillEffectPos, enemyView.SkillEffectPos,
+            () =>
+            {
+                enemyView.BeHit();
+                _FreshAllHeroStatus();
+            });
+
+        if (!_enemiesData[_curEnemyIdx].IsAlive)
+            _SetFirstEnemyArrow();
+
+        if(skill != null)
+            _FreshAllSkillView();
+
+        _CurHeroEndTurn();
         _operable = true;
     }
 
     private IEnumerator _PlayEnemySkill(Skill skill)
     {
         var heroView = _heroViews[_targetHeroIdx];
-        yield return _skillEffectManager.PlaySkillEffect(skill, _enemyViews[_curEnemyIdx].SkillEffectPos, heroView.SkillEffectPos, heroView.BeHit);
-        _operable = true;
-    }
+        yield return _skillEffectManager.PlaySkillEffect(skill, _enemyViews[_curEnemyIdx].SkillEffectPos, heroView.SkillEffectPos,
+            () =>
+            {
+                heroView.BeHit();
+                _FreshAllHeroStatus();
+            });
 
-    public void SetTargetEnemy(int pos)
-    {
-        _enemyTargetArrow.gameObject.SetActive(true);
-        _enemyTargetArrow.SetParent(_enemyViews[pos].TopLocate);
-        _enemyTargetArrow.localPosition = Vector3.zero;
+        _operable = true;
     }
     #endregion
 }

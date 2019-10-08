@@ -775,80 +775,6 @@ MonoBehaviour:
       m_Calls: []
     m_TypeName: UnityEngine.UI.ScrollRect+ScrollRectEvent, UnityEngine.UI, Version=1.0.0.0,
       Culture=neutral, PublicKeyToken=null
---- !u!1 &536932395
-GameObject:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  serializedVersion: 6
-  m_Component:
-  - component: {fileID: 536932396}
-  - component: {fileID: 536932398}
-  - component: {fileID: 536932397}
-  m_Layer: 5
-  m_Name: EnemyTargetArrow
-  m_TagString: Untagged
-  m_Icon: {fileID: 0}
-  m_NavMeshLayer: 0
-  m_StaticEditorFlags: 0
-  m_IsActive: 0
---- !u!224 &536932396
-RectTransform:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 536932395}
-  m_LocalRotation: {x: 0, y: 0, z: -0.7071068, w: 0.7071068}
-  m_LocalPosition: {x: 0, y: 0, z: 0}
-  m_LocalScale: {x: 1, y: 1, z: 1}
-  m_Children: []
-  m_Father: {fileID: 2062046745}
-  m_RootOrder: 3
-  m_LocalEulerAnglesHint: {x: 0, y: 0, z: -90}
-  m_AnchorMin: {x: 0.5, y: 0.5}
-  m_AnchorMax: {x: 0.5, y: 0.5}
-  m_AnchoredPosition: {x: 0, y: 0}
-  m_SizeDelta: {x: 31, y: 28}
-  m_Pivot: {x: 0.5, y: 0.5}
---- !u!114 &536932397
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 536932395}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: -765806418, guid: f70555f144d8491a825f0804e09c671c, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  m_Material: {fileID: 0}
-  m_Color: {r: 1, g: 1, b: 1, a: 1}
-  m_RaycastTarget: 1
-  m_OnCullStateChanged:
-    m_PersistentCalls:
-      m_Calls: []
-    m_TypeName: UnityEngine.UI.MaskableGraphic+CullStateChangedEvent, UnityEngine.UI,
-      Version=1.0.0.0, Culture=neutral, PublicKeyToken=null
-  m_Sprite: {fileID: 21300000, guid: 695b2be4ae962c1438fe45e11a857c34, type: 3}
-  m_Type: 0
-  m_PreserveAspect: 0
-  m_FillCenter: 1
-  m_FillMethod: 4
-  m_FillAmount: 1
-  m_FillClockwise: 1
-  m_FillOrigin: 0
-  m_UseSpriteMesh: 0
---- !u!222 &536932398
-CanvasRenderer:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 536932395}
-  m_CullTransparentMesh: 0
 --- !u!1 &700159927
 GameObject:
   m_ObjectHideFlags: 0
@@ -2386,7 +2312,6 @@ MonoBehaviour:
   _enemyMemberGroupView: {fileID: 469649879}
   _enemyMemberPool: {fileID: 957533966}
   _enemySelectArrow: {fileID: 1563376309}
-  _enemyTargetArrow: {fileID: 536932396}
   _defaultArrowRoot: {fileID: 2062046745}
   _ItemsOrSkillsScroll: {fileID: 503556222}
   _itemPool: {fileID: 703410938}
@@ -2656,7 +2581,7 @@ GameObject:
   - component: {fileID: 1750737699}
   - component: {fileID: 1750737698}
   m_Layer: 5
-  m_Name: TeamMembers
+  m_Name: HeroElements
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -2785,7 +2710,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   m_Material: {fileID: 0}
-  m_Color: {r: 0, g: 0.44456172, b: 1, a: 1}
+  m_Color: {r: 1, g: 0.8873018, b: 0, a: 1}
   m_RaycastTarget: 1
   m_OnCullStateChanged:
     m_PersistentCalls:
@@ -3123,7 +3048,6 @@ RectTransform:
   - {fileID: 460075750}
   - {fileID: 1533612504}
   - {fileID: 1563376309}
-  - {fileID: 536932396}
   m_Father: {fileID: 1552867069}
   m_RootOrder: 0
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
@@ -3293,6 +3217,16 @@ PrefabInstance:
   m_Modification:
     m_TransformParent: {fileID: 260162779}
     m_Modifications:
+    - target: {fileID: 6879607105539482740, guid: 981022a9fc39fe4478e08e3da42302c2,
+        type: 3}
+      propertyPath: m_Name
+      value: InfoView
+      objectReference: {fileID: 0}
+    - target: {fileID: 6879607105539482740, guid: 981022a9fc39fe4478e08e3da42302c2,
+        type: 3}
+      propertyPath: m_IsActive
+      value: 0
+      objectReference: {fileID: 0}
     - target: {fileID: 6879607105539482741, guid: 981022a9fc39fe4478e08e3da42302c2,
         type: 3}
       propertyPath: m_LocalPosition.x
@@ -3412,16 +3346,6 @@ PrefabInstance:
         type: 3}
       propertyPath: _titleColor.a
       value: 1
-      objectReference: {fileID: 0}
-    - target: {fileID: 6879607105539482740, guid: 981022a9fc39fe4478e08e3da42302c2,
-        type: 3}
-      propertyPath: m_Name
-      value: InfoView
-      objectReference: {fileID: 0}
-    - target: {fileID: 6879607105539482740, guid: 981022a9fc39fe4478e08e3da42302c2,
-        type: 3}
-      propertyPath: m_IsActive
-      value: 0
       objectReference: {fileID: 0}
     - target: {fileID: 6879607104377553315, guid: 981022a9fc39fe4478e08e3da42302c2,
         type: 3}

@@ -146,8 +146,8 @@ public class BattlePresenter : IBattlePresenter
 
     private void _HeroBeHit(double attack)
     {
-        var member = _teamData.Heroes[_targetHeroIdx];
-        member.BeHit(attack);
+        var hero = _teamData.Heroes[_targetHeroIdx];
+        hero.BeHit(attack);
     }
 
     private bool _CheckEnemiesAlive()

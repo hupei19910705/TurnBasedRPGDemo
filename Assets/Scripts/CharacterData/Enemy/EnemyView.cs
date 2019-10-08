@@ -41,6 +41,13 @@ public class EnemyView : MonoBehaviour,IPointerDownHandler
     {
         var value = (float)(_enemyData.CurrentHp / _enemyData.MaxHp * 100f);
         _hpSlider.value = value;
+        _CheckAlive();
+    }
+
+    private void _CheckAlive()
+    {
+        if (!_enemyData.IsAlive)
+            _root.gameObject.SetActive(false);
     }
 
     public void BeHit()

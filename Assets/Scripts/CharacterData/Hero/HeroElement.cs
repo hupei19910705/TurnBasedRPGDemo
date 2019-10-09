@@ -17,7 +17,7 @@ public class HeroElement : MonoBehaviour
     [SerializeField] private GameObject _indicator = null;
     [SerializeField] private Toggle _toggle = null;
 
-    public event Action<bool,int> SelectHero;
+    public event Action<bool,int> SelectHeroElement;
 
     private HeroData _heroData;
 
@@ -42,8 +42,8 @@ public class HeroElement : MonoBehaviour
     public void SelectElement(bool select)
     {
         _indicator.SetActive(select);
-        if (SelectHero != null)
-            SelectHero(select, _heroData.Pos);
+        if (SelectHeroElement != null)
+            SelectHeroElement(select, _heroData.Pos);
     }
 
     public void LockToggle(bool isLock)

@@ -7,10 +7,9 @@ using UnityEngine.UI;
 
 public interface IInfoView
 {
-    void Show(string name,string subText, string desc, int flag, Action useAction, bool useAble = true);
+    void Show(string name,string subText, string desc, Action useAction, bool useAble = true);
     void EndShow();
     event Action HideArrowAndSelectImage;
-    int Flag { get; }
 }
 
 public class InfoView : MonoBehaviour, IInfoView
@@ -25,16 +24,14 @@ public class InfoView : MonoBehaviour, IInfoView
     [SerializeField] private Color _titleColor = default;
 
     public event Action HideArrowAndSelectImage;
-    public int Flag { get; private set; } = -1;
 
-    public void Show(string name,string subText ,string desc,int flag, Action useAction,bool useAble = true)
+    public void Show(string name,string subText ,string desc, Action useAction,bool useAble = true)
     {
         gameObject.SetActive(true);
 
         _name.text = name;
         _subText.text = subText;
         _desc.text = desc;
-        Flag = flag;
 
         _useBtn.onClick.RemoveAllListeners();
         _cancelBtn.onClick.RemoveAllListeners();

@@ -20,7 +20,7 @@ public class EnemyView : MonoBehaviour,IPointerDownHandler
     public Transform BottomLocate { get { return _bottomLocate; } }
     public Transform SkillEffectPos { get { return _skillEffectPos; } }
 
-    public event Action<int> SelectEnemy;
+    public event Action<int> SelectEnemyView;
     public event Action<double> EnemyDamageEffect;
 
     private const string ENEMY_HIT_TRIGGER_KEY = "BeHit";
@@ -58,8 +58,8 @@ public class EnemyView : MonoBehaviour,IPointerDownHandler
 
     public void OnPointerDown(PointerEventData eventData)
     {
-        if (SelectEnemy != null && _enemyData.IsAlive)
-            SelectEnemy(_enemyData.Pos);
+        if (SelectEnemyView != null && _enemyData.IsAlive)
+            SelectEnemyView(_enemyData.Pos);
     }
 
     public IEnumerator GeneralAttack(Vector3 target)

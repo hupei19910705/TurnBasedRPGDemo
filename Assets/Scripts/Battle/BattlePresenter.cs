@@ -15,6 +15,8 @@ public class BattlePresenter : IBattlePresenter
     private Dictionary<int, EnemyData> _enemiesData = null;
     
     private bool _leave = false;
+    private bool _isEnemyTurn = false;
+
     private int _curHeroIdx = -1;
     private int _curEnemyIdx = -1;
     private int _targetHeroIdx = -1;
@@ -39,21 +41,23 @@ public class BattlePresenter : IBattlePresenter
 
         while (!_leave)
         {
-            if(_CheckIsHeroTurnEnd())
+            if(_isEnemyTurn)
             {
                 yield return _EnemiesTurn();
                 _ActiveHeroTurn();
+                _isEnemyTurn = false;
             }
             yield return null;
         }
     }
 
+    #region Init
     private void _Register()
     {
         _UnRegister();
         _view.SelectHero += _SelectHero;
         _view.SelectEnemy += _SelectEnemy;
-        _view.HeroEndTurn += _HeroEndTurn;
+        _view.HeroEndTurn += _EndHeroTurn;
         _view.EnemyBeHit += _EnemyBeHit;
         _view.HeroBeHit += _HeroBeHit;
         _view.UseItem += _UseItem;
@@ -65,56 +69,40 @@ public class BattlePresenter : IBattlePresenter
     {
         _view.SelectHero -= _SelectHero;
         _view.SelectEnemy -= _SelectEnemy;
-        _view.HeroEndTurn -= _HeroEndTurn;
+        _view.HeroEndTurn -= _EndHeroTurn;
         _view.EnemyBeHit -= _EnemyBeHit;
         _view.HeroBeHit -= _HeroBeHit;
         _view.UseItem -= _UseItem;
         _view.SetTargetHero -= _SetTargetHero;
         _view.UseSkill -= _UseSkill;
     }
+    #endregion
 
+    #region Hero
     private void _SelectHero(bool select,int pos)
     {
         _curHeroIdx = select ? pos : -1;
     }
 
-    private void _SelectEnemy(int pos)
-    {
-        _curEnemyIdx = pos;
-    }
-
-    private void _HeroEndTurn(int pos)
+    private void _EndHeroTurn(int pos)
     {
         _teamData.Heroes[pos].SetEndTurnFlag(true);
+        _isEnemyTurn = _CheckIsAllHeroTurnEnd();
     }
 
-    private bool _CheckIsHeroTurnEnd()
+    private bool _CheckIsAllHeroTurnEnd()
     {
-        foreach(var member in _teamData.Heroes.Values.ToList())
+        foreach (var hero in _teamData.Heroes.Values.ToList())
         {
-            if (!member.IsAlive)
+            if (!hero.IsAlive)
                 continue;
-            if (!member.IsTurnEnd)
+            if (!hero.IsTurnEnd)
                 return false;
         }
         return true;
     }
 
-    private IEnumerator _EnemiesTurn()
-    {
-        _targetHeroIdx = _GetAliveMemberIndex();
-        foreach (var enemy in _enemiesData.Values)
-        {
-            if (enemy.IsAlive && _targetHeroIdx != -1)
-            {
-                yield return _view.RunEnemyTurn(enemy.Pos, _targetHeroIdx);
-                if (!_teamData.Heroes[_targetHeroIdx].IsAlive)
-                    _targetHeroIdx = _GetAliveMemberIndex();
-            }
-        }
-    }
-
-    private int _GetAliveMemberIndex()
+    private int _GetAliveHeroIndex()
     {
         for (int i = 0; i < 6; i++)
         {
@@ -127,35 +115,20 @@ public class BattlePresenter : IBattlePresenter
 
     private void _ActiveHeroTurn()
     {
-        foreach(var hero in _teamData.Heroes.Values.ToList())
+        foreach (var hero in _teamData.Heroes.Values.ToList())
         {
             if (!hero.IsAlive)
                 continue;
             hero.SetEndTurnFlag(false);
         }
-        _view.ActiveHeroElement();
-    }
 
-    private void _EnemyBeHit(double attack)
-    {
-        var enemy = _enemiesData[_curEnemyIdx];
-        enemy.BeHit(attack);
-        if (!_CheckEnemiesAlive())
-            _leave = true;
+        _view.ActiveHeroElement();
     }
 
     private void _HeroBeHit(double attack)
     {
         var hero = _teamData.Heroes[_targetHeroIdx];
         hero.BeHit(attack);
-    }
-
-    private bool _CheckEnemiesAlive()
-    {
-        foreach (var enemy in _enemiesData.Values)
-            if (enemy.IsAlive)
-                return true;
-        return false;
     }
 
     private void _SetTargetHero(int pos)
@@ -192,4 +165,42 @@ public class BattlePresenter : IBattlePresenter
         else
             targetEnemy.BeHit(skill.Multiple * curHero.Attack, EffectType.Multiple);
     }
+    #endregion
+
+    #region Enemy
+    private void _SelectEnemy(int pos)
+    {
+        _curEnemyIdx = pos;
+    }
+
+    private IEnumerator _EnemiesTurn()
+    {
+        _targetHeroIdx = _GetAliveHeroIndex();
+        foreach (var enemy in _enemiesData.Values)
+        {
+            if (enemy.IsAlive && _targetHeroIdx != -1)
+            {
+                yield return _view.EnemyAttack(enemy.Pos, _targetHeroIdx);
+                if (!_teamData.Heroes[_targetHeroIdx].IsAlive)
+                    _targetHeroIdx = _GetAliveHeroIndex();
+            }
+        }
+    }
+
+    private void _EnemyBeHit(double attack)
+    {
+        var enemy = _enemiesData[_curEnemyIdx];
+        enemy.BeHit(attack);
+        if (!_CheckIsAllEnemiesAlive())
+            _leave = true;
+    }
+
+    private bool _CheckIsAllEnemiesAlive()
+    {
+        foreach (var enemy in _enemiesData.Values)
+            if (enemy.IsAlive)
+                return true;
+        return false;
+    }
+    #endregion
 }

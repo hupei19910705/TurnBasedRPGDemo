@@ -604,6 +604,9 @@ public class BattleView : MonoBehaviour, IBattleView
                 break;
         }
 
+        if (arrow == null)
+            return;
+
         arrow.SetParent(root);
         arrow.transform.localPosition = Vector3.zero;
         arrow.gameObject.SetActive(isShow);

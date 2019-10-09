@@ -23,21 +23,20 @@ public class HeroView : MonoBehaviour,IPointerDownHandler
     public Transform BottomLocate { get { return _bottomLocate; } }
     public Transform SkillEffectPos { get { return _skillEffectPos; } }
 
-    public event Action<double> HeroDamageEffect;
-    public event Action<int> HeroEndTurn;
     public event Action<int> SetTargetHero;
 
     private const float MOVING_SPEED = 50f;
     private const string GENERAL_ATTACK_TRIGGER_KEY = "GeneralAttack";
+    private const string SKILL_ATTACK_TRIGGER_KEY = "Skill";
     private const string MEMBER_HIT_TRIGGER_KEY = "BeHit";
 
-    private bool _isAttacking = false;
     private HeroData _heroData;
-    private double _attackMultiple = 1;
+    private Vector3 _oriPosition;
 
     public void SetData(HeroData data)
     {
         _heroData = data;
+        _oriPosition = _root.position;
         ChangeHpSliderValue();
         ChangeMpSliderValue();
     }
@@ -61,21 +60,25 @@ public class HeroView : MonoBehaviour,IPointerDownHandler
             _root.gameObject.SetActive(false);
     }
 
-    public IEnumerator GeneralAttack(Vector3 target)
+    public IEnumerator AttackAni(Vector3 target,bool isRemote,bool isSkill = false)
     {
-        var oriPos = _root.position;
-
-        yield return _MoveToTarget(target);
-
-        _isAttacking = true;
-        _animator.SetTrigger(GENERAL_ATTACK_TRIGGER_KEY);
-        while (_isAttacking)
+        while (!_animator.GetCurrentAnimatorStateInfo(0).IsName("Idle"))
             yield return null;
 
-        yield return _MoveToTarget(oriPos);
+        if(!isRemote)
+            yield return _MoveToTarget(target);
+
+        var trigger = isSkill ? SKILL_ATTACK_TRIGGER_KEY : GENERAL_ATTACK_TRIGGER_KEY;
+        _animator.SetTrigger(trigger);
+    }
+
+    public IEnumerator BackToOriPosition()
+    {
+        while (!_animator.GetCurrentAnimatorStateInfo(0).IsName("Idle"))
+            yield return null;
+
+        yield return _MoveToTarget(_oriPosition);
         _root.localPosition = Vector3.zero;
-        if (HeroEndTurn != null)
-            HeroEndTurn(_heroData.Pos);
     }
 
     private IEnumerator _MoveToTarget(Vector3 target)
@@ -86,17 +89,6 @@ public class HeroView : MonoBehaviour,IPointerDownHandler
             _root.position += speed;
             yield return null;
         }
-    }
-
-    public void AttackFinish()
-    {
-        _isAttacking = false;
-    }
-
-    public void DamageEffect()
-    {
-        if (HeroDamageEffect != null)
-            HeroDamageEffect(_heroData.Attack * _attackMultiple);
     }
 
     public void BeHit()

@@ -16,8 +16,6 @@ public interface IBattleView
     event Action<bool, int> SelectHero;
     event Action<int> SelectEnemy;
     event Action<int> HeroEndTurn;
-    event Action<double> EnemyBeHit;
-    event Action<double> HeroBeHit;
     event Action<int> SetTargetHero;
     event Action<Item> UseItem;
     event Action<Skill> UseSkill;
@@ -70,8 +68,6 @@ public class BattleView : MonoBehaviour, IBattleView
     public event Action<bool,int> SelectHero;
     public event Action<int> SelectEnemy;
     public event Action<int> HeroEndTurn;
-    public event Action<double> EnemyBeHit;
-    public event Action<double> HeroBeHit;
     public event Action<int> SetTargetHero;
     public event Action<Item> UseItem;
     public event Action<Skill> UseSkill;
@@ -248,28 +244,7 @@ public class BattleView : MonoBehaviour, IBattleView
     #region Hero Selections
     private void _HeroGeneralAttack()
     {
-        if (!_operable)
-            return;
-        _operable = false;
-
-        _SetTopTipText(BattleOperationType.HeroTurn);
-        if (_curEnemyIdx == -1)
-            _curEnemyIdx = _enemiesData.First().Key;
-
-        _parallelCor.Add(_HeroGeneralAtk());
-    }
-
-    private IEnumerator _HeroGeneralAtk()
-    {
-        var heroView = _heroViews[_curHeroIdx];
-        var heroElement = _heroElements[_curHeroIdx];
-        var enemyView = _enemyViews[_curEnemyIdx];
-
-        yield return heroView.GeneralAttack(enemyView.FrontLocate.position);
-
-        heroElement.SelectElement(false);
-        heroElement.LockToggle(true);
-        _operable = true;
+        _UseSkill(null);
     }
 
     private void _Skip()
@@ -466,14 +441,16 @@ public class BattleView : MonoBehaviour, IBattleView
     {
         if (!_operable)
             return;
-
         _operable = false;
+
+        _SetTopTipText(BattleOperationType.HeroTurn);
+        if (_curEnemyIdx == -1)
+            _curEnemyIdx = _enemiesData.First().Key;
+
         if (UseSkill != null)
             UseSkill(skill);
 
         _parallelCor.Add(_PlayHeroSkill(skill));
-
-
     }
 
     private SkillView _GetSkillView(int id)
@@ -489,14 +466,29 @@ public class BattleView : MonoBehaviour, IBattleView
 
     private IEnumerator _PlayHeroSkill(Skill skill)
     {
+        var curHeroView = _heroViews[_curHeroIdx];
         var enemyView = _enemyViews[_curEnemyIdx];
-        yield return _skillEffectManager.PlaySkillEffect(skill, _heroViews[_curHeroIdx].SkillEffectPos, enemyView.SkillEffectPos,
+
+        if(skill != null && skill.IsRemote)
+        {
+            yield return curHeroView.AttackAni(enemyView.FrontLocate.position, true, true);
+            yield return _skillEffectManager.PlaySkillEffect(skill, curHeroView.SkillEffectPos, enemyView.SkillEffectPos,
             () =>
             {
                 enemyView.BeHit();
                 _FreshAllHeroElements();
                 _FreshAllHeroViews();
             });
+        }
+        else
+        {
+            yield return curHeroView.AttackAni(enemyView.FrontLocate.position, false, skill != null);
+            enemyView.BeHit();
+            _FreshAllHeroElements();
+            _FreshAllHeroViews();
+            yield return MyCoroutine.Sleep(0.1f);
+            yield return curHeroView.BackToOriPosition();
+        }
 
         if (!_enemiesData[_curEnemyIdx].IsAlive)
             _SetFirstEnemySelectArrow();
@@ -508,18 +500,32 @@ public class BattleView : MonoBehaviour, IBattleView
         _operable = true;
     }
 
-    private IEnumerator _PlayEnemySkill(Skill skill)
+    private IEnumerator _PlayEnemySkill(Skill skill, int enemyPos, int targetHeroPos)
     {
-        var heroView = _heroViews[_targetHeroIdx];
-        yield return _skillEffectManager.PlaySkillEffect(skill, _enemyViews[_curEnemyIdx].SkillEffectPos, heroView.SkillEffectPos,
+        _targetHeroIdx = targetHeroPos;
+        var enemyView = _enemyViews[enemyPos];
+        var targetHeroView = _heroViews[_targetHeroIdx];
+
+        if (skill != null && skill.IsRemote)
+        {
+            yield return enemyView.AttackAni(targetHeroView.FrontLocate.position, true, true);
+            yield return _skillEffectManager.PlaySkillEffect(skill, enemyView.SkillEffectPos, targetHeroView.SkillEffectPos,
             () =>
             {
-                heroView.BeHit();
+                targetHeroView.BeHit();
                 _FreshAllHeroElements();
                 _FreshAllHeroViews();
             });
-
-        _operable = true;
+        }
+        else
+        {
+            yield return enemyView.AttackAni(targetHeroView.FrontLocate.position, false, skill != null);
+            targetHeroView.BeHit();
+            _FreshAllHeroElements();
+            _FreshAllHeroViews();
+            yield return MyCoroutine.Sleep(0.1f);
+            yield return enemyView.BackToOriPosition();
+        }
     }
     #endregion
 
@@ -546,11 +552,7 @@ public class BattleView : MonoBehaviour, IBattleView
         var instance = _heroMemberPool.GetInstance(data.Job);
         _heroGroupView.LocateToPos(instance.transform, data.Pos);
         var heroView = instance.GetComponentInChildren<HeroView>();
-        heroView.HeroDamageEffect -= _EnemyBeHitEffect;
-        heroView.HeroEndTurn -= HeroEndTurn;
         heroView.SetTargetHero -= _SetTargetHero;
-        heroView.HeroDamageEffect += _EnemyBeHitEffect;
-        heroView.HeroEndTurn += HeroEndTurn;
         heroView.SetTargetHero += _SetTargetHero;
         heroView.SetData(data);
         _heroViews.Add(data.Pos, heroView);
@@ -562,23 +564,13 @@ public class BattleView : MonoBehaviour, IBattleView
             pair.Value.FreshHeroElementStatus();
     }
 
-    private void _HeroBeHitEffect(double attack)
-    {
-        if (HeroBeHit != null)
-            HeroBeHit(attack);
-
-        _parallelCor.Add(_PlayEnemySkill(null));
-    }
-
     private void _SetEnemyView(EnemyData enemy)
     {
         var instance = _enemyMemberPool.GetInstance(enemy.Type);
         _enemyMemberGroupView.LocateToPos(instance.transform, enemy.Pos);
         var enemyView = instance.GetComponentInChildren<EnemyView>();
         enemyView.SelectEnemyView -= _SelectEnemyView;
-        enemyView.EnemyDamageEffect -= _HeroBeHitEffect;
         enemyView.SelectEnemyView += _SelectEnemyView;
-        enemyView.EnemyDamageEffect += _HeroBeHitEffect;
         enemyView.SetData(enemy);
         _enemyViews.Add(enemy.Pos, enemyView);
     }
@@ -591,14 +583,6 @@ public class BattleView : MonoBehaviour, IBattleView
         _enemySelectArrow.gameObject.SetActive(true);
         _enemySelectArrow.SetParent(_enemyViews[_curEnemyIdx].FrontLocate);
         _enemySelectArrow.localPosition = Vector3.zero;
-    }
-
-    private void _EnemyBeHitEffect(double attack)
-    {
-        if (EnemyBeHit != null)
-            EnemyBeHit(attack);
-
-        _parallelCor.Add(_PlayHeroSkill(null));
     }
 
     private void _SetFirstEnemySelectArrow()
@@ -640,9 +624,7 @@ public class BattleView : MonoBehaviour, IBattleView
         _enemySelectArrow.gameObject.SetActive(false);
         _enemySelectArrow.SetParent(_defaultArrowRoot);
 
-        _targetHeroIdx = targetHeroPos;
-        var enemyView = _enemyViews[enemyPos];
-        yield return enemyView.GeneralAttack(_heroViews[_targetHeroIdx].FrontLocate.position);
+        yield return _PlayEnemySkill(null, enemyPos, targetHeroPos);
     }
     #endregion
 }

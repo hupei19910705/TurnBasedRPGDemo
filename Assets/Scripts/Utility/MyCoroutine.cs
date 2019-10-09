@@ -6,6 +6,15 @@ namespace Utility
 {
     public class MyCoroutine
     {
+        public static IEnumerator Sleep(float duration)
+        {
+            while(duration > 0f)
+            {
+                duration -= Time.deltaTime;
+                yield return null;
+            }
+        }
+
         private IEnumerator _element;
         private Stack<IEnumerator> _stack = new Stack<IEnumerator>();
         public bool Finished { get { return _element == null && _stack.Count == 0; } }

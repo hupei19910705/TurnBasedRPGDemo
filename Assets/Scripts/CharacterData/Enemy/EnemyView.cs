@@ -21,19 +21,19 @@ public class EnemyView : MonoBehaviour,IPointerDownHandler
     public Transform SkillEffectPos { get { return _skillEffectPos; } }
 
     public event Action<int> SelectEnemyView;
-    public event Action<double> EnemyDamageEffect;
 
     private const string ENEMY_HIT_TRIGGER_KEY = "BeHit";
     private const float MOVING_SPEED = 50f;
     private const string GENERAL_ATTACK_TRIGGER_KEY = "GeneralAttack";
+    private const string SKILL_ATTACK_TRIGGER_KEY = "Skill";
 
-    private bool _isAttacking = false;
     private EnemyData _enemyData;
-    private double _attackMultiple = 1;
+    private Vector3 _oriPosition;
 
     public void SetData(EnemyData data)
     {
         _enemyData = data;
+        _oriPosition = _root.position;
         ChangeHpSliderValue();
     }
 
@@ -62,18 +62,24 @@ public class EnemyView : MonoBehaviour,IPointerDownHandler
             SelectEnemyView(_enemyData.Pos);
     }
 
-    public IEnumerator GeneralAttack(Vector3 target)
+    public IEnumerator AttackAni(Vector3 target, bool isRemote, bool isSkill = false)
     {
-        var oriPos = _root.position;
-
-        yield return _MoveToTarget(target);
-
-        _isAttacking = true;
-        _animator.SetTrigger(GENERAL_ATTACK_TRIGGER_KEY);
-        while (_isAttacking)
+        while (!_animator.GetCurrentAnimatorStateInfo(0).IsName("Idle"))
             yield return null;
 
-        yield return _MoveToTarget(oriPos);
+        if (!isRemote)
+            yield return _MoveToTarget(target);
+
+        var trigger = isSkill ? SKILL_ATTACK_TRIGGER_KEY : GENERAL_ATTACK_TRIGGER_KEY;
+        _animator.SetTrigger(trigger);
+    }
+
+    public IEnumerator BackToOriPosition()
+    {
+        while (!_animator.GetCurrentAnimatorStateInfo(0).IsName("Idle"))
+            yield return null;
+
+        yield return _MoveToTarget(_oriPosition);
         _root.localPosition = Vector3.zero;
     }
 
@@ -86,16 +92,5 @@ public class EnemyView : MonoBehaviour,IPointerDownHandler
             yield return null;
         }
         _root.position = target;
-    }
-
-    public void AttackFinish()
-    {
-        _isAttacking = false;
-    }
-
-    public void DamageEffect()
-    {
-        if (EnemyDamageEffect != null)
-            EnemyDamageEffect(_enemyData.Attack * _attackMultiple);
     }
 }

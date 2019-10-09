@@ -29,11 +29,12 @@ public class Skill
     public float Multiple { get; private set; } = 1f;
     public string Desc { get; private set; }
     public int MpCost { get; private set; }
+    public bool IsRemote { get; private set; }
     public float MoveSpeed { get; private set; }
 
     private const string IMAGE_PATH_PREFIX = "Texture/Icons/";
 
-    public Skill(SkillType type,string id,string name,int cost, SkillVariety variety, float multiple = 1f,string imageKey = "", float speed = 0f)
+    public Skill(SkillType type,string id,string name,int cost, SkillVariety variety,bool isRemote, float multiple = 1f,string imageKey = "", float speed = 0f)
     {
         Type = type;
         Variety = variety;
@@ -44,12 +45,13 @@ public class Skill
         EffectType = EffectType.Multiple;
         EffectValue = 0;
         Desc = _GetDescription();
+        IsRemote = isRemote;
         MoveSpeed = speed;
         if (!string.IsNullOrEmpty(imageKey))
             ImageKey = IMAGE_PATH_PREFIX + imageKey;
     }
 
-    public Skill(SkillType type, string id, string name, int cost, int effectValue, SkillVariety variety, string imageKey = "", float speed = 0f)
+    public Skill(SkillType type, string id, string name, int cost, int effectValue, SkillVariety variety, bool isRemote, string imageKey = "", float speed = 0f)
     {
         Type = type;
         Variety = variety;
@@ -60,6 +62,7 @@ public class Skill
         EffectType = EffectType.Constant;
         EffectValue = effectValue;
         Desc = _GetDescription();
+        IsRemote = isRemote;
         MoveSpeed = speed;
         if (!string.IsNullOrEmpty(imageKey))
             ImageKey = IMAGE_PATH_PREFIX + imageKey;

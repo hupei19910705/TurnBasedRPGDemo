@@ -28,7 +28,7 @@ public class SkillEffectManager : MonoBehaviour
         _magicAura.Init(transform);
     }
 
-    public IEnumerator PlaySkillEffect(Skill skill,Transform fromTrans,Transform targetTrans,UnityAction callBack)
+    public IEnumerator PlaySkillEffect(Skill skill,Transform fromTrans,Transform targetTrans,UnityAction callBack = null)
     {
         bool callBackInvoked = false;
         var variety = skill == null ? SkillVariety.Hit : skill.Variety;

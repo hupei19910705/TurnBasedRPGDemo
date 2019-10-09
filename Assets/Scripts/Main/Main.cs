@@ -81,27 +81,27 @@ public class Main : MonoBehaviour
         const string deathKey = "S_Death01";
 
         //Fake Team Members
-        var hero0 = new HeroData("大壮", HeroJob.Warrior, 200, 80, warriorHeadKey, deathKey, 80, 5, 0,1);
+        var hero0 = new HeroData("大壮", HeroJob.Warrior, 200, 80, warriorHeadKey, deathKey, 80, 5, 0, 1);
         hero0.SetSkills(new Dictionary<string, Skill>
         {
-            { "10000",new Skill(SkillType.GeneralAttack,"10000","普通攻击",0,SkillVariety.Hit)},
-            { "20001",new Skill(SkillType.Physical,"20001","物理技能1",20,SkillVariety.Hit,1.3f, "Skill/S_Physic01")}
+            { "10000",new Skill(SkillType.GeneralAttack,"10000","普通攻击",0,SkillVariety.Hit,false)},
+            { "20001",new Skill(SkillType.Physical,"20001","物理技能1",20,SkillVariety.Hit,false,1.3f, "Skill/S_Physic01")}
         });
 
-        var hero1 = new HeroData("二柱", HeroJob.Wizard, 150, 120, wizardHeadKey, deathKey, 130, 3, 3,1);
+        var hero1 = new HeroData("二柱", HeroJob.Wizard, 150, 120, wizardHeadKey, deathKey, 130, 3, 3, 1);
         hero1.SetSkills(new Dictionary<string, Skill>
         {
-            { "10000",new Skill(SkillType.GeneralAttack,"10000","普通攻击",0,SkillVariety.Hit)},
-            { "30001",new Skill(SkillType.Magic,"30001","火球",30,SkillVariety.FireBall,1.5f, "Skill/S_Magic01",50f)},
-            { "40001",new Skill(SkillType.Physical,"40001","固定伤害技能1",25,SkillVariety.Ice,100, "Book/W_Book07")}
+            { "10000",new Skill(SkillType.GeneralAttack,"10000","普通攻击",0,SkillVariety.Hit,false)},
+            { "30001",new Skill(SkillType.Magic,"30001","火球",30,SkillVariety.FireBall,true,1.5f, "Skill/S_Magic01",50f)},
+            { "40001",new Skill(SkillType.Physical,"40001","固定伤害技能1",25,SkillVariety.Ice,false,100, "Book/W_Book07")}
         });
 
-        var hero2 = new HeroData("三柱", HeroJob.Warrior, 200, 80, warriorHeadKey, deathKey, 80, 5, 2,1);
+        var hero2 = new HeroData("三柱", HeroJob.Warrior, 200, 80, warriorHeadKey, deathKey, 80, 5, 2, 1);
         hero2.SetSkills(new Dictionary<string, Skill>
         {
-            { "10000",new Skill(SkillType.GeneralAttack,"10000","普通攻击",0,SkillVariety.Hit)},
-            { "20002",new Skill(SkillType.Physical,"20002","物理技能2",1000,SkillVariety.Hit,2.0f, "Skill/S_Physic02")},
-            { "40001",new Skill(SkillType.Physical,"40001","固定伤害技能1",25,SkillVariety.Ice,100, "Book/W_Book07")}
+            { "10000",new Skill(SkillType.GeneralAttack,"10000","普通攻击",0,SkillVariety.Hit,false)},
+            { "20002",new Skill(SkillType.Physical,"20002","物理技能2",1000,SkillVariety.Hit,false,2.0f, "Skill/S_Physic02")},
+            { "40001",new Skill(SkillType.Physical,"40001","固定伤害技能1",25,SkillVariety.Ice,false,100, "Book/W_Book07")}
         });
 
         Dictionary<int, HeroData> heroes = new Dictionary<int, HeroData>
@@ -112,19 +112,19 @@ public class Main : MonoBehaviour
         };
 
         //Fake BackPack
-        var item0 = new Item(ItemType.RedPotion, "10000", 3,"红药水",50,0, "P_Red03");
-        var item1 = new Item(ItemType.RedPotion, "10001", 120,"大红药水",200,2, "P_Red01");
-        var item2 = new Item(ItemType.RedPotion, "10000", 3,"红药水",50,5,"P_Red03");
-        var item3 = new Item(ItemType.BluePotion, "20000", 5,"蓝药水",50,9, "P_Blue03");
+        var item0 = new Item(ItemType.RedPotion, "10000", 3, "红药水", 50, 0, "P_Red03");
+        var item1 = new Item(ItemType.RedPotion, "10001", 120, "大红药水", 200, 2, "P_Red01");
+        var item2 = new Item(ItemType.RedPotion, "10000", 3, "红药水", 50, 5, "P_Red03");
+        var item3 = new Item(ItemType.BluePotion, "20000", 5, "蓝药水", 50, 9, "P_Blue03");
 
         //Fake TeamData
-        var teamData = new TeamData(heroes,new Dictionary<int, Item>());
+        var teamData = new TeamData(heroes, new Dictionary<int, Item>());
         teamData.AddItems(new List<Item> { item0, item1, item2, item3 });
 
         return teamData;
     }
 
-    private Dictionary<int,EnemyData> _FakeEnemiesData()
+    private Dictionary<int, EnemyData> _FakeEnemiesData()
     {
         var enemy0 = new EnemyData("蛇", EnemyType.Snake, 300, 30, 2, 0, 1, 30);
         enemy0.SetDropItems(new List<DropItem> { new DropItem(new Item(ItemType.RedPotion, "10000", "红药水", 50, 0, "P_Red03"), 10) });

@@ -58,8 +58,6 @@ public class BattlePresenter : IBattlePresenter
         _view.SelectHero += _SelectHero;
         _view.SelectEnemy += _SelectEnemy;
         _view.HeroEndTurn += _EndHeroTurn;
-        _view.EnemyBeHit += _EnemyBeHit;
-        _view.HeroBeHit += _HeroBeHit;
         _view.UseItem += _UseItem;
         _view.SetTargetHero += _SetTargetHero;
         _view.UseSkill += _UseSkill;
@@ -70,8 +68,6 @@ public class BattlePresenter : IBattlePresenter
         _view.SelectHero -= _SelectHero;
         _view.SelectEnemy -= _SelectEnemy;
         _view.HeroEndTurn -= _EndHeroTurn;
-        _view.EnemyBeHit -= _EnemyBeHit;
-        _view.HeroBeHit -= _HeroBeHit;
         _view.UseItem -= _UseItem;
         _view.SetTargetHero -= _SetTargetHero;
         _view.UseSkill -= _UseSkill;
@@ -158,12 +154,19 @@ public class BattlePresenter : IBattlePresenter
         var targetEnemy = _enemiesData[_curEnemyIdx];
         var curHero = _teamData.Heroes[_curHeroIdx];
 
-        curHero.ChangeMp(-skill.MpCost);
-
-        if (skill.EffectType == EffectType.Constant)
-            targetEnemy.BeHit(skill.EffectValue, EffectType.Constant);
+        if (skill != null)
+        {
+            curHero.ChangeMp(-skill.MpCost);
+            if (skill.EffectType == EffectType.Constant)
+                targetEnemy.BeHit(skill.EffectValue, EffectType.Constant);
+            else
+                targetEnemy.BeHit(skill.Multiple * curHero.Attack);
+        }
         else
-            targetEnemy.BeHit(skill.Multiple * curHero.Attack, EffectType.Multiple);
+            targetEnemy.BeHit(curHero.Attack);
+
+        if (!_CheckIsAllEnemiesAlive())
+            _leave = true;
     }
     #endregion
 
@@ -180,19 +183,12 @@ public class BattlePresenter : IBattlePresenter
         {
             if (enemy.IsAlive && _targetHeroIdx != -1)
             {
+                _HeroBeHit(enemy.Attack);
                 yield return _view.EnemyAttack(enemy.Pos, _targetHeroIdx);
                 if (!_teamData.Heroes[_targetHeroIdx].IsAlive)
                     _targetHeroIdx = _GetAliveHeroIndex();
             }
         }
-    }
-
-    private void _EnemyBeHit(double attack)
-    {
-        var enemy = _enemiesData[_curEnemyIdx];
-        enemy.BeHit(attack);
-        if (!_CheckIsAllEnemiesAlive())
-            _leave = true;
     }
 
     private bool _CheckIsAllEnemiesAlive()

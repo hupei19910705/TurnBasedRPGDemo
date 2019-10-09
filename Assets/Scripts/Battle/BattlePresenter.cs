@@ -18,7 +18,7 @@ public class BattlePresenter : IBattlePresenter
     private bool _isEnemyTurn = false;
 
     private int _curHeroIdx = -1;
-    private int _curEnemyIdx = -1;
+    private int _targetEnemyIdx = -1;
     private int _targetHeroIdx = -1;
     private int _selectTargetHeroIdx = -1;
 
@@ -55,27 +55,27 @@ public class BattlePresenter : IBattlePresenter
     private void _Register()
     {
         _UnRegister();
-        _view.SelectHero += _SelectHero;
-        _view.SelectEnemy += _SelectEnemy;
+        _view.ChangeSelectHero += _ChangeSelectHero;
+        _view.ChangeSelectEnemy += _ChangeSelectEnemy;
+        _view.ChangeTargetHero += _ChangeTargetHero;
         _view.HeroEndTurn += _EndHeroTurn;
         _view.UseItem += _UseItem;
-        _view.SetTargetHero += _SetTargetHero;
         _view.UseSkill += _UseSkill;
     }
 
     private void _UnRegister()
     {
-        _view.SelectHero -= _SelectHero;
-        _view.SelectEnemy -= _SelectEnemy;
+        _view.ChangeSelectHero -= _ChangeSelectHero;
+        _view.ChangeSelectEnemy -= _ChangeSelectEnemy;
+        _view.ChangeTargetHero -= _ChangeTargetHero;
         _view.HeroEndTurn -= _EndHeroTurn;
         _view.UseItem -= _UseItem;
-        _view.SetTargetHero -= _SetTargetHero;
         _view.UseSkill -= _UseSkill;
     }
     #endregion
 
     #region Hero
-    private void _SelectHero(bool select,int pos)
+    private void _ChangeSelectHero(bool select,int pos)
     {
         _curHeroIdx = select ? pos : -1;
     }
@@ -127,7 +127,7 @@ public class BattlePresenter : IBattlePresenter
         hero.BeHit(attack);
     }
 
-    private void _SetTargetHero(int pos)
+    private void _ChangeTargetHero(int pos)
     {
         _selectTargetHeroIdx = pos;
     }
@@ -151,7 +151,7 @@ public class BattlePresenter : IBattlePresenter
 
     private void _UseSkill(Skill skill)
     {
-        var targetEnemy = _enemiesData[_curEnemyIdx];
+        var targetEnemy = _enemiesData[_targetEnemyIdx];
         var curHero = _teamData.Heroes[_curHeroIdx];
 
         if (skill != null)
@@ -171,9 +171,9 @@ public class BattlePresenter : IBattlePresenter
     #endregion
 
     #region Enemy
-    private void _SelectEnemy(int pos)
+    private void _ChangeSelectEnemy(int pos)
     {
-        _curEnemyIdx = pos;
+        _targetEnemyIdx = pos;
     }
 
     private IEnumerator _EnemiesTurn()

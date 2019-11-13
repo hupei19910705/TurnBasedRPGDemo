@@ -12,14 +12,14 @@ public enum ItemType
 
 public class Item
 {
-    public ItemType Type { get; private set; }
-    public string ID { get; private set; }
-    public int Count { get; private set; }
-    public string Name { get; private set; }
-    public double EffectValue { get; private set; }
+    public ItemType Type;
+    public string ID;
+    public int Count;
+    public string Name;
+    public double EffectValue;
     public int Pos;
-    public string IconKey { get; private set; }
-    public string Desc { get; private set; }
+    public string IconKey;
+    public string Desc;
     private string _inCompleteIconKey = string.Empty;
 
     public int MaxCount = 99;

@@ -6,7 +6,7 @@ using UnityEngine.Events;
 public enum SkillVariety
 {
     FireBall,
-    Hit,
+    GeneralHit,
     Ice,
     MagicAura
 }
@@ -28,10 +28,9 @@ public class SkillEffectManager : MonoBehaviour
         _magicAura.Init(transform);
     }
 
-    public IEnumerator PlaySkillEffect(Skill skill,Transform fromTrans,Transform targetTrans,UnityAction callBack = null)
+    public IEnumerator PlaySkillEffect(Skill skill,Transform fromTrans,Transform targetTrans)
     {
-        bool callBackInvoked = false;
-        var variety = skill == null ? SkillVariety.Hit : skill.Variety;
+        var variety = skill == null ? SkillVariety.GeneralHit : skill.Variety;
         var skillEffects = _GetSkillEffects(variety);
 
         if (skillEffects == null || skillEffects.Count == 0)
@@ -39,24 +38,14 @@ public class SkillEffectManager : MonoBehaviour
 
         for (int i = 0; i < skillEffects.Count; i++)
         {
-            if (skillEffects[i].Ballistic)
+            var skillEffect = skillEffects[i];
+
+            if(skillEffect == null)
+                yield return skillEffect.PlaySkillAni(targetTrans);
+            else if(skillEffect.Ballistic)
             {
-                skillEffects[i].LocateTo(fromTrans);
-                yield return skillEffects[i].PlaySkillAni(targetTrans, skill.MoveSpeed);
-                if (!callBackInvoked && callBack != null)
-                {
-                    callBack();
-                    callBackInvoked = true;
-                }
-            }
-            else
-            {
-                yield return skillEffects[i].PlaySkillAni(targetTrans);
-                if (!callBackInvoked && callBack != null)
-                {
-                    callBack();
-                    callBackInvoked = true;
-                }
+                skillEffect.LocateTo(fromTrans);
+                yield return skillEffect.PlaySkillAni(targetTrans, skill.MoveSpeed);
             }
         }
     }
@@ -70,7 +59,7 @@ public class SkillEffectManager : MonoBehaviour
                 list.Add(_fireBall);
                 list.Add(_fireBallExplotion);
                 break;
-            case SkillVariety.Hit:
+            case SkillVariety.GeneralHit:
                 list.Add(_hit);
                 break;
             case SkillVariety.Ice:
@@ -78,6 +67,9 @@ public class SkillEffectManager : MonoBehaviour
                 break;
             case SkillVariety.MagicAura:
                 list.Add(_magicAura);
+                break;
+            default:
+                list.Add(null);
                 break;
         }
         return list;

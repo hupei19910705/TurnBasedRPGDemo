@@ -151,19 +151,38 @@ public class BattlePresenter : IBattlePresenter
 
     private void _UseSkill(Skill skill)
     {
-        var targetEnemy = _enemiesData[_targetEnemyIdx];
-        var curHero = _teamData.Heroes[_curHeroIdx];
+        var from = _teamData.Heroes[_curHeroIdx];
 
-        if (skill != null)
-        {
-            curHero.ChangeMp(-skill.MpCost);
-            if (skill.EffectType == EffectType.Constant)
-                targetEnemy.BeHit(skill.EffectValue, EffectType.Constant);
-            else
-                targetEnemy.BeHit(skill.Multiple * curHero.Attack);
-        }
+        if(skill == null)
+            _enemiesData[_targetEnemyIdx].BeHit(_teamData.Heroes[_curHeroIdx].Attack);
         else
-            targetEnemy.BeHit(curHero.Attack);
+        {
+            from.ChangeMp(-skill.MpCost);
+
+            var changeValue = skill.EffectValue;
+            if (!skill.IsConstant)
+                changeValue = Mathf.FloorToInt(skill.Multiple * (float)from.Attack);
+
+            CharacterData target = null;
+            switch(skill.EffectiveResult)
+            {
+                case EffectiveResult.Restore:
+                    target = _teamData.Heroes[_selectTargetHeroIdx];
+                    if (skill.EffectType == EffectType.Mp)
+                        target.ChangeMp(changeValue);
+                    else
+                        target.ChangeHp(changeValue);
+                    break;
+                case EffectiveResult.Reduce:
+                    target = _enemiesData[_targetEnemyIdx];
+                    changeValue = -changeValue;
+                    if (skill.EffectType == EffectType.Mp)
+                        target.ChangeMp(changeValue);
+                    else
+                        target.BeHit(changeValue, skill.EffectType == EffectType.Real);
+                    break;
+            }
+        }
 
         if (!_CheckIsAllEnemiesAlive())
             _leave = true;

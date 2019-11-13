@@ -345,8 +345,6 @@ public class BattleView : MonoBehaviour, IBattleView
             for (int i = 0; i < skills.Count; i++)
             {
                 var skill = skills[i];
-                if (skill.Type == SkillType.GeneralAttack)
-                    continue;
 
                 var instance = _skillPool.GetInstance();
                 instance.transform.SetParent(_ItemsOrSkillsScroll.content);
@@ -484,23 +482,20 @@ public class BattleView : MonoBehaviour, IBattleView
 
     private IEnumerator _PlaySkill(Skill skill,CharacterView from, CharacterView target,UnityAction callBack = null)
     {
-        if (skill != null && skill.IsRemote)
-        {
-            yield return from.AttackAni(target.FrontLocate.position, true, true);
-            yield return _skillEffectManager.PlaySkillEffect(skill, from.SkillEffectPos, target.SkillEffectPos,
-            () =>
-            {
-                target.BeHit();
-                _FreshAllHeroElements();
-                _FreshAllHeroViews();
-            });
-        }
-        else
-        {
-            yield return from.AttackAni(target.FrontLocate.position, false, skill != null);
+        var isRemote = skill != null && skill.IsRemote;
+
+        yield return from.AttackAni(target.FrontLocate.position, isRemote, skill != null);
+
+        if(skill == null || skill.EffectiveWay == EffectiveWay.Direct)
             target.BeHit();
-            _FreshAllHeroElements();
-            _FreshAllHeroViews();
+
+        _FreshAllHeroElements();
+        _FreshAllHeroViews();
+
+        yield return _skillEffectManager.PlaySkillEffect(skill, from.SkillEffectPos, target.SkillEffectPos);
+
+        if(!isRemote)
+        {
             yield return MyCoroutine.Sleep(0.1f);
             yield return from.BackToOriPosition();
         }

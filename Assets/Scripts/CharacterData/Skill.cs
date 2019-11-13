@@ -3,66 +3,84 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
-public enum SkillType
-{
-    GeneralAttack,
-    Physical,
-    Magic
-}
-
 public enum EffectType
 {
-    Multiple,
-    Constant
+    Physical,
+    Magic,
+    Real,
+    Mp
+}
+
+public enum EffectiveWay
+{
+    Direct,
+    Sustained
+}
+
+public enum EffectiveResult
+{
+    Reduce,
+    Restore
 }
 
 public class Skill
 {
-    public SkillType Type { get; private set; }
-    public EffectType EffectType { get; private set; }
-    public SkillVariety Variety { get; private set; }
-    public int EffectValue { get; private set; }
-    public string ID { get; private set; }
-    public string Name { get; private set; }
-    public string ImageKey { get; private set; }
-    public int SkillLv { get; private set; } = 1;
-    public float Multiple { get; private set; } = 1f;
-    public string Desc { get; private set; }
-    public int MpCost { get; private set; }
-    public bool IsRemote { get; private set; }
-    public float MoveSpeed { get; private set; }
+    public EffectType EffectType;
+    public EffectiveWay EffectiveWay;
+    public EffectiveResult EffectiveResult;
+    public bool IsConstant;
+    public SkillVariety Variety;
+    public int EffectValue;
+    public string ID;
+    public string Name;
+    public string ImageKey;
+    public int SkillLv = 1;
+    public float Multiple = 1f;
+    public string Desc;
+    public int MpCost;
+    public bool IsRemote;
+    public float MoveSpeed;
+    public float Duration = 0f;
 
     private const string IMAGE_PATH_PREFIX = "Texture/Icons/";
 
-    public Skill(SkillType type,string id,string name,int cost, SkillVariety variety,bool isRemote, float multiple = 1f,string imageKey = "", float speed = 0f)
+    public Skill(EffectType type, string id, string name, int cost, SkillVariety variety, bool isRemote, string imageKey,
+        float multiple, EffectiveWay way, EffectiveResult result, float duration, float speed)
     {
-        Type = type;
+        EffectType = type;
         Variety = variety;
         ID = id;
         Name = name;
         MpCost = cost;
         Multiple = multiple;
-        EffectType = EffectType.Multiple;
+        IsConstant = false;
         EffectValue = 0;
         Desc = _GetDescription();
         IsRemote = isRemote;
+        EffectiveWay = way;
+        EffectiveResult = result;
+        Duration = duration;
         MoveSpeed = speed;
         if (!string.IsNullOrEmpty(imageKey))
             ImageKey = IMAGE_PATH_PREFIX + imageKey;
     }
 
-    public Skill(SkillType type, string id, string name, int cost, int effectValue, SkillVariety variety, bool isRemote, string imageKey = "", float speed = 0f)
+    public Skill(EffectType type, string id, string name, int cost, SkillVariety variety, bool isRemote, string imageKey,
+        int effectValue, EffectiveWay way, EffectiveResult result, float duration, float speed)
     {
-        Type = type;
+        EffectType = type;
         Variety = variety;
         ID = id;
         Name = name;
         MpCost = cost;
         Multiple = 0f;
-        EffectType = EffectType.Constant;
+        IsConstant = true;
         EffectValue = effectValue;
         Desc = _GetDescription();
         IsRemote = isRemote;
+        EffectiveWay = way;
+        EffectiveResult = result;
+        Duration = duration;
         MoveSpeed = speed;
         if (!string.IsNullOrEmpty(imageKey))
             ImageKey = IMAGE_PATH_PREFIX + imageKey;
@@ -70,24 +88,34 @@ public class Skill
 
     private string _GetDescription()
     {
-        if (EffectType == EffectType.Constant)
-            return string.Format("{0}\n造成{1}点固定伤害", Name, EffectValue);
+        var type = string.Empty;
 
-        var effectTarget = string.Empty;
-        switch (Type)
+        var effectType = string.Empty;
+        switch (EffectType)
         {
-            case SkillType.GeneralAttack:
-            case SkillType.Physical:
-                effectTarget = "物理伤害";
+            case EffectType.Physical:
+                effectType = "物理伤害";
+                type = "攻击x";
                 break;
-            case SkillType.Magic:
-                effectTarget = "魔法伤害";
+            case EffectType.Magic:
+                effectType = "魔法伤害";
+                type = "魔力x";
+                break;
+            case EffectType.Real:
+                effectType = "真实伤害";
+                type = "攻击x";
                 break;
         }
 
-        var effectValue = EffectValue.ToString();
-        if (EffectValue > 0)
-            effectValue = "+" + EffectValue.ToString();
-        return string.Format("{0}\n造成 攻击x{1} 点{2}", Name, Math.Round(Multiple,2).ToString(), effectTarget);
+        if (IsConstant)
+            type = "固定 ";
+
+        var effectValue = string.Empty;
+        if (IsConstant && EffectValue > 0)
+            effectValue = EffectValue.ToString();
+        else
+            effectValue = Math.Round(Multiple, 2).ToString();
+
+        return string.Format("{0}\n造成 {1}{2} 点{3}", Name, type, effectValue, effectType);
     }
 }

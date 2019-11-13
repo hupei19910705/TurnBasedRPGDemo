@@ -5,23 +5,26 @@ using UnityEngine;
 
 public class CharacterData
 {
-    public string Name { get; protected set; }
-    public double OriginHp { get; protected set; }
-    public double MaxHp { get; protected set; }
-    public double CurrentHp { get; protected set; }
-    public double MaxMp { get; protected set; } = 0;
-    public double CurrentMp { get; protected set; } = 0;
-    public int Level { get; protected set; }
-    public double Attack { get; protected set; }
-    public double Defence { get; protected set; }
-    public int Pos { get; protected set; }
+    public string ID;
+    public string Name;
+    public double OriginHp;
+    public double MaxHp;
+    public double CurrentHp;
+    public double OriginMp;
+    public double MaxMp = 0;
+    public double CurrentMp = 0;
+    public int Level;
+    public double Attack;
+    public double Defence;
+    public int Pos;
     public bool IsAlive { get { return CurrentHp > 0; } }
-    public Dictionary<string, Skill> Skills { get; protected set; }
+    public Dictionary<string, Skill> Skills;
 
-    public CharacterData(string name, int hp, double attack, double defence, int pos, int level)
+    public CharacterData(string name, int hp,int mp, double attack, double defence, int pos, int level)
     {
         Name = name;
         OriginHp = MaxHp = CurrentHp = hp;
+        OriginMp = MaxMp = CurrentMp = mp;
         Level = level;
         Attack = attack;
         Defence = defence;
@@ -33,10 +36,10 @@ public class CharacterData
         Pos = pos;
     }
 
-    public void BeHit(double attack, EffectType effectType = EffectType.Multiple)
+    public void BeHit(double attack, bool isReal = false)
     {
         var changeVlaue = attack - Defence;
-        if (effectType == EffectType.Constant)
+        if (isReal)
             changeVlaue = attack;
 
         changeVlaue = Math.Max(1, changeVlaue);

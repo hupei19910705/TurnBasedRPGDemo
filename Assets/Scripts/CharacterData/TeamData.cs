@@ -5,7 +5,6 @@ using UnityEngine;
 public class TeamData
 {
     public Dictionary<int, HeroData> Heroes = new Dictionary<int, HeroData>();
-    //public Dictionary<ItemType, List<Item>> BackPack { get; private set; }
 
     public Dictionary<int,Item> BackPack { get; private set; }
     private const int BACKPACK_MAX_SIZE = 50;

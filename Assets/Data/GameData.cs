@@ -51,6 +51,7 @@ public class EnemyDataRow
     public double Attack;
     public double Defence;
     public int DropExp;
+    public List<string> Skills;
 }
 
 public class ItemRow
@@ -71,10 +72,11 @@ public class SkillRow
     public SkillVariety Variety;
     public bool IsRemote;
     public string ImageKey;
-    public float Multiple = 1f;
+    public float Multiple;
     public int EffectValue;
     public EffectiveWay EffectiveWay;
     public EffectiveResult EffectiveResult;
     public float MoveSpeed;
-    public float Duration = 0f;
+    public float Duration;
+    public bool IsConstant;
 }

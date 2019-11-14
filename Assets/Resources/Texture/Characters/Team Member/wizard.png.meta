@@ -4,112 +4,112 @@ TextureImporter:
   internalIDToNameTable:
   - first:
       213: 21300000
-    second: sprite-sheet-b-161x106_0
+    second: wizard
   - first:
       213: 21300002
-    second: sprite-sheet-b-161x106_1
+    second: wizard_1
   - first:
       213: 21300004
-    second: sprite-sheet-b-161x106_2
+    second: wizard_2
   - first:
       213: 21300006
-    second: sprite-sheet-b-161x106_3
+    second: wizard_3
   - first:
       213: 21300008
-    second: sprite-sheet-b-161x106_4
+    second: wizard_4
   - first:
       213: 21300010
-    second: sprite-sheet-b-161x106_5
+    second: wizard_5
   - first:
       213: 21300012
-    second: sprite-sheet-b-161x106_6
+    second: wizard_6
   - first:
       213: 21300014
-    second: sprite-sheet-b-161x106_7
+    second: wizard_7
   - first:
       213: 21300016
-    second: sprite-sheet-b-161x106_8
+    second: wizard_8
   - first:
       213: 21300018
-    second: sprite-sheet-b-161x106_9
+    second: wizard_9
   - first:
       213: 21300020
-    second: sprite-sheet-b-161x106_10
+    second: wizard_10
   - first:
       213: 21300022
-    second: sprite-sheet-b-161x106_11
+    second: wizard_11
   - first:
       213: 21300024
-    second: sprite-sheet-b-161x106_12
+    second: wizard_12
   - first:
       213: 21300026
-    second: sprite-sheet-b-161x106_13
+    second: wizard_13
   - first:
       213: 21300028
-    second: sprite-sheet-b-161x106_14
+    second: wizard_14
   - first:
       213: 21300030
-    second: sprite-sheet-b-161x106_15
+    second: wizard_15
   - first:
       213: 21300032
-    second: sprite-sheet-b-161x106_16
+    second: wizard_16
   - first:
       213: 21300034
-    second: sprite-sheet-b-161x106_17
+    second: wizard_17
   - first:
       213: 21300036
-    second: sprite-sheet-b-161x106_18
+    second: wizard_18
   - first:
       213: 21300038
-    second: sprite-sheet-b-161x106_19
+    second: wizard_19
   - first:
       213: 21300040
-    second: sprite-sheet-b-161x106_20
+    second: wizard_20
   - first:
       213: 21300042
-    second: sprite-sheet-b-161x106_21
+    second: wizard_21
   - first:
       213: 21300044
-    second: sprite-sheet-b-161x106_22
+    second: wizard_22
   - first:
       213: 21300046
-    second: sprite-sheet-b-161x106_23
+    second: wizard_23
   - first:
       213: 21300048
-    second: sprite-sheet-b-161x106_24
+    second: wizard_24
   - first:
       213: 21300050
-    second: sprite-sheet-b-161x106_25
+    second: wizard_25
   - first:
       213: 21300052
-    second: sprite-sheet-b-161x106_26
+    second: wizard_26
   - first:
       213: 21300054
-    second: sprite-sheet-b-161x106_27
+    second: wizard_27
   - first:
       213: 21300056
-    second: sprite-sheet-b-161x106_28
+    second: wizard_28
   - first:
       213: 21300058
-    second: sprite-sheet-b-161x106_29
+    second: wizard_29
   - first:
       213: 21300060
-    second: sprite-sheet-b-161x106_30
+    second: wizard_30
   - first:
       213: 21300062
-    second: sprite-sheet-b-161x106_31
+    second: wizard_31
   - first:
       213: 21300064
-    second: sprite-sheet-b-161x106_32
+    second: wizard_32
   - first:
       213: 21300066
-    second: sprite-sheet-b-161x106_33
+    second: wizard_33
   - first:
       213: 21300068
-    second: sprite-sheet-b-161x106_34
+    second: wizard_34
   - first:
       213: 21300070
-    second: sprite-sheet-b-161x106_35
+    second: wizard_35
   - first:
       213: 21300072
     second: sprite-sheet-b-161x106_36
@@ -213,7 +213,7 @@ TextureImporter:
     serializedVersion: 2
     sprites:
     - serializedVersion: 2
-      name: sprite-sheet-b-161x106_0
+      name: wizard
       rect:
         serializedVersion: 2
         x: 0
@@ -221,7 +221,7 @@ TextureImporter:
         width: 161
         height: 106
       alignment: 0
-      pivot: {x: 0, y: 0}
+      pivot: {x: 0.5, y: 0.5}
       border: {x: 0, y: 0, z: 0, w: 0}
       outline: []
       physicsShape: []
@@ -234,7 +234,7 @@ TextureImporter:
       edges: []
       weights: []
     - serializedVersion: 2
-      name: sprite-sheet-b-161x106_1
+      name: wizard_1
       rect:
         serializedVersion: 2
         x: 161
@@ -242,7 +242,7 @@ TextureImporter:
         width: 161
         height: 106
       alignment: 0
-      pivot: {x: 0, y: 0}
+      pivot: {x: 0.5, y: 0.5}
       border: {x: 0, y: 0, z: 0, w: 0}
       outline: []
       physicsShape: []
@@ -255,7 +255,7 @@ TextureImporter:
       edges: []
       weights: []
     - serializedVersion: 2
-      name: sprite-sheet-b-161x106_2
+      name: wizard_2
       rect:
         serializedVersion: 2
         x: 322
@@ -263,7 +263,7 @@ TextureImporter:
         width: 161
         height: 106
       alignment: 0
-      pivot: {x: 0, y: 0}
+      pivot: {x: 0.5, y: 0.5}
       border: {x: 0, y: 0, z: 0, w: 0}
       outline: []
       physicsShape: []
@@ -276,7 +276,7 @@ TextureImporter:
       edges: []
       weights: []
     - serializedVersion: 2
-      name: sprite-sheet-b-161x106_3
+      name: wizard_3
       rect:
         serializedVersion: 2
         x: 483
@@ -284,7 +284,7 @@ TextureImporter:
         width: 161
         height: 106
       alignment: 0
-      pivot: {x: 0, y: 0}
+      pivot: {x: 0.5, y: 0.5}
       border: {x: 0, y: 0, z: 0, w: 0}
       outline: []
       physicsShape: []
@@ -297,7 +297,7 @@ TextureImporter:
       edges: []
       weights: []
     - serializedVersion: 2
-      name: sprite-sheet-b-161x106_4
+      name: wizard_4
       rect:
         serializedVersion: 2
         x: 644
@@ -305,7 +305,7 @@ TextureImporter:
         width: 161
         height: 106
       alignment: 0
-      pivot: {x: 0, y: 0}
+      pivot: {x: 0.5, y: 0.5}
       border: {x: 0, y: 0, z: 0, w: 0}
       outline: []
       physicsShape: []
@@ -318,7 +318,7 @@ TextureImporter:
       edges: []
       weights: []
     - serializedVersion: 2
-      name: sprite-sheet-b-161x106_5
+      name: wizard_5
       rect:
         serializedVersion: 2
         x: 805
@@ -326,7 +326,7 @@ TextureImporter:
         width: 161
         height: 106
       alignment: 0
-      pivot: {x: 0, y: 0}
+      pivot: {x: 0.5, y: 0.5}
       border: {x: 0, y: 0, z: 0, w: 0}
       outline: []
       physicsShape: []
@@ -339,7 +339,7 @@ TextureImporter:
       edges: []
       weights: []
     - serializedVersion: 2
-      name: sprite-sheet-b-161x106_6
+      name: wizard_6
       rect:
         serializedVersion: 2
         x: 0
@@ -347,7 +347,7 @@ TextureImporter:
         width: 161
         height: 106
       alignment: 0
-      pivot: {x: 0, y: 0}
+      pivot: {x: 0.5, y: 0.5}
       border: {x: 0, y: 0, z: 0, w: 0}
       outline: []
       physicsShape: []
@@ -360,7 +360,7 @@ TextureImporter:
       edges: []
       weights: []
     - serializedVersion: 2
-      name: sprite-sheet-b-161x106_7
+      name: wizard_7
       rect:
         serializedVersion: 2
         x: 161
@@ -368,7 +368,7 @@ TextureImporter:
         width: 161
         height: 106
       alignment: 0
-      pivot: {x: 0, y: 0}
+      pivot: {x: 0.5, y: 0.5}
       border: {x: 0, y: 0, z: 0, w: 0}
       outline: []
       physicsShape: []
@@ -381,7 +381,7 @@ TextureImporter:
       edges: []
       weights: []
     - serializedVersion: 2
-      name: sprite-sheet-b-161x106_8
+      name: wizard_8
       rect:
         serializedVersion: 2
         x: 322
@@ -389,7 +389,7 @@ TextureImporter:
         width: 161
         height: 106
       alignment: 0
-      pivot: {x: 0, y: 0}
+      pivot: {x: 0.5, y: 0.5}
       border: {x: 0, y: 0, z: 0, w: 0}
       outline: []
       physicsShape: []
@@ -402,7 +402,7 @@ TextureImporter:
       edges: []
       weights: []
     - serializedVersion: 2
-      name: sprite-sheet-b-161x106_9
+      name: wizard_9
       rect:
         serializedVersion: 2
         x: 483
@@ -410,7 +410,7 @@ TextureImporter:
         width: 161
         height: 106
       alignment: 0
-      pivot: {x: 0, y: 0}
+      pivot: {x: 0.5, y: 0.5}
       border: {x: 0, y: 0, z: 0, w: 0}
       outline: []
       physicsShape: []
@@ -423,7 +423,7 @@ TextureImporter:
       edges: []
       weights: []
     - serializedVersion: 2
-      name: sprite-sheet-b-161x106_10
+      name: wizard_10
       rect:
         serializedVersion: 2
         x: 644
@@ -431,7 +431,7 @@ TextureImporter:
         width: 161
         height: 106
       alignment: 0
-      pivot: {x: 0, y: 0}
+      pivot: {x: 0.5, y: 0.5}
       border: {x: 0, y: 0, z: 0, w: 0}
       outline: []
       physicsShape: []
@@ -444,7 +444,7 @@ TextureImporter:
       edges: []
       weights: []
     - serializedVersion: 2
-      name: sprite-sheet-b-161x106_11
+      name: wizard_11
       rect:
         serializedVersion: 2
         x: 805
@@ -452,7 +452,7 @@ TextureImporter:
         width: 161
         height: 106
       alignment: 0
-      pivot: {x: 0, y: 0}
+      pivot: {x: 0.5, y: 0.5}
       border: {x: 0, y: 0, z: 0, w: 0}
       outline: []
       physicsShape: []
@@ -465,7 +465,7 @@ TextureImporter:
       edges: []
       weights: []
     - serializedVersion: 2
-      name: sprite-sheet-b-161x106_12
+      name: wizard_12
       rect:
         serializedVersion: 2
         x: 0
@@ -473,7 +473,7 @@ TextureImporter:
         width: 161
         height: 106
       alignment: 0
-      pivot: {x: 0, y: 0}
+      pivot: {x: 0.5, y: 0.5}
       border: {x: 0, y: 0, z: 0, w: 0}
       outline: []
       physicsShape: []
@@ -486,7 +486,7 @@ TextureImporter:
       edges: []
       weights: []
     - serializedVersion: 2
-      name: sprite-sheet-b-161x106_13
+      name: wizard_13
       rect:
         serializedVersion: 2
         x: 161
@@ -494,7 +494,7 @@ TextureImporter:
         width: 161
         height: 106
       alignment: 0
-      pivot: {x: 0, y: 0}
+      pivot: {x: 0.5, y: 0.5}
       border: {x: 0, y: 0, z: 0, w: 0}
       outline: []
       physicsShape: []
@@ -507,7 +507,7 @@ TextureImporter:
       edges: []
       weights: []
     - serializedVersion: 2
-      name: sprite-sheet-b-161x106_14
+      name: wizard_14
       rect:
         serializedVersion: 2
         x: 322
@@ -515,7 +515,7 @@ TextureImporter:
         width: 161
         height: 106
       alignment: 0
-      pivot: {x: 0, y: 0}
+      pivot: {x: 0.5, y: 0.5}
       border: {x: 0, y: 0, z: 0, w: 0}
       outline: []
       physicsShape: []
@@ -528,7 +528,7 @@ TextureImporter:
       edges: []
       weights: []
     - serializedVersion: 2
-      name: sprite-sheet-b-161x106_15
+      name: wizard_15
       rect:
         serializedVersion: 2
         x: 483
@@ -536,7 +536,7 @@ TextureImporter:
         width: 161
         height: 106
       alignment: 0
-      pivot: {x: 0, y: 0}
+      pivot: {x: 0.5, y: 0.5}
       border: {x: 0, y: 0, z: 0, w: 0}
       outline: []
       physicsShape: []
@@ -549,7 +549,7 @@ TextureImporter:
       edges: []
       weights: []
     - serializedVersion: 2
-      name: sprite-sheet-b-161x106_16
+      name: wizard_16
       rect:
         serializedVersion: 2
         x: 644
@@ -557,7 +557,7 @@ TextureImporter:
         width: 161
         height: 106
       alignment: 0
-      pivot: {x: 0, y: 0}
+      pivot: {x: 0.5, y: 0.5}
       border: {x: 0, y: 0, z: 0, w: 0}
       outline: []
       physicsShape: []
@@ -570,7 +570,7 @@ TextureImporter:
       edges: []
       weights: []
     - serializedVersion: 2
-      name: sprite-sheet-b-161x106_17
+      name: wizard_17
       rect:
         serializedVersion: 2
         x: 805
@@ -578,7 +578,7 @@ TextureImporter:
         width: 161
         height: 106
       alignment: 0
-      pivot: {x: 0, y: 0}
+      pivot: {x: 0.5, y: 0.5}
       border: {x: 0, y: 0, z: 0, w: 0}
       outline: []
       physicsShape: []
@@ -591,7 +591,7 @@ TextureImporter:
       edges: []
       weights: []
     - serializedVersion: 2
-      name: sprite-sheet-b-161x106_18
+      name: wizard_18
       rect:
         serializedVersion: 2
         x: 0
@@ -599,7 +599,7 @@ TextureImporter:
         width: 161
         height: 106
       alignment: 0
-      pivot: {x: 0, y: 0}
+      pivot: {x: 0.5, y: 0.5}
       border: {x: 0, y: 0, z: 0, w: 0}
       outline: []
       physicsShape: []
@@ -612,7 +612,7 @@ TextureImporter:
       edges: []
       weights: []
     - serializedVersion: 2
-      name: sprite-sheet-b-161x106_19
+      name: wizard_19
       rect:
         serializedVersion: 2
         x: 161
@@ -620,7 +620,7 @@ TextureImporter:
         width: 161
         height: 106
       alignment: 0
-      pivot: {x: 0, y: 0}
+      pivot: {x: 0.5, y: 0.5}
       border: {x: 0, y: 0, z: 0, w: 0}
       outline: []
       physicsShape: []
@@ -633,7 +633,7 @@ TextureImporter:
       edges: []
       weights: []
     - serializedVersion: 2
-      name: sprite-sheet-b-161x106_20
+      name: wizard_20
       rect:
         serializedVersion: 2
         x: 322
@@ -641,7 +641,7 @@ TextureImporter:
         width: 161
         height: 106
       alignment: 0
-      pivot: {x: 0, y: 0}
+      pivot: {x: 0.5, y: 0.5}
       border: {x: 0, y: 0, z: 0, w: 0}
       outline: []
       physicsShape: []
@@ -654,7 +654,7 @@ TextureImporter:
       edges: []
       weights: []
     - serializedVersion: 2
-      name: sprite-sheet-b-161x106_21
+      name: wizard_21
       rect:
         serializedVersion: 2
         x: 483
@@ -662,7 +662,7 @@ TextureImporter:
         width: 161
         height: 106
       alignment: 0
-      pivot: {x: 0, y: 0}
+      pivot: {x: 0.5, y: 0.5}
       border: {x: 0, y: 0, z: 0, w: 0}
       outline: []
       physicsShape: []
@@ -675,7 +675,7 @@ TextureImporter:
       edges: []
       weights: []
     - serializedVersion: 2
-      name: sprite-sheet-b-161x106_22
+      name: wizard_22
       rect:
         serializedVersion: 2
         x: 644
@@ -683,7 +683,7 @@ TextureImporter:
         width: 161
         height: 106
       alignment: 0
-      pivot: {x: 0, y: 0}
+      pivot: {x: 0.5, y: 0.5}
       border: {x: 0, y: 0, z: 0, w: 0}
       outline: []
       physicsShape: []
@@ -696,7 +696,7 @@ TextureImporter:
       edges: []
       weights: []
     - serializedVersion: 2
-      name: sprite-sheet-b-161x106_23
+      name: wizard_23
       rect:
         serializedVersion: 2
         x: 805
@@ -704,7 +704,7 @@ TextureImporter:
         width: 161
         height: 106
       alignment: 0
-      pivot: {x: 0, y: 0}
+      pivot: {x: 0.5, y: 0.5}
       border: {x: 0, y: 0, z: 0, w: 0}
       outline: []
       physicsShape: []
@@ -717,7 +717,7 @@ TextureImporter:
       edges: []
       weights: []
     - serializedVersion: 2
-      name: sprite-sheet-b-161x106_24
+      name: wizard_24
       rect:
         serializedVersion: 2
         x: 0
@@ -725,7 +725,7 @@ TextureImporter:
         width: 161
         height: 106
       alignment: 0
-      pivot: {x: 0, y: 0}
+      pivot: {x: 0.5, y: 0.5}
       border: {x: 0, y: 0, z: 0, w: 0}
       outline: []
       physicsShape: []
@@ -738,7 +738,7 @@ TextureImporter:
       edges: []
       weights: []
     - serializedVersion: 2
-      name: sprite-sheet-b-161x106_25
+      name: wizard_25
       rect:
         serializedVersion: 2
         x: 161
@@ -746,7 +746,7 @@ TextureImporter:
         width: 161
         height: 106
       alignment: 0
-      pivot: {x: 0, y: 0}
+      pivot: {x: 0.5, y: 0.5}
       border: {x: 0, y: 0, z: 0, w: 0}
       outline: []
       physicsShape: []
@@ -759,7 +759,7 @@ TextureImporter:
       edges: []
       weights: []
     - serializedVersion: 2
-      name: sprite-sheet-b-161x106_26
+      name: wizard_26
       rect:
         serializedVersion: 2
         x: 322
@@ -767,7 +767,7 @@ TextureImporter:
         width: 161
         height: 106
       alignment: 0
-      pivot: {x: 0, y: 0}
+      pivot: {x: 0.5, y: 0.5}
       border: {x: 0, y: 0, z: 0, w: 0}
       outline: []
       physicsShape: []
@@ -780,7 +780,7 @@ TextureImporter:
       edges: []
       weights: []
     - serializedVersion: 2
-      name: sprite-sheet-b-161x106_27
+      name: wizard_27
       rect:
         serializedVersion: 2
         x: 483
@@ -788,7 +788,7 @@ TextureImporter:
         width: 161
         height: 106
       alignment: 0
-      pivot: {x: 0, y: 0}
+      pivot: {x: 0.5, y: 0.5}
       border: {x: 0, y: 0, z: 0, w: 0}
       outline: []
       physicsShape: []
@@ -801,7 +801,7 @@ TextureImporter:
       edges: []
       weights: []
     - serializedVersion: 2
-      name: sprite-sheet-b-161x106_28
+      name: wizard_28
       rect:
         serializedVersion: 2
         x: 644
@@ -809,7 +809,7 @@ TextureImporter:
         width: 161
         height: 106
       alignment: 0
-      pivot: {x: 0, y: 0}
+      pivot: {x: 0.5, y: 0.5}
       border: {x: 0, y: 0, z: 0, w: 0}
       outline: []
       physicsShape: []
@@ -822,7 +822,7 @@ TextureImporter:
       edges: []
       weights: []
     - serializedVersion: 2
-      name: sprite-sheet-b-161x106_29
+      name: wizard_29
       rect:
         serializedVersion: 2
         x: 805
@@ -830,7 +830,7 @@ TextureImporter:
         width: 161
         height: 106
       alignment: 0
-      pivot: {x: 0, y: 0}
+      pivot: {x: 0.5, y: 0.5}
       border: {x: 0, y: 0, z: 0, w: 0}
       outline: []
       physicsShape: []
@@ -843,7 +843,7 @@ TextureImporter:
       edges: []
       weights: []
     - serializedVersion: 2
-      name: sprite-sheet-b-161x106_30
+      name: wizard_30
       rect:
         serializedVersion: 2
         x: 0
@@ -851,7 +851,7 @@ TextureImporter:
         width: 161
         height: 106
       alignment: 0
-      pivot: {x: 0, y: 0}
+      pivot: {x: 0.5, y: 0.5}
       border: {x: 0, y: 0, z: 0, w: 0}
       outline: []
       physicsShape: []
@@ -864,7 +864,7 @@ TextureImporter:
       edges: []
       weights: []
     - serializedVersion: 2
-      name: sprite-sheet-b-161x106_31
+      name: wizard_31
       rect:
         serializedVersion: 2
         x: 161
@@ -872,7 +872,7 @@ TextureImporter:
         width: 161
         height: 106
       alignment: 0
-      pivot: {x: 0, y: 0}
+      pivot: {x: 0.5, y: 0.5}
       border: {x: 0, y: 0, z: 0, w: 0}
       outline: []
       physicsShape: []
@@ -885,7 +885,7 @@ TextureImporter:
       edges: []
       weights: []
     - serializedVersion: 2
-      name: sprite-sheet-b-161x106_32
+      name: wizard_32
       rect:
         serializedVersion: 2
         x: 322
@@ -893,7 +893,7 @@ TextureImporter:
         width: 161
         height: 106
       alignment: 0
-      pivot: {x: 0, y: 0}
+      pivot: {x: 0.5, y: 0.5}
       border: {x: 0, y: 0, z: 0, w: 0}
       outline: []
       physicsShape: []
@@ -906,7 +906,7 @@ TextureImporter:
       edges: []
       weights: []
     - serializedVersion: 2
-      name: sprite-sheet-b-161x106_33
+      name: wizard_33
       rect:
         serializedVersion: 2
         x: 483
@@ -914,7 +914,7 @@ TextureImporter:
         width: 161
         height: 106
       alignment: 0
-      pivot: {x: 0, y: 0}
+      pivot: {x: 0.5, y: 0.5}
       border: {x: 0, y: 0, z: 0, w: 0}
       outline: []
       physicsShape: []
@@ -927,7 +927,7 @@ TextureImporter:
       edges: []
       weights: []
     - serializedVersion: 2
-      name: sprite-sheet-b-161x106_34
+      name: wizard_34
       rect:
         serializedVersion: 2
         x: 644
@@ -935,7 +935,7 @@ TextureImporter:
         width: 161
         height: 106
       alignment: 0
-      pivot: {x: 0, y: 0}
+      pivot: {x: 0.5, y: 0.5}
       border: {x: 0, y: 0, z: 0, w: 0}
       outline: []
       physicsShape: []
@@ -948,7 +948,7 @@ TextureImporter:
       edges: []
       weights: []
     - serializedVersion: 2
-      name: sprite-sheet-b-161x106_35
+      name: wizard_35
       rect:
         serializedVersion: 2
         x: 805
@@ -956,7 +956,7 @@ TextureImporter:
         width: 161
         height: 106
       alignment: 0
-      pivot: {x: 0, y: 0}
+      pivot: {x: 0.5, y: 0.5}
       border: {x: 0, y: 0, z: 0, w: 0}
       outline: []
       physicsShape: []

@@ -74,9 +74,11 @@ public class BattleView : MonoBehaviour, IBattleView
     public event Action<Skill> UseSkill;
     #endregion
 
+    private GameData _gameData = null;
     private TeamData _teamData = null;
     private Dictionary<int, HeroView> _heroViews = new Dictionary<int, HeroView>();
     private Dictionary<int, HeroElement> _heroElements = new Dictionary<int, HeroElement>();
+    private Dictionary<string, SkillRow> _skillTable = null;
 
     private Dictionary<int, EnemyData> _enemiesData = null;
     private Dictionary<int, EnemyView> _enemyViews = new Dictionary<int, EnemyView>();
@@ -142,8 +144,10 @@ public class BattleView : MonoBehaviour, IBattleView
     }
 
     #region Init
-    public void Initialize(IInfoView infoView)
+    public void Initialize(GameData gameData, IInfoView infoView)
     {
+        _gameData = gameData;
+        _skillTable = _gameData.SkillTable;
         _infoView = infoView;
     }
 
@@ -337,7 +341,7 @@ public class BattleView : MonoBehaviour, IBattleView
         {
             _SetTopTipText(BattleOperationType.SelectSkill);
 
-            var skills = _teamData.Heroes[_curHeroIdx].Skills.Values.OrderBy(skill => int.Parse(skill.ID)).ToList();
+            var skills = _GetSkillsByID(_teamData.Heroes[_curHeroIdx].SkillList).Values.OrderBy(skill => int.Parse(skill.ID)).ToList();
             if (skills == null || skills.Count == 0)
                 return;
 
@@ -360,8 +364,9 @@ public class BattleView : MonoBehaviour, IBattleView
     private void _FreshAllSkillView()
     {
         var curHero = _teamData.Heroes[_curHeroIdx];
+        var skills = _GetSkillsByID(curHero.SkillList);
         foreach (var view in _skillViews)
-            view.SetSkillViewUseAble(curHero.Skills[view.ID].MpCost <= curHero.CurrentMp);
+            view.SetSkillViewUseAble(skills[view.ID].MpCost <= curHero.CurrentMp);
     }
 
     private void _HideSelectImage(ListViewType type)
@@ -380,6 +385,19 @@ public class BattleView : MonoBehaviour, IBattleView
                 break;
         }
         _curStatus = BattleStatus.None;
+    }
+
+    private Dictionary<string,Skill> _GetSkillsByID(List<string> skillIds)
+    {
+        Dictionary<string, Skill> result = new Dictionary<string, Skill>();
+        for(int i = 0;i<skillIds.Count;i++)
+        {
+            var skillRow = _skillTable[skillIds[i]];
+            var skill = new Skill(skillRow);
+            if (skill != null)
+                result.Add(skill.ID, skill);
+        }
+        return result;
     }
     #endregion
 

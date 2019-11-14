@@ -44,46 +44,24 @@ public class Skill
 
     private const string IMAGE_PATH_PREFIX = "Texture/Icons/";
 
-    public Skill(EffectType type, string id, string name, int cost, SkillVariety variety, bool isRemote, string imageKey,
-        float multiple, EffectiveWay way, EffectiveResult result, float duration, float speed)
+    public Skill(SkillRow skillRow)
     {
-        EffectType = type;
-        Variety = variety;
-        ID = id;
-        Name = name;
-        MpCost = cost;
-        Multiple = multiple;
-        IsConstant = false;
-        EffectValue = 0;
+        EffectType = skillRow.EffectType;
+        Variety = skillRow.Variety;
+        ID = skillRow.ID;
+        Name = skillRow.Name;
+        MpCost = skillRow.MpCost;
+        Multiple = skillRow.Multiple;
+        IsConstant = skillRow.IsConstant;
+        EffectValue = skillRow.EffectValue;
         Desc = _GetDescription();
-        IsRemote = isRemote;
-        EffectiveWay = way;
-        EffectiveResult = result;
-        Duration = duration;
-        MoveSpeed = speed;
-        if (!string.IsNullOrEmpty(imageKey))
-            ImageKey = IMAGE_PATH_PREFIX + imageKey;
-    }
-
-    public Skill(EffectType type, string id, string name, int cost, SkillVariety variety, bool isRemote, string imageKey,
-        int effectValue, EffectiveWay way, EffectiveResult result, float duration, float speed)
-    {
-        EffectType = type;
-        Variety = variety;
-        ID = id;
-        Name = name;
-        MpCost = cost;
-        Multiple = 0f;
-        IsConstant = true;
-        EffectValue = effectValue;
-        Desc = _GetDescription();
-        IsRemote = isRemote;
-        EffectiveWay = way;
-        EffectiveResult = result;
-        Duration = duration;
-        MoveSpeed = speed;
-        if (!string.IsNullOrEmpty(imageKey))
-            ImageKey = IMAGE_PATH_PREFIX + imageKey;
+        IsRemote = skillRow.IsRemote;
+        EffectiveWay = skillRow.EffectiveWay;
+        EffectiveResult = skillRow.EffectiveResult;
+        Duration = skillRow.Duration;
+        MoveSpeed = skillRow.MoveSpeed;
+        if (!string.IsNullOrEmpty(skillRow.ImageKey))
+            ImageKey = IMAGE_PATH_PREFIX + skillRow.ImageKey;
     }
 
     private string _GetDescription()

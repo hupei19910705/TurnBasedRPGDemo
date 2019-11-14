@@ -19,8 +19,9 @@ public class CharacterData
     public int Pos;
     public bool IsAlive { get { return CurrentHp > 0; } }
     public Dictionary<string, Skill> Skills;
+    public List<string> SkillList;
 
-    public CharacterData(string name, int hp,int mp, double attack, double defence, int pos, int level)
+    public CharacterData(string name, List<string> skills, double hp,double mp, double attack, double defence, int pos, int level)
     {
         Name = name;
         OriginHp = MaxHp = CurrentHp = hp;
@@ -29,6 +30,7 @@ public class CharacterData
         Attack = attack;
         Defence = defence;
         Pos = pos;
+        SkillList = skills;
     }
 
     public void SetPos(int pos)

@@ -17,15 +17,11 @@ public class EnemyData : CharacterData
     public int DropExp;
     public List<DropItem> DropItems = new List<DropItem>();
 
-    public EnemyData(string name, EnemyType type, int hp,int mp,double attack, double defence, int pos,int level,int dropExp)
-         : base(name, hp,mp, attack, defence, pos, level)
+    public EnemyData(EnemyDataRow dataRow, List<DropItem> dropItems, int pos ,int level)
+        : base(dataRow.Name, dataRow.Skills, dataRow.OriginHp, dataRow.OriginMp, dataRow.Attack, dataRow.Defence, pos, level)
     {
-        Type = type;
-        DropExp = dropExp;
-    }
-
-    public void SetDropItems(List<DropItem> dropItems)
-    {
+        Type = dataRow.Type;
+        DropExp = dataRow.DropExp;
         DropItems = dropItems;
     }
 }

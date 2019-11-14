@@ -77,6 +77,7 @@ public class AssetModel
         var columnCount = dataTable.Columns.Count;
         Type type = typeof(TValue);
 
+
         string[] fieldsName = new string[columnCount];
         for (int i = 0; i < columnCount; i++)
         {

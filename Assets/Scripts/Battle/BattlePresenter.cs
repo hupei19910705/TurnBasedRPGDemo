@@ -175,9 +175,8 @@ public class BattlePresenter : IBattlePresenter
                     break;
                 case EffectiveResult.Reduce:
                     target = _enemiesData[_targetEnemyIdx];
-                    changeValue = -changeValue;
                     if (skill.EffectType == EffectType.Mp)
-                        target.ChangeMp(changeValue);
+                        target.ChangeMp(-changeValue);
                     else
                         target.BeHit(changeValue, skill.EffectType == EffectType.Real);
                     break;

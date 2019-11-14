@@ -4,124 +4,124 @@ TextureImporter:
   internalIDToNameTable:
   - first:
       213: 21300000
-    second: sprite-sheet-249x100_0
+    second: warrior
   - first:
       213: 21300002
-    second: sprite-sheet-249x100_1
+    second: warrior_1
   - first:
       213: 21300004
-    second: sprite-sheet-249x100_2
+    second: warrior_2
   - first:
       213: 21300006
-    second: sprite-sheet-249x100_3
+    second: warrior_3
   - first:
       213: 21300008
-    second: sprite-sheet-249x100_4
+    second: warrior_4
   - first:
       213: 21300010
-    second: sprite-sheet-249x100_5
+    second: warrior_5
   - first:
       213: 21300012
-    second: sprite-sheet-249x100_6
+    second: warrior_6
   - first:
       213: 21300014
-    second: sprite-sheet-249x100_7
+    second: warrior_7
   - first:
       213: 21300016
-    second: sprite-sheet-249x100_8
+    second: warrior_8
   - first:
       213: 21300018
-    second: sprite-sheet-249x100_9
+    second: warrior_9
   - first:
       213: 21300020
-    second: sprite-sheet-249x100_10
+    second: warrior_10
   - first:
       213: 21300022
-    second: sprite-sheet-249x100_11
+    second: warrior_11
   - first:
       213: 21300024
-    second: sprite-sheet-249x100_12
+    second: warrior_12
   - first:
       213: 21300026
-    second: sprite-sheet-249x100_13
+    second: warrior_13
   - first:
       213: 21300028
-    second: sprite-sheet-249x100_14
+    second: warrior_14
   - first:
       213: 21300030
-    second: sprite-sheet-249x100_15
+    second: warrior_15
   - first:
       213: 21300032
-    second: sprite-sheet-249x100_16
+    second: warrior_16
   - first:
       213: 21300034
-    second: sprite-sheet-249x100_17
+    second: warrior_17
   - first:
       213: 21300036
-    second: sprite-sheet-249x100_18
+    second: warrior_18
   - first:
       213: 21300038
-    second: sprite-sheet-249x100_19
+    second: warrior_19
   - first:
       213: 21300040
-    second: sprite-sheet-249x100_20
+    second: warrior_20
   - first:
       213: 21300042
-    second: sprite-sheet-249x100_21
+    second: warrior_21
   - first:
       213: 21300044
-    second: sprite-sheet-249x100_22
+    second: warrior_22
   - first:
       213: 21300046
-    second: sprite-sheet-249x100_23
+    second: warrior_23
   - first:
       213: 21300048
-    second: sprite-sheet-249x100_24
+    second: warrior_24
   - first:
       213: 21300050
-    second: sprite-sheet-249x100_25
+    second: warrior_25
   - first:
       213: 21300052
-    second: sprite-sheet-249x100_26
+    second: warrior_26
   - first:
       213: 21300054
-    second: sprite-sheet-249x100_27
+    second: warrior_27
   - first:
       213: 21300056
-    second: sprite-sheet-249x100_28
+    second: warrior_28
   - first:
       213: 21300058
-    second: sprite-sheet-249x100_29
+    second: warrior_29
   - first:
       213: 21300060
-    second: sprite-sheet-249x100_30
+    second: warrior_30
   - first:
       213: 21300062
-    second: sprite-sheet-249x100_31
+    second: warrior_31
   - first:
       213: 21300064
-    second: sprite-sheet-249x100_32
+    second: warrior_32
   - first:
       213: 21300066
-    second: sprite-sheet-249x100_33
+    second: warrior_33
   - first:
       213: 21300068
-    second: sprite-sheet-249x100_34
+    second: warrior_34
   - first:
       213: 21300070
-    second: sprite-sheet-249x100_35
+    second: warrior_35
   - first:
       213: 21300072
-    second: sprite-sheet-249x100_36
+    second: warrior_36
   - first:
       213: 21300074
-    second: sprite-sheet-249x100_37
+    second: warrior_37
   - first:
       213: 21300076
-    second: sprite-sheet-249x100_38
+    second: warrior_38
   - first:
       213: 21300078
-    second: sprite-sheet-249x100_39
+    second: warrior_39
   - first:
       213: 21300080
     second: sprite-sheet-249x100_40
@@ -234,7 +234,7 @@ TextureImporter:
     serializedVersion: 2
     sprites:
     - serializedVersion: 2
-      name: sprite-sheet-249x100_0
+      name: warrior
       rect:
         serializedVersion: 2
         x: 0
@@ -242,7 +242,7 @@ TextureImporter:
         width: 249
         height: 100
       alignment: 0
-      pivot: {x: 0, y: 0}
+      pivot: {x: 0.5, y: 0.5}
       border: {x: 0, y: 0, z: 0, w: 0}
       outline: []
       physicsShape: []
@@ -255,7 +255,7 @@ TextureImporter:
       edges: []
       weights: []
     - serializedVersion: 2
-      name: sprite-sheet-249x100_1
+      name: warrior_1
       rect:
         serializedVersion: 2
         x: 249
@@ -263,7 +263,7 @@ TextureImporter:
         width: 249
         height: 100
       alignment: 0
-      pivot: {x: 0, y: 0}
+      pivot: {x: 0.5, y: 0.5}
       border: {x: 0, y: 0, z: 0, w: 0}
       outline: []
       physicsShape: []
@@ -276,7 +276,7 @@ TextureImporter:
       edges: []
       weights: []
     - serializedVersion: 2
-      name: sprite-sheet-249x100_2
+      name: warrior_2
       rect:
         serializedVersion: 2
         x: 498
@@ -284,7 +284,7 @@ TextureImporter:
         width: 249
         height: 100
       alignment: 0
-      pivot: {x: 0, y: 0}
+      pivot: {x: 0.5, y: 0.5}
       border: {x: 0, y: 0, z: 0, w: 0}
       outline: []
       physicsShape: []
@@ -297,7 +297,7 @@ TextureImporter:
       edges: []
       weights: []
     - serializedVersion: 2
-      name: sprite-sheet-249x100_3
+      name: warrior_3
       rect:
         serializedVersion: 2
         x: 747
@@ -305,7 +305,7 @@ TextureImporter:
         width: 249
         height: 100
       alignment: 0
-      pivot: {x: 0, y: 0}
+      pivot: {x: 0.5, y: 0.5}
       border: {x: 0, y: 0, z: 0, w: 0}
       outline: []
       physicsShape: []
@@ -318,7 +318,7 @@ TextureImporter:
       edges: []
       weights: []
     - serializedVersion: 2
-      name: sprite-sheet-249x100_4
+      name: warrior_4
       rect:
         serializedVersion: 2
         x: 996
@@ -326,7 +326,7 @@ TextureImporter:
         width: 249
         height: 100
       alignment: 0
-      pivot: {x: 0, y: 0}
+      pivot: {x: 0.5, y: 0.5}
       border: {x: 0, y: 0, z: 0, w: 0}
       outline: []
       physicsShape: []
@@ -339,7 +339,7 @@ TextureImporter:
       edges: []
       weights: []
     - serializedVersion: 2
-      name: sprite-sheet-249x100_5
+      name: warrior_5
       rect:
         serializedVersion: 2
         x: 1245
@@ -347,7 +347,7 @@ TextureImporter:
         width: 249
         height: 100
       alignment: 0
-      pivot: {x: 0, y: 0}
+      pivot: {x: 0.5, y: 0.5}
       border: {x: 0, y: 0, z: 0, w: 0}
       outline: []
       physicsShape: []
@@ -360,7 +360,7 @@ TextureImporter:
       edges: []
       weights: []
     - serializedVersion: 2
-      name: sprite-sheet-249x100_6
+      name: warrior_6
       rect:
         serializedVersion: 2
         x: 0
@@ -368,7 +368,7 @@ TextureImporter:
         width: 249
         height: 100
       alignment: 0
-      pivot: {x: 0, y: 0}
+      pivot: {x: 0.5, y: 0.5}
       border: {x: 0, y: 0, z: 0, w: 0}
       outline: []
       physicsShape: []
@@ -381,7 +381,7 @@ TextureImporter:
       edges: []
       weights: []
     - serializedVersion: 2
-      name: sprite-sheet-249x100_7
+      name: warrior_7
       rect:
         serializedVersion: 2
         x: 249
@@ -389,7 +389,7 @@ TextureImporter:
         width: 249
         height: 100
       alignment: 0
-      pivot: {x: 0, y: 0}
+      pivot: {x: 0.5, y: 0.5}
       border: {x: 0, y: 0, z: 0, w: 0}
       outline: []
       physicsShape: []
@@ -402,7 +402,7 @@ TextureImporter:
       edges: []
       weights: []
     - serializedVersion: 2
-      name: sprite-sheet-249x100_8
+      name: warrior_8
       rect:
         serializedVersion: 2
         x: 498
@@ -410,7 +410,7 @@ TextureImporter:
         width: 249
         height: 100
       alignment: 0
-      pivot: {x: 0, y: 0}
+      pivot: {x: 0.5, y: 0.5}
       border: {x: 0, y: 0, z: 0, w: 0}
       outline: []
       physicsShape: []
@@ -423,7 +423,7 @@ TextureImporter:
       edges: []
       weights: []
     - serializedVersion: 2
-      name: sprite-sheet-249x100_9
+      name: warrior_9
       rect:
         serializedVersion: 2
         x: 747
@@ -431,7 +431,7 @@ TextureImporter:
         width: 249
         height: 100
       alignment: 0
-      pivot: {x: 0, y: 0}
+      pivot: {x: 0.5, y: 0.5}
       border: {x: 0, y: 0, z: 0, w: 0}
       outline: []
       physicsShape: []
@@ -444,7 +444,7 @@ TextureImporter:
       edges: []
       weights: []
     - serializedVersion: 2
-      name: sprite-sheet-249x100_10
+      name: warrior_10
       rect:
         serializedVersion: 2
         x: 996
@@ -452,7 +452,7 @@ TextureImporter:
         width: 249
         height: 100
       alignment: 0
-      pivot: {x: 0, y: 0}
+      pivot: {x: 0.5, y: 0.5}
       border: {x: 0, y: 0, z: 0, w: 0}
       outline: []
       physicsShape: []
@@ -465,7 +465,7 @@ TextureImporter:
       edges: []
       weights: []
     - serializedVersion: 2
-      name: sprite-sheet-249x100_11
+      name: warrior_11
       rect:
         serializedVersion: 2
         x: 1245
@@ -473,7 +473,7 @@ TextureImporter:
         width: 249
         height: 100
       alignment: 0
-      pivot: {x: 0, y: 0}
+      pivot: {x: 0.5, y: 0.5}
       border: {x: 0, y: 0, z: 0, w: 0}
       outline: []
       physicsShape: []
@@ -486,7 +486,7 @@ TextureImporter:
       edges: []
       weights: []
     - serializedVersion: 2
-      name: sprite-sheet-249x100_12
+      name: warrior_12
       rect:
         serializedVersion: 2
         x: 0
@@ -494,7 +494,7 @@ TextureImporter:
         width: 249
         height: 100
       alignment: 0
-      pivot: {x: 0, y: 0}
+      pivot: {x: 0.5, y: 0.5}
       border: {x: 0, y: 0, z: 0, w: 0}
       outline: []
       physicsShape: []
@@ -507,7 +507,7 @@ TextureImporter:
       edges: []
       weights: []
     - serializedVersion: 2
-      name: sprite-sheet-249x100_13
+      name: warrior_13
       rect:
         serializedVersion: 2
         x: 249
@@ -515,7 +515,7 @@ TextureImporter:
         width: 249
         height: 100
       alignment: 0
-      pivot: {x: 0, y: 0}
+      pivot: {x: 0.5, y: 0.5}
       border: {x: 0, y: 0, z: 0, w: 0}
       outline: []
       physicsShape: []
@@ -528,7 +528,7 @@ TextureImporter:
       edges: []
       weights: []
     - serializedVersion: 2
-      name: sprite-sheet-249x100_14
+      name: warrior_14
       rect:
         serializedVersion: 2
         x: 498
@@ -536,7 +536,7 @@ TextureImporter:
         width: 249
         height: 100
       alignment: 0
-      pivot: {x: 0, y: 0}
+      pivot: {x: 0.5, y: 0.5}
       border: {x: 0, y: 0, z: 0, w: 0}
       outline: []
       physicsShape: []
@@ -549,7 +549,7 @@ TextureImporter:
       edges: []
       weights: []
     - serializedVersion: 2
-      name: sprite-sheet-249x100_15
+      name: warrior_15
       rect:
         serializedVersion: 2
         x: 747
@@ -557,7 +557,7 @@ TextureImporter:
         width: 249
         height: 100
       alignment: 0
-      pivot: {x: 0, y: 0}
+      pivot: {x: 0.5, y: 0.5}
       border: {x: 0, y: 0, z: 0, w: 0}
       outline: []
       physicsShape: []
@@ -570,7 +570,7 @@ TextureImporter:
       edges: []
       weights: []
     - serializedVersion: 2
-      name: sprite-sheet-249x100_16
+      name: warrior_16
       rect:
         serializedVersion: 2
         x: 996
@@ -578,7 +578,7 @@ TextureImporter:
         width: 249
         height: 100
       alignment: 0
-      pivot: {x: 0, y: 0}
+      pivot: {x: 0.5, y: 0.5}
       border: {x: 0, y: 0, z: 0, w: 0}
       outline: []
       physicsShape: []
@@ -591,7 +591,7 @@ TextureImporter:
       edges: []
       weights: []
     - serializedVersion: 2
-      name: sprite-sheet-249x100_17
+      name: warrior_17
       rect:
         serializedVersion: 2
         x: 1245
@@ -599,7 +599,7 @@ TextureImporter:
         width: 249
         height: 100
       alignment: 0
-      pivot: {x: 0, y: 0}
+      pivot: {x: 0.5, y: 0.5}
       border: {x: 0, y: 0, z: 0, w: 0}
       outline: []
       physicsShape: []
@@ -612,7 +612,7 @@ TextureImporter:
       edges: []
       weights: []
     - serializedVersion: 2
-      name: sprite-sheet-249x100_18
+      name: warrior_18
       rect:
         serializedVersion: 2
         x: 0
@@ -620,7 +620,7 @@ TextureImporter:
         width: 249
         height: 100
       alignment: 0
-      pivot: {x: 0, y: 0}
+      pivot: {x: 0.5, y: 0.5}
       border: {x: 0, y: 0, z: 0, w: 0}
       outline: []
       physicsShape: []
@@ -633,7 +633,7 @@ TextureImporter:
       edges: []
       weights: []
     - serializedVersion: 2
-      name: sprite-sheet-249x100_19
+      name: warrior_19
       rect:
         serializedVersion: 2
         x: 249
@@ -641,7 +641,7 @@ TextureImporter:
         width: 249
         height: 100
       alignment: 0
-      pivot: {x: 0, y: 0}
+      pivot: {x: 0.5, y: 0.5}
       border: {x: 0, y: 0, z: 0, w: 0}
       outline: []
       physicsShape: []
@@ -654,7 +654,7 @@ TextureImporter:
       edges: []
       weights: []
     - serializedVersion: 2
-      name: sprite-sheet-249x100_20
+      name: warrior_20
       rect:
         serializedVersion: 2
         x: 498
@@ -662,7 +662,7 @@ TextureImporter:
         width: 249
         height: 100
       alignment: 0
-      pivot: {x: 0, y: 0}
+      pivot: {x: 0.5, y: 0.5}
       border: {x: 0, y: 0, z: 0, w: 0}
       outline: []
       physicsShape: []
@@ -675,7 +675,7 @@ TextureImporter:
       edges: []
       weights: []
     - serializedVersion: 2
-      name: sprite-sheet-249x100_21
+      name: warrior_21
       rect:
         serializedVersion: 2
         x: 747
@@ -683,7 +683,7 @@ TextureImporter:
         width: 249
         height: 100
       alignment: 0
-      pivot: {x: 0, y: 0}
+      pivot: {x: 0.5, y: 0.5}
       border: {x: 0, y: 0, z: 0, w: 0}
       outline: []
       physicsShape: []
@@ -696,7 +696,7 @@ TextureImporter:
       edges: []
       weights: []
     - serializedVersion: 2
-      name: sprite-sheet-249x100_22
+      name: warrior_22
       rect:
         serializedVersion: 2
         x: 996
@@ -704,7 +704,7 @@ TextureImporter:
         width: 249
         height: 100
       alignment: 0
-      pivot: {x: 0, y: 0}
+      pivot: {x: 0.5, y: 0.5}
       border: {x: 0, y: 0, z: 0, w: 0}
       outline: []
       physicsShape: []
@@ -717,7 +717,7 @@ TextureImporter:
       edges: []
       weights: []
     - serializedVersion: 2
-      name: sprite-sheet-249x100_23
+      name: warrior_23
       rect:
         serializedVersion: 2
         x: 1245
@@ -725,7 +725,7 @@ TextureImporter:
         width: 249
         height: 100
       alignment: 0
-      pivot: {x: 0, y: 0}
+      pivot: {x: 0.5, y: 0.5}
       border: {x: 0, y: 0, z: 0, w: 0}
       outline: []
       physicsShape: []
@@ -738,7 +738,7 @@ TextureImporter:
       edges: []
       weights: []
     - serializedVersion: 2
-      name: sprite-sheet-249x100_24
+      name: warrior_24
       rect:
         serializedVersion: 2
         x: 0
@@ -746,7 +746,7 @@ TextureImporter:
         width: 249
         height: 100
       alignment: 0
-      pivot: {x: 0, y: 0}
+      pivot: {x: 0.5, y: 0.5}
       border: {x: 0, y: 0, z: 0, w: 0}
       outline: []
       physicsShape: []
@@ -759,7 +759,7 @@ TextureImporter:
       edges: []
       weights: []
     - serializedVersion: 2
-      name: sprite-sheet-249x100_25
+      name: warrior_25
       rect:
         serializedVersion: 2
         x: 249
@@ -767,7 +767,7 @@ TextureImporter:
         width: 249
         height: 100
       alignment: 0
-      pivot: {x: 0, y: 0}
+      pivot: {x: 0.5, y: 0.5}
       border: {x: 0, y: 0, z: 0, w: 0}
       outline: []
       physicsShape: []
@@ -780,7 +780,7 @@ TextureImporter:
       edges: []
       weights: []
     - serializedVersion: 2
-      name: sprite-sheet-249x100_26
+      name: warrior_26
       rect:
         serializedVersion: 2
         x: 498
@@ -788,7 +788,7 @@ TextureImporter:
         width: 249
         height: 100
       alignment: 0
-      pivot: {x: 0, y: 0}
+      pivot: {x: 0.5, y: 0.5}
       border: {x: 0, y: 0, z: 0, w: 0}
       outline: []
       physicsShape: []
@@ -801,7 +801,7 @@ TextureImporter:
       edges: []
       weights: []
     - serializedVersion: 2
-      name: sprite-sheet-249x100_27
+      name: warrior_27
       rect:
         serializedVersion: 2
         x: 747
@@ -809,7 +809,7 @@ TextureImporter:
         width: 249
         height: 100
       alignment: 0
-      pivot: {x: 0, y: 0}
+      pivot: {x: 0.5, y: 0.5}
       border: {x: 0, y: 0, z: 0, w: 0}
       outline: []
       physicsShape: []
@@ -822,7 +822,7 @@ TextureImporter:
       edges: []
       weights: []
     - serializedVersion: 2
-      name: sprite-sheet-249x100_28
+      name: warrior_28
       rect:
         serializedVersion: 2
         x: 996
@@ -830,7 +830,7 @@ TextureImporter:
         width: 249
         height: 100
       alignment: 0
-      pivot: {x: 0, y: 0}
+      pivot: {x: 0.5, y: 0.5}
       border: {x: 0, y: 0, z: 0, w: 0}
       outline: []
       physicsShape: []
@@ -843,7 +843,7 @@ TextureImporter:
       edges: []
       weights: []
     - serializedVersion: 2
-      name: sprite-sheet-249x100_29
+      name: warrior_29
       rect:
         serializedVersion: 2
         x: 1245
@@ -851,7 +851,7 @@ TextureImporter:
         width: 249
         height: 100
       alignment: 0
-      pivot: {x: 0, y: 0}
+      pivot: {x: 0.5, y: 0.5}
       border: {x: 0, y: 0, z: 0, w: 0}
       outline: []
       physicsShape: []
@@ -864,7 +864,7 @@ TextureImporter:
       edges: []
       weights: []
     - serializedVersion: 2
-      name: sprite-sheet-249x100_30
+      name: warrior_30
       rect:
         serializedVersion: 2
         x: 0
@@ -872,7 +872,7 @@ TextureImporter:
         width: 249
         height: 100
       alignment: 0
-      pivot: {x: 0, y: 0}
+      pivot: {x: 0.5, y: 0.5}
       border: {x: 0, y: 0, z: 0, w: 0}
       outline: []
       physicsShape: []
@@ -885,7 +885,7 @@ TextureImporter:
       edges: []
       weights: []
     - serializedVersion: 2
-      name: sprite-sheet-249x100_31
+      name: warrior_31
       rect:
         serializedVersion: 2
         x: 249
@@ -893,7 +893,7 @@ TextureImporter:
         width: 249
         height: 100
       alignment: 0
-      pivot: {x: 0, y: 0}
+      pivot: {x: 0.5, y: 0.5}
       border: {x: 0, y: 0, z: 0, w: 0}
       outline: []
       physicsShape: []
@@ -906,7 +906,7 @@ TextureImporter:
       edges: []
       weights: []
     - serializedVersion: 2
-      name: sprite-sheet-249x100_32
+      name: warrior_32
       rect:
         serializedVersion: 2
         x: 498
@@ -914,7 +914,7 @@ TextureImporter:
         width: 249
         height: 100
       alignment: 0
-      pivot: {x: 0, y: 0}
+      pivot: {x: 0.5, y: 0.5}
       border: {x: 0, y: 0, z: 0, w: 0}
       outline: []
       physicsShape: []
@@ -927,7 +927,7 @@ TextureImporter:
       edges: []
       weights: []
     - serializedVersion: 2
-      name: sprite-sheet-249x100_33
+      name: warrior_33
       rect:
         serializedVersion: 2
         x: 747
@@ -935,7 +935,7 @@ TextureImporter:
         width: 249
         height: 100
       alignment: 0
-      pivot: {x: 0, y: 0}
+      pivot: {x: 0.5, y: 0.5}
       border: {x: 0, y: 0, z: 0, w: 0}
       outline: []
       physicsShape: []
@@ -948,7 +948,7 @@ TextureImporter:
       edges: []
       weights: []
     - serializedVersion: 2
-      name: sprite-sheet-249x100_34
+      name: warrior_34
       rect:
         serializedVersion: 2
         x: 996
@@ -956,7 +956,7 @@ TextureImporter:
         width: 249
         height: 100
       alignment: 0
-      pivot: {x: 0, y: 0}
+      pivot: {x: 0.5, y: 0.5}
       border: {x: 0, y: 0, z: 0, w: 0}
       outline: []
       physicsShape: []
@@ -969,7 +969,7 @@ TextureImporter:
       edges: []
       weights: []
     - serializedVersion: 2
-      name: sprite-sheet-249x100_35
+      name: warrior_35
       rect:
         serializedVersion: 2
         x: 1245
@@ -977,7 +977,7 @@ TextureImporter:
         width: 249
         height: 100
       alignment: 0
-      pivot: {x: 0, y: 0}
+      pivot: {x: 0.5, y: 0.5}
       border: {x: 0, y: 0, z: 0, w: 0}
       outline: []
       physicsShape: []
@@ -990,7 +990,7 @@ TextureImporter:
       edges: []
       weights: []
     - serializedVersion: 2
-      name: sprite-sheet-249x100_36
+      name: warrior_36
       rect:
         serializedVersion: 2
         x: 498
@@ -998,7 +998,7 @@ TextureImporter:
         width: 249
         height: 100
       alignment: 0
-      pivot: {x: 0, y: 0}
+      pivot: {x: 0.5, y: 0.5}
       border: {x: 0, y: 0, z: 0, w: 0}
       outline: []
       physicsShape: []
@@ -1011,7 +1011,7 @@ TextureImporter:
       edges: []
       weights: []
     - serializedVersion: 2
-      name: sprite-sheet-249x100_37
+      name: warrior_37
       rect:
         serializedVersion: 2
         x: 747
@@ -1019,7 +1019,7 @@ TextureImporter:
         width: 249
         height: 100
       alignment: 0
-      pivot: {x: 0, y: 0}
+      pivot: {x: 0.5, y: 0.5}
       border: {x: 0, y: 0, z: 0, w: 0}
       outline: []
       physicsShape: []
@@ -1032,7 +1032,7 @@ TextureImporter:
       edges: []
       weights: []
     - serializedVersion: 2
-      name: sprite-sheet-249x100_38
+      name: warrior_38
       rect:
         serializedVersion: 2
         x: 996
@@ -1040,7 +1040,7 @@ TextureImporter:
         width: 249
         height: 100
       alignment: 0
-      pivot: {x: 0, y: 0}
+      pivot: {x: 0.5, y: 0.5}
       border: {x: 0, y: 0, z: 0, w: 0}
       outline: []
       physicsShape: []
@@ -1053,7 +1053,7 @@ TextureImporter:
       edges: []
       weights: []
     - serializedVersion: 2
-      name: sprite-sheet-249x100_39
+      name: warrior_39
       rect:
         serializedVersion: 2
         x: 1245
@@ -1061,7 +1061,7 @@ TextureImporter:
         width: 249
         height: 100
       alignment: 0
-      pivot: {x: 0, y: 0}
+      pivot: {x: 0.5, y: 0.5}
       border: {x: 0, y: 0, z: 0, w: 0}
       outline: []
       physicsShape: []

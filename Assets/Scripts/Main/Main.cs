@@ -8,6 +8,8 @@ public class Main : MonoBehaviour
 {
     private ParallelCoroutines _parallelCor = new ParallelCoroutines();
 
+    private GameData _gameData;
+
     private void Start()
     {
         _parallelCor.Add(_Main());
@@ -17,9 +19,8 @@ public class Main : MonoBehaviour
 
     private IEnumerator _Main()
     {
-        TeamData teamData = _FakeHeroData();
-
-        GameData gameData = AssetModel.Instance.LoadGameDataExcelFile();
+        _gameData = AssetModel.Instance.LoadGameDataExcelFile();
+        TeamData teamData = _CreateTeamData();
 
         while (true)
         {
@@ -33,7 +34,7 @@ public class Main : MonoBehaviour
 
                 //Enter Battle Scene
                 yield return _Battle(teamData);
-                teamData = _FakeHeroData();
+                teamData = _CreateTeamData();
             }
         }
     }
@@ -68,79 +69,83 @@ public class Main : MonoBehaviour
     {
         yield return _SwitchScene(SceneEnum.Battle);
 
-        var enemiesData = _FakeEnemiesData();
+        var enemiesData = _CreateEnemiesData();
 
         var battlePanel = FindObjectOfType<BattlePanel>();
-        battlePanel.Initialize(teamData, enemiesData);
+        battlePanel.Initialize(_gameData, teamData, enemiesData);
         IBattlePresenter battlePresenter = battlePanel.BattlePresenter;
         yield return battlePresenter.Run();
     }
-
-    private TeamData _FakeHeroData()
+    #region Team Data
+    private TeamData _CreateTeamData()
     {
-        //const string warriorHeadKey = "warrior-sheet-249x100";
-        const string warriorHeadKey = "warrior";
-        const string wizardHeadKey = "wizard";
-        const string deathKey = "S_Death01";
-
-        //Fake Team Members
-        var hero0 = new HeroData("大壮", HeroJobType.Warrior, 200, 80, warriorHeadKey, deathKey, 80, 5, 0, 1);
-        hero0.SetSkills(new Dictionary<string, Skill>
-        {
-            { "10001",new Skill(EffectType.Physical,"10001","物理技能1",20,SkillVariety.GeneralHit,false,"Skill/S_Physic01",1.3f,EffectiveWay.Direct,EffectiveResult.Reduce,0f,0f)}
-        });
-
-        var hero1 = new HeroData("二柱", HeroJobType.Wizard, 150, 120, wizardHeadKey, deathKey, 130, 3, 3, 1);
-        hero1.SetSkills(new Dictionary<string, Skill>
-        {
-            { "20001",new Skill(EffectType.Magic,"20001","火球",30,SkillVariety.FireBall,true, "Skill/S_Magic01",1.5f,EffectiveWay.Direct,EffectiveResult.Reduce,0f,50f)},
-            { "30001",new Skill(EffectType.Magic,"30001","固定伤害技能1",25,SkillVariety.Ice,true,"Book/W_Book06",30,EffectiveWay.Direct,EffectiveResult.Reduce,0f,0f)}
-        });
-
-        var hero2 = new HeroData("三柱", HeroJobType.Warrior, 200, 80, warriorHeadKey, deathKey, 80, 5, 2, 1);
-        hero2.SetSkills(new Dictionary<string, Skill>
-        {
-            { "10002",new Skill(EffectType.Physical,"10002","物理技能2",1000,SkillVariety.GeneralHit,false, "Skill/S_Physic02",2.0f,EffectiveWay.Direct,EffectiveResult.Reduce,0f,0f)},
-            { "30002",new Skill(EffectType.Physical,"30002","固定伤害技能2",25,SkillVariety.GeneralHit,false, "Book/W_Book07",30,EffectiveWay.Direct,EffectiveResult.Reduce,0f,0f)}
-        });
-
         Dictionary<int, HeroData> heroes = new Dictionary<int, HeroData>
         {
-            { hero0.Pos,hero0},
-            { hero1.Pos,hero1},
-            { hero2.Pos,hero2},
+            { 0,_CreateHero("hero_0001", 0, 0, 1)},
+            { 3,_CreateHero("hero_0002", 0, 3, 1)},
+            { 2,_CreateHero("hero_0003", 0, 2, 1)}
         };
 
-        //Fake BackPack
-        var item0 = new Item(ItemType.RedPotion, "10000", 3, "红药水", 50, 0, "P_Red03");
-        var item1 = new Item(ItemType.RedPotion, "10001", 120, "大红药水", 200, 2, "P_Red01");
-        var item2 = new Item(ItemType.RedPotion, "10000", 3, "红药水", 50, 5, "P_Red03");
-        var item3 = new Item(ItemType.BluePotion, "20000", 5, "蓝药水", 50, 9, "P_Blue03");
-
-        //Fake TeamData
         var teamData = new TeamData(heroes, new Dictionary<int, Item>());
-        teamData.AddItems(new List<Item> { item0, item1, item2, item3 });
+        teamData.AddItems(new List<Item>
+        {
+            _CreateItem("10000",0,3),
+            _CreateItem("10001",2,120),
+            _CreateItem("10000",5,3),
+            _CreateItem("20000",9,5)
+        });
 
         return teamData;
     }
 
-    private Dictionary<int, EnemyData> _FakeEnemiesData()
+    private HeroData _CreateHero(string heroId,double exp,int pos,int level)
     {
-        var enemy0 = new EnemyData("蛇", EnemyType.Snake, 300,0, 30, 2, 0, 1, 30);
-        enemy0.SetDropItems(new List<DropItem> { new DropItem(new Item(ItemType.RedPotion, "10000", "红药水", 50, 0, "P_Red03"), 10) });
-        var enemy1 = new EnemyData("猪", EnemyType.Pig, 400, 0, 30, 2, 1, 1, 40);
-        enemy1.SetDropItems(new List<DropItem> { new DropItem(new Item(ItemType.RedPotion, "10000", "红药水", 50, 0, "P_Red03"), 20) });
-        var enemy2 = new EnemyData("黑猪", EnemyType.DarkPig, 500, 0, 40, 2, 2, 1, 50);
-        enemy2.SetDropItems(new List<DropItem> { new DropItem(new Item(ItemType.RedPotion, "10001", "大红药水", 200, 2, "P_Red01"), 10) });
-        var enemy3 = new EnemyData("蝙蝠", EnemyType.Bat, 250, 0, 50, 1, 5, 1, 50);
-        enemy3.SetDropItems(new List<DropItem> { new DropItem(new Item(ItemType.BluePotion, "20000", "蓝药水", 50, 9, "P_Blue03"), 20) });
+        if(_gameData == null)
+        {
+            Debug.LogError("GameData is Null");
+            return null;
+        }
 
+        var heroRow = _gameData.HeroTable[heroId];
+        var heroJob = _gameData.HeroJobTable[heroRow.Job];
+        return new HeroData(heroRow, heroJob, exp, pos, level);
+    }
+
+    private Item _CreateItem(string itemId, int pos = -1, int count = -1)
+    {
+        if (_gameData == null)
+        {
+            Debug.LogError("GameData is Null");
+            return null;
+        }
+
+        var itemRow = _gameData.ItemTable[itemId];
+        return new Item(itemRow, pos, count);
+    }
+    #endregion
+
+    #region Enemy Data
+    private Dictionary<int, EnemyData> _CreateEnemiesData()
+    {
         return new Dictionary<int, EnemyData>
         {
-            {enemy0.Pos,enemy0 },
-            {enemy1.Pos,enemy1 },
-            {enemy2.Pos,enemy2 },
-            {enemy3.Pos,enemy3 },
+            {0,_CreateEnemyData("enemy_0001",new List<DropItem>{ new DropItem( _CreateItem("10000"),10)},0,1) },
+            {1,_CreateEnemyData("enemy_0002",new List<DropItem>{ new DropItem( _CreateItem("10000"),20)},1,1) },
+            {2,_CreateEnemyData("enemy_0003",new List<DropItem>{ new DropItem( _CreateItem("10001"),10)},2,1) },
+            {5,_CreateEnemyData("enemy_0004",new List<DropItem>{ new DropItem( _CreateItem("20000"),20)},5,1) }
         };
     }
+
+    private EnemyData _CreateEnemyData(string enemyId,List<DropItem> dropItems, int pos, int level)
+    {
+        if (_gameData == null)
+        {
+            Debug.LogError("GameData is Null");
+            return null;
+        }
+
+        var enemyRow = _gameData.EnemyTable[enemyId];
+        return new EnemyData(enemyRow, dropItems, pos, level);
+    }
+    #endregion
 }

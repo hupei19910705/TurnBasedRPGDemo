@@ -26,30 +26,30 @@ public class Item
 
     public bool IsFull { get { return Count >= MaxCount; } }
 
+    public Item(ItemRow itemRow, int pos = -99, int count = -1)
+    {
+        ID = itemRow.ID;
+        Type = itemRow.Type;
+        Name = itemRow.Name;
+        EffectValue = itemRow.EffectValue;
+        IconKey = _GetIconKeyPrefixByItemType(Type) + itemRow.IconKey;
+        Count = count == -99 ? 1 : count;
+        Pos = pos;
+        Desc = _GetDescription();
+        _inCompleteIconKey = itemRow.IconKey;
+    }
+
     public Item(ItemType type,string id,int count,string name,double effectValue,int pos,string iconKey)
     {
         Type = type;
         ID = id;
-        Count = count;
+        Count = count == -99 ? 1 : count;
         Name = name;
         EffectValue = effectValue;
         Pos = pos;
         IconKey = _GetIconKeyPrefixByItemType(Type) + iconKey;
         Desc = _GetDescription();
         _inCompleteIconKey = iconKey;
-    }
-
-    public Item(ItemType type, string id,string name, double effectValue, int pos, string iconKey)
-    {
-        Type = type;
-        ID = id;
-        Name = name;
-        EffectValue = effectValue;
-        Pos = pos;
-        IconKey = _GetIconKeyPrefixByItemType(Type) + iconKey;
-        Desc = _GetDescription();
-        _inCompleteIconKey = iconKey;
-        Count = 1;
     }
 
     public void SetItemCount(int count)

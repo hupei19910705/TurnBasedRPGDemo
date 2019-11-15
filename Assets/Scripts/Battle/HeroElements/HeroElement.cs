@@ -20,10 +20,12 @@ public class HeroElement : MonoBehaviour
     public event Action<bool,int> SelectHeroElement;
 
     private HeroData _heroData;
+    private int _pos = -1;
 
-    public void SetData(HeroData data,ToggleGroup toggleGroup)
+    public void SetData(HeroData data,int pos,ToggleGroup toggleGroup)
     {
         _heroData = data;
+        _pos = pos;
         _toggle.onValueChanged.RemoveAllListeners();
         _toggle.onValueChanged.AddListener(SelectElement);
         _toggle.group = toggleGroup;
@@ -42,8 +44,8 @@ public class HeroElement : MonoBehaviour
     public void SelectElement(bool select)
     {
         _indicator.SetActive(select);
-        if (SelectHeroElement != null)
-            SelectHeroElement(select, _heroData.Pos);
+        if (SelectHeroElement != null && _pos != -1)
+            SelectHeroElement(select, _pos);
     }
 
     public void LockToggle(bool isLock)

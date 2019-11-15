@@ -23,11 +23,12 @@ public class AssetModel
     }
 
     private string _rootPath = Application.dataPath;
-    private string _gameDataPath = Application.dataPath + "/Data/GameData.xlsx";
 
     public T LoadJsonFileToObject<T>(string path)
     {
         var filePath = _rootPath + path;
+        if (!File.Exists(filePath))
+            return default;
 
         StreamReader sr = new StreamReader(filePath);
         string str = sr.ReadToEnd();
@@ -47,9 +48,11 @@ public class AssetModel
         sw.Close();
     }
 
-    public GameData LoadGameDataExcelFile()
+    public GameData LoadGameDataExcelFile(string path)
     {
-        FileStream fs = new FileStream(_gameDataPath, FileMode.Open, FileAccess.Read);
+        var filePath = _rootPath + path;
+
+        FileStream fs = new FileStream(filePath, FileMode.Open, FileAccess.Read);
 
         IExcelDataReader reader = ExcelReaderFactory.CreateOpenXmlReader(fs);
         DataSet dataSet = reader.AsDataSet();
@@ -63,8 +66,10 @@ public class AssetModel
         var enemies = _LoadDictElement<string, EnemyDataRow>(tables[sheetInfos["Enemies"].SheetIndex]);
         var items = _LoadDictElement<string, ItemRow>(tables[sheetInfos["Items"].SheetIndex]);
         var skills = _LoadDictElement<string, SkillRow>(tables[sheetInfos["Skills"].SheetIndex]);
+        var levelExp = _LoadDictElement<int, int>(tables[sheetInfos["LevelExp"].SheetIndex]);
+        var constData = _LoadSingleObject<ConstantData>(tables[sheetInfos["ConstantData"].SheetIndex]);
 
-        GameData gameData = new GameData(heroes, heroJobs,enemies, items,skills);
+        GameData gameData = new GameData(heroes, heroJobs, enemies, items, skills, levelExp, constData);
 
         return gameData;
     }
@@ -76,7 +81,6 @@ public class AssetModel
         var rowCount = dataTable.Rows.Count;
         var columnCount = dataTable.Columns.Count;
         Type type = typeof(TValue);
-
 
         string[] fieldsName = new string[columnCount];
         for (int i = 0; i < columnCount; i++)
@@ -90,6 +94,7 @@ public class AssetModel
         {
             var objIns = type.Assembly.CreateInstance(type.ToString());
             object key = string.Empty;
+            object value = string.Empty;
 
             for (int j = 0; j < columnCount; j++)
             {
@@ -98,29 +103,47 @@ public class AssetModel
                 if (string.IsNullOrEmpty(fieldName))
                     continue;
 
-                var field = type.GetField(fieldName);
-                if (field == null)
-                    continue;
-
-                object value = string.Empty;
-
-                try
+                if (type.IsValueType)
                 {
-                    if (field.FieldType.IsEnum)
-                        value = Enum.Parse(field.FieldType, collect[i][j].ToString());
-                    else
-                        value = Convert.ChangeType(collect[i][j], field.FieldType);
+                    bool keyIsEmpty = string.IsNullOrEmpty(key.ToString());
+                    bool valueIsEmpty = string.IsNullOrEmpty(value.ToString());
+
+                    if (!keyIsEmpty && !valueIsEmpty)
+                        break;
+
+                    var data = Convert.ChangeType(collect[i][j], type);
+                    if (keyIsEmpty && typeof(Tkey).Equals(type))
+                        key = data;
+                    else if (valueIsEmpty)
+                    {
+                        value = data;
+                        objIns = data;
+                    }
                 }
-                catch (InvalidCastException)
+                else
                 {
-                    var result = collect[i][j];
-                    value = result.ToString().Split(',').ToList();
+                    var field = type.GetField(fieldName);
+                    if (field == null)
+                        continue;
+
+                    try
+                    {
+                        if (field.FieldType.IsEnum)
+                            value = Enum.Parse(field.FieldType, collect[i][j].ToString());
+                        else
+                            value = Convert.ChangeType(collect[i][j], field.FieldType);
+                    }
+                    catch (InvalidCastException)
+                    {
+                        var result = collect[i][j];
+                        value = result.ToString().Split(',').ToList();
+                    }
+
+                    if (j == 0 && typeof(Tkey).Equals(field.FieldType))
+                        key = value;
+
+                    field.SetValue(objIns, value);
                 }
-
-                if (j == 0 && typeof(Tkey).Equals(field.FieldType))
-                    key = value;
-
-                field.SetValue(objIns, value);
             }
 
             if (objIns is TValue && !string.IsNullOrEmpty(key.ToString()))
@@ -128,6 +151,31 @@ public class AssetModel
         }
 
         return dict;
+    }
+
+    private T _LoadSingleObject<T>(DataTable dataTable)
+    {
+        var collect = dataTable.Rows;
+        var rowCount = dataTable.Rows.Count;
+        var columnCount = dataTable.Columns.Count;
+        Type type = typeof(T);
+
+        if (columnCount < 2)
+            return default;
+
+        var objIns = type.Assembly.CreateInstance(type.ToString());
+        for(int i =1;i< rowCount; i++)
+        {
+            var fieldName = collect[i][0].ToString();
+            var field = type.GetField(fieldName);
+            if (field == null)
+                continue;
+
+            var value = Convert.ChangeType(collect[i][1], field.FieldType);
+            field.SetValue(objIns, value);
+        }
+
+        return (T)objIns;
     }
 }
 

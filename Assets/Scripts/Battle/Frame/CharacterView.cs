@@ -30,13 +30,15 @@ public class CharacterView : MonoBehaviour, IPointerDownHandler
     protected const string BE_HIT_TRIGGER_KEY = "BeHit";
 
     protected CharacterData _data;
+    protected int _pos = -1;
     protected Vector3 _oriPosition;
 
     public event Action<int> SelectAction;
 
-    public void SetData(CharacterData data)
+    public void SetData(CharacterData data,int pos)
     {
         _data = data;
+        _pos = pos;
         _oriPosition = _root.position;
         ChangeHpSliderValue();
         ChangeMpSliderValue();
@@ -84,8 +86,8 @@ public class CharacterView : MonoBehaviour, IPointerDownHandler
 
     protected virtual void _Select()
     {
-        if (SelectAction != null)
-            SelectAction(_data.Pos);
+        if (SelectAction != null && _pos != -1)
+            SelectAction(_pos);
     }
     #endregion
 

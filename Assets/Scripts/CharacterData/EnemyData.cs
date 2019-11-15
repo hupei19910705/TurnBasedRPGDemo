@@ -17,8 +17,8 @@ public class EnemyData : CharacterData
     public int DropExp;
     public List<DropItem> DropItems = new List<DropItem>();
 
-    public EnemyData(EnemyDataRow dataRow, List<DropItem> dropItems, int pos ,int level)
-        : base(dataRow.Name, dataRow.Skills, dataRow.OriginHp, dataRow.OriginMp, dataRow.Attack, dataRow.Defence, pos, level)
+    public EnemyData(string uid,EnemyDataRow dataRow, List<DropItem> dropItems,int level)
+        : base(uid, dataRow.ID, dataRow.Name, dataRow.Skills, dataRow.OriginHp, dataRow.OriginMp, dataRow.Attack, dataRow.Defence, level)
     {
         Type = dataRow.Type;
         DropExp = dataRow.DropExp;

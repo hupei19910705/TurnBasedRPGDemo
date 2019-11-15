@@ -5,6 +5,7 @@ using UnityEngine;
 
 public class CharacterData
 {
+    public string UID;
     public string ID;
     public string Name;
     public double OriginHp;
@@ -16,26 +17,21 @@ public class CharacterData
     public int Level;
     public double Attack;
     public double Defence;
-    public int Pos;
     public bool IsAlive { get { return CurrentHp > 0; } }
     public Dictionary<string, Skill> Skills;
     public List<string> SkillList;
 
-    public CharacterData(string name, List<string> skills, double hp,double mp, double attack, double defence, int pos, int level)
+    public CharacterData(string uid,string id,string name, List<string> skills, double hp,double mp, double attack, double defence, int level)
     {
+        UID = uid;
+        ID = id;
         Name = name;
         OriginHp = MaxHp = CurrentHp = hp;
         OriginMp = MaxMp = CurrentMp = mp;
         Level = level;
         Attack = attack;
         Defence = defence;
-        Pos = pos;
         SkillList = skills;
-    }
-
-    public void SetPos(int pos)
-    {
-        Pos = pos;
     }
 
     public void BeHit(double attack, bool isReal = false)

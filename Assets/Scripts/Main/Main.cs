@@ -3,12 +3,17 @@ using System.Collections.Generic;
 using UnityEngine;
 using Utility;
 using Utility.GameUtility;
+using System.Linq;
 
 public class Main : MonoBehaviour
 {
     private ParallelCoroutines _parallelCor = new ParallelCoroutines();
 
     private GameData _gameData;
+    private GameRecords _gameRecords;
+    private GameRecord _curRecord;
+
+    private const string GAMEDATA_EXCEL_FILE_PATH = "/Data/GameData.xlsx";
 
     private void Start()
     {
@@ -19,9 +24,8 @@ public class Main : MonoBehaviour
 
     private IEnumerator _Main()
     {
-        _gameData = AssetModel.Instance.LoadGameDataExcelFile();
-        TeamData teamData = _CreateTeamData();
-
+        _gameData = AssetModel.Instance.LoadGameDataExcelFile(GAMEDATA_EXCEL_FILE_PATH);
+        
         while (true)
         {
             //Enter Splash Screen Scene
@@ -29,12 +33,12 @@ public class Main : MonoBehaviour
 
             while (true)
             {
+                PlayerData playerData = _CreatePlayerData();
                 //Enter Map Scene
                 yield return _Map();
 
                 //Enter Battle Scene
-                yield return _Battle(teamData);
-                teamData = _CreateTeamData();
+                yield return _Battle(playerData);
             }
         }
     }
@@ -52,7 +56,12 @@ public class Main : MonoBehaviour
         SceneModel.Instance.LoadScene(SceneEnum.SplashScreen);
         yield return null;
         var splashView = FindObjectOfType<SplashScreenPanel>();
+
+        _gameRecords = GameUtility.Instance.Load();
+        splashView.Init(_gameRecords, _gameData);
+
         yield return splashView.Run();
+        _curRecord = _gameRecords[splashView.SelectRecordId];
     }
 
     private IEnumerator _Map()
@@ -63,42 +72,42 @@ public class Main : MonoBehaviour
         mapPanel.Initialize();
         IMapPresenter mapPresenter = mapPanel.MapPresenter;
         yield return mapPresenter.Run();
+        GameUtility.Instance.Save(_gameRecords);
     }
 
-    private IEnumerator _Battle(TeamData teamData)
+    private IEnumerator _Battle(PlayerData playerData)
     {
         yield return _SwitchScene(SceneEnum.Battle);
 
         var enemiesData = _CreateEnemiesData();
 
         var battlePanel = FindObjectOfType<BattlePanel>();
-        battlePanel.Initialize(_gameData, teamData, enemiesData);
+        battlePanel.Initialize(_gameData, playerData, enemiesData);
         IBattlePresenter battlePresenter = battlePanel.BattlePresenter;
         yield return battlePresenter.Run();
+        GameUtility.Instance.Save(_gameRecords);
     }
     #region Team Data
-    private TeamData _CreateTeamData()
+    private PlayerData _CreatePlayerData()
     {
-        Dictionary<int, HeroData> heroes = new Dictionary<int, HeroData>
+        Dictionary<string, HeroData> heroes = new Dictionary<string, HeroData>();
+        foreach (var heroRecord in _curRecord.HeroRecord)
         {
-            { 0,_CreateHero("hero_0001", 0, 0, 1)},
-            { 3,_CreateHero("hero_0002", 0, 3, 1)},
-            { 2,_CreateHero("hero_0003", 0, 2, 1)}
-        };
+            var hero = _CreateHero(heroRecord.ID, heroRecord.Exp, heroRecord.Level, heroRecord.UID);
+            heroes.Add(hero.UID, hero);
+        }
 
-        var teamData = new TeamData(heroes, new Dictionary<int, Item>());
-        teamData.AddItems(new List<Item>
+        List<Item> items = new List<Item>();
+        foreach(var itemRecord in _curRecord.ItemRecord)
         {
-            _CreateItem("10000",0,3),
-            _CreateItem("10001",2,120),
-            _CreateItem("10000",5,3),
-            _CreateItem("20000",9,5)
-        });
+            var item = _CreateItem(itemRecord.ID, itemRecord.Pos, itemRecord.Count);
+            items.Add(item);
+        }
 
-        return teamData;
+        return new PlayerData(heroes, _curRecord.TeamRecord, items);
     }
 
-    private HeroData _CreateHero(string heroId,double exp,int pos,int level)
+    private HeroData _CreateHero(string heroId,double exp,int level, string uid = "")
     {
         if(_gameData == null)
         {
@@ -108,7 +117,9 @@ public class Main : MonoBehaviour
 
         var heroRow = _gameData.HeroTable[heroId];
         var heroJob = _gameData.HeroJobTable[heroRow.Job];
-        return new HeroData(heroRow, heroJob, exp, pos, level);
+        if (string.IsNullOrEmpty(uid))
+            uid = GameUtility.GenerateOrderId();
+        return new HeroData(uid,heroRow, heroJob, exp, level);
     }
 
     private Item _CreateItem(string itemId, int pos = -1, int count = -1)
@@ -129,14 +140,14 @@ public class Main : MonoBehaviour
     {
         return new Dictionary<int, EnemyData>
         {
-            {0,_CreateEnemyData("enemy_0001",new List<DropItem>{ new DropItem( _CreateItem("10000"),10)},0,1) },
-            {1,_CreateEnemyData("enemy_0002",new List<DropItem>{ new DropItem( _CreateItem("10000"),20)},1,1) },
-            {2,_CreateEnemyData("enemy_0003",new List<DropItem>{ new DropItem( _CreateItem("10001"),10)},2,1) },
-            {5,_CreateEnemyData("enemy_0004",new List<DropItem>{ new DropItem( _CreateItem("20000"),20)},5,1) }
+            {0,_CreateEnemyData("enemy_0001",new List<DropItem>{ new DropItem( _CreateItem("10000"),10)},1) },
+            {1,_CreateEnemyData("enemy_0002",new List<DropItem>{ new DropItem( _CreateItem("10000"),20)},1) },
+            {2,_CreateEnemyData("enemy_0003",new List<DropItem>{ new DropItem( _CreateItem("10001"),10)},1) },
+            {5,_CreateEnemyData("enemy_0004",new List<DropItem>{ new DropItem( _CreateItem("20000"),20)},1) }
         };
     }
 
-    private EnemyData _CreateEnemyData(string enemyId,List<DropItem> dropItems, int pos, int level)
+    private EnemyData _CreateEnemyData(string enemyId,List<DropItem> dropItems, int level,string uid = "")
     {
         if (_gameData == null)
         {
@@ -145,7 +156,9 @@ public class Main : MonoBehaviour
         }
 
         var enemyRow = _gameData.EnemyTable[enemyId];
-        return new EnemyData(enemyRow, dropItems, pos, level);
+        if(string.IsNullOrEmpty(uid))
+            uid = GameUtility.GenerateOrderId();
+        return new EnemyData(uid, enemyRow, dropItems, level);
     }
     #endregion
 }

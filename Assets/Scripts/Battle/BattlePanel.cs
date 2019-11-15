@@ -15,9 +15,9 @@ public class BattlePanel : MonoBehaviour
         SceneModel.Instance.GoToStartScene();
     }
 
-    public void Initialize(GameData gameData,TeamData teamData,Dictionary<int,EnemyData> enemiesData)
+    public void Initialize(GameData gameData,PlayerData playerData,Dictionary<int,EnemyData> enemiesData)
     {
         _battleView.Initialize(gameData,_infoView);
-        BattlePresenter = new BattlePresenter(_battleView, teamData, enemiesData) as IBattlePresenter;
+        BattlePresenter = new BattlePresenter(_battleView, playerData, enemiesData) as IBattlePresenter;
     }
 }

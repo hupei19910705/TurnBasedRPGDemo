@@ -11,7 +11,7 @@ public interface IBattlePresenter
 public class BattlePresenter : IBattlePresenter
 {
     private IBattleView _view = null;
-    private TeamData _teamData = null;
+    private PlayerData _playerData = null;
     private Dictionary<int, EnemyData> _enemiesData = null;
     
     private bool _leave = false;
@@ -26,18 +26,18 @@ public class BattlePresenter : IBattlePresenter
 
     public BattlePresenter(
         IBattleView view,
-        TeamData teamData,
+        PlayerData playerData,
         Dictionary<int, EnemyData> enemiesData)
     {
         _view = view;
-        _teamData = teamData;
+        _playerData = playerData;
         _enemiesData = enemiesData;
     }
 
     public IEnumerator Run()
     {
         _Register();
-        _view.Enter(_teamData, _enemiesData);
+        _view.Enter(_playerData, _enemiesData);
 
         while (!_leave)
         {
@@ -82,13 +82,13 @@ public class BattlePresenter : IBattlePresenter
 
     private void _EndHeroTurn(int pos)
     {
-        _teamData.Heroes[pos].SetEndTurnFlag(true);
+        _playerData.TeamHeroes[pos].SetEndTurnFlag(true);
         _isEnemyTurn = _CheckIsAllHeroTurnEnd();
     }
 
     private bool _CheckIsAllHeroTurnEnd()
     {
-        foreach (var hero in _teamData.Heroes.Values.ToList())
+        foreach (var hero in _playerData.TeamHeroes.Values.ToList())
         {
             if (!hero.IsAlive)
                 continue;
@@ -102,7 +102,7 @@ public class BattlePresenter : IBattlePresenter
     {
         for (int i = 0; i < 6; i++)
         {
-            if (_teamData.Heroes.ContainsKey(i) && _teamData.Heroes[i].IsAlive)
+            if (_playerData.TeamHeroes.ContainsKey(i) && _playerData.TeamHeroes[i].IsAlive)
                 return i;
         }
         _leave = true;
@@ -111,7 +111,7 @@ public class BattlePresenter : IBattlePresenter
 
     private void _ActiveHeroTurn()
     {
-        foreach (var hero in _teamData.Heroes.Values.ToList())
+        foreach (var hero in _playerData.TeamHeroes.Values.ToList())
         {
             if (!hero.IsAlive)
                 continue;
@@ -123,7 +123,7 @@ public class BattlePresenter : IBattlePresenter
 
     private void _HeroBeHit(double attack)
     {
-        var hero = _teamData.Heroes[_targetHeroIdx];
+        var hero = _playerData.TeamHeroes[_targetHeroIdx];
         hero.BeHit(attack);
     }
 
@@ -137,24 +137,24 @@ public class BattlePresenter : IBattlePresenter
         switch (item.Type)
         {
             case ItemType.RedPotion:
-                _teamData.Heroes[_selectTargetHeroIdx].ChangeHp(item.EffectValue);
+                _playerData.TeamHeroes[_selectTargetHeroIdx].ChangeHp(item.EffectValue);
                 break;
             case ItemType.BluePotion:
-                _teamData.Heroes[_selectTargetHeroIdx].ChangeMp(item.EffectValue);
+                _playerData.TeamHeroes[_selectTargetHeroIdx].ChangeMp(item.EffectValue);
                 break;
             default:
                 return;
         }
         item.RemoveNum(1);
-        _teamData.FreshBackpack(item.Pos);
+        _playerData.FreshBackpack(item.Pos);
     }
 
     private void _UseSkill(Skill skill)
     {
-        var from = _teamData.Heroes[_curHeroIdx];
+        var from = _playerData.TeamHeroes[_curHeroIdx];
 
         if(skill == null)
-            _enemiesData[_targetEnemyIdx].BeHit(_teamData.Heroes[_curHeroIdx].Attack);
+            _enemiesData[_targetEnemyIdx].BeHit(_playerData.TeamHeroes[_curHeroIdx].Attack);
         else
         {
             from.ChangeMp(-skill.MpCost);
@@ -167,7 +167,7 @@ public class BattlePresenter : IBattlePresenter
             switch(skill.EffectiveResult)
             {
                 case EffectiveResult.Restore:
-                    target = _teamData.Heroes[_selectTargetHeroIdx];
+                    target = _playerData.TeamHeroes[_selectTargetHeroIdx];
                     if (skill.EffectType == EffectType.Mp)
                         target.ChangeMp(changeValue);
                     else
@@ -197,13 +197,13 @@ public class BattlePresenter : IBattlePresenter
     private IEnumerator _EnemiesTurn()
     {
         _targetHeroIdx = _GetAliveHeroIndex();
-        foreach (var enemy in _enemiesData.Values)
+        foreach(var pair in _enemiesData)
         {
-            if (enemy.IsAlive && _targetHeroIdx != -1)
+            if (pair.Value.IsAlive && _targetHeroIdx != -1)
             {
-                _HeroBeHit(enemy.Attack);
-                yield return _view.EnemyAttack(enemy.Pos, _targetHeroIdx);
-                if (!_teamData.Heroes[_targetHeroIdx].IsAlive)
+                _HeroBeHit(pair.Value.Attack);
+                yield return _view.EnemyAttack(pair.Key, _targetHeroIdx);
+                if (!_playerData.TeamHeroes[_targetHeroIdx].IsAlive)
                     _targetHeroIdx = _GetAliveHeroIndex();
             }
         }

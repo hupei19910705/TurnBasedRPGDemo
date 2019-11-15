@@ -10,7 +10,7 @@ using UnityEngine.Events;
 
 public interface IBattleView
 {
-    void Enter(TeamData teamData,Dictionary<int, EnemyData> enemiesData);
+    void Enter(PlayerData playerData,Dictionary<int, EnemyData> enemiesData);
     IEnumerator EnemyAttack(int enemyPos, int targetHeroPos);
     void ActiveHeroElement();
 
@@ -75,7 +75,7 @@ public class BattleView : MonoBehaviour, IBattleView
     #endregion
 
     private GameData _gameData = null;
-    private TeamData _teamData = null;
+    private PlayerData _playerData = null;
     private Dictionary<int, HeroView> _heroViews = new Dictionary<int, HeroView>();
     private Dictionary<int, HeroElement> _heroElements = new Dictionary<int, HeroElement>();
     private Dictionary<string, SkillRow> _skillTable = null;
@@ -127,12 +127,12 @@ public class BattleView : MonoBehaviour, IBattleView
         { BattleOperationType.EnemyTurn,"敌方回合"}
     };
 
-    public void Enter(TeamData teamData, Dictionary<int, EnemyData> enemiesData)
+    public void Enter(PlayerData playerData, Dictionary<int, EnemyData> enemiesData)
     {
         gameObject.SetActive(true);
         _RegisterEvents();
 
-        _teamData = teamData;
+        _playerData = playerData;
         _enemiesData = enemiesData;
 
         _ShowItemOrSkillListPanel(false);
@@ -185,24 +185,24 @@ public class BattleView : MonoBehaviour, IBattleView
 
     private void _InitHeroes()
     {
-        foreach (var hero in _teamData.Heroes.Values.ToList())
+        foreach(var pair in _playerData.TeamHeroes)
         {
-            _SetHeroView(hero);
-            _SetHeroElement(hero);
+            _SetHeroView(pair.Key, pair.Value);
+            _SetHeroElement(pair.Key, pair.Value);
         }
     }
 
     private void _InitEnemies()
     {
-        foreach (var enemy in _enemiesData.Values.ToList())
+        foreach(var pair in _enemiesData)
         {
-            _SetEnemyView(enemy);
+            _SetEnemyView(pair.Key,pair.Value);
         }
     }
     #endregion
 
     #region Hero Elements
-    private void _SetHeroElement(HeroData data)
+    private void _SetHeroElement(int pos,HeroData data)
     {
         var element = _heroMemberElementPool.GetInstance();
         element.SetActive(true);
@@ -210,8 +210,8 @@ public class BattleView : MonoBehaviour, IBattleView
         var elementView = element.GetComponent<HeroElement>();
         elementView.SelectHeroElement -= _SelectHeroElement;
         elementView.SelectHeroElement += _SelectHeroElement;
-        elementView.SetData(data, _heroElementToggleGroup);
-        _heroElements.Add(data.Pos, elementView);
+        elementView.SetData(data, pos, _heroElementToggleGroup);
+        _heroElements.Add(pos, elementView);
         elementView.LockToggle(!data.IsAlive);
     }
 
@@ -234,8 +234,8 @@ public class BattleView : MonoBehaviour, IBattleView
 
     public void ActiveHeroElement()
     {
-        foreach (var hero in _teamData.Heroes.Values)
-            _heroElements[hero.Pos].LockToggle(!hero.IsAlive);
+        foreach (var pair in _playerData.TeamHeroes)
+            _heroElements[pair.Key].LockToggle(!pair.Value.IsAlive);
         _SetFirstEnemySelectArrow();
         _SetTopTipText(BattleOperationType.HeroTurn);
     }
@@ -302,7 +302,7 @@ public class BattleView : MonoBehaviour, IBattleView
         {
             _SetTopTipText(BattleOperationType.SelectItem);
 
-            var items = _teamData.BackPack.Values.OrderBy(item => item.Pos).ToList();
+            var items = _playerData.BackPack.Values.OrderBy(item => item.Pos).ToList();
             if (items == null || items.Count == 0)
                 return;
 
@@ -326,10 +326,10 @@ public class BattleView : MonoBehaviour, IBattleView
         if (itemView == null)
             return;
 
-        if (!_teamData.BackPack.ContainsKey(pos))
+        if (!_playerData.BackPack.ContainsKey(pos))
             itemView.SetData(null);
         else
-            itemView.SetData(_teamData.BackPack[pos]);
+            itemView.SetData(_playerData.BackPack[pos]);
     }
 
     private void _ListSkills(bool isShow)
@@ -341,11 +341,11 @@ public class BattleView : MonoBehaviour, IBattleView
         {
             _SetTopTipText(BattleOperationType.SelectSkill);
 
-            var skills = _GetSkillsByID(_teamData.Heroes[_curHeroIdx].SkillList).Values.OrderBy(skill => int.Parse(skill.ID)).ToList();
+            var skills = _GetSkillsByID(_playerData.TeamHeroes[_curHeroIdx].SkillList).Values.OrderBy(skill => int.Parse(skill.ID)).ToList();
             if (skills == null || skills.Count == 0)
                 return;
 
-            var curHero = _teamData.Heroes[_curHeroIdx];
+            var curHero = _playerData.TeamHeroes[_curHeroIdx];
             for (int i = 0; i < skills.Count; i++)
             {
                 var skill = skills[i];
@@ -363,7 +363,7 @@ public class BattleView : MonoBehaviour, IBattleView
 
     private void _FreshAllSkillView()
     {
-        var curHero = _teamData.Heroes[_curHeroIdx];
+        var curHero = _playerData.TeamHeroes[_curHeroIdx];
         var skills = _GetSkillsByID(curHero.SkillList);
         foreach (var view in _skillViews)
             view.SetSkillViewUseAble(skills[view.ID].MpCost <= curHero.CurrentMp);
@@ -415,7 +415,7 @@ public class BattleView : MonoBehaviour, IBattleView
         _infoView.HideArrowAndSelectImage += _HideHeroTargetArrowAndItemSelectImage;
 
         _SetTopTipText(BattleOperationType.SelectUseTarget);
-        _SelectTargetHero(_teamData.Heroes.Keys.First());
+        _SelectTargetHero(_playerData.TeamHeroes.Keys.First());
     }
 
     private void _UseItem(Item item)
@@ -449,7 +449,7 @@ public class BattleView : MonoBehaviour, IBattleView
         _curStatus = BattleStatus.UseSkill;
         _curSelectSkillId = int.Parse(skill.ID);
 
-        var useAble = skill.MpCost <= _teamData.Heroes[_curHeroIdx].CurrentMp;
+        var useAble = skill.MpCost <= _playerData.TeamHeroes[_curHeroIdx].CurrentMp;
 
         _infoView.Show(skill.Name, "消耗MP:" + skill.MpCost, skill.Desc, () => _UseSkill(skill), useAble);
         _infoView.HideArrowAndSelectImage -= _HideHeroTargetArrowAndSkillSelectImage;
@@ -541,15 +541,15 @@ public class BattleView : MonoBehaviour, IBattleView
         _ShowArrow(ArrowType.HeroTargetArrow, _heroViews[pos].TopLocate);
     }
 
-    private void _SetHeroView(HeroData data)
+    private void _SetHeroView(int pos,HeroData data)
     {
         var instance = _heroMemberPool.GetInstance(data.Job);
-        _heroGroupView.LocateToPos(instance.transform, data.Pos);
+        _heroGroupView.LocateToPos(instance.transform, pos);
         var heroView = instance.GetComponentInChildren<HeroView>();
         heroView.SelectAction -= _SelectTargetHero;
         heroView.SelectAction += _SelectTargetHero;
-        heroView.SetData(data);
-        _heroViews.Add(data.Pos, heroView);
+        heroView.SetData(data, pos);
+        _heroViews.Add(pos, heroView);
     }
 
     private void _FreshAllHeroViews()
@@ -558,15 +558,15 @@ public class BattleView : MonoBehaviour, IBattleView
             pair.Value.FreshHeroElementStatus();
     }
 
-    private void _SetEnemyView(EnemyData enemy)
+    private void _SetEnemyView(int pos,EnemyData enemy)
     {
         var instance = _enemyMemberPool.GetInstance(enemy.Type);
-        _enemyMemberGroupView.LocateToPos(instance.transform, enemy.Pos);
+        _enemyMemberGroupView.LocateToPos(instance.transform, pos);
         var enemyView = instance.GetComponentInChildren<EnemyView>();
         enemyView.SelectAction -= _SelectTargetEnemy;
         enemyView.SelectAction += _SelectTargetEnemy;
-        enemyView.SetData(enemy);
-        _enemyViews.Add(enemy.Pos, enemyView);
+        enemyView.SetData(enemy,pos);
+        _enemyViews.Add(pos, enemyView);
     }
 
     private void _SelectTargetEnemy(int pos)

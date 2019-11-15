@@ -9,15 +9,19 @@ public class GameData
     public Dictionary<string, EnemyDataRow> EnemyTable;
     public Dictionary<string, ItemRow> ItemTable;
     public Dictionary<string, SkillRow> SkillTable;
+    public Dictionary<int, int> LevelExpTable;
+    public ConstantData ConstantData;
 
     public GameData(Dictionary<string, HeroDataRow> heroes, Dictionary<HeroJobType, HeroJob> heroJobs, Dictionary<string, EnemyDataRow> enemies,
-        Dictionary<string, ItemRow> items, Dictionary<string, SkillRow> skills)
+        Dictionary<string, ItemRow> items, Dictionary<string, SkillRow> skills, Dictionary<int, int> levelExp, ConstantData constantData)
     {
         HeroTable = heroes;
         HeroJobTable = heroJobs;
         EnemyTable = enemies;
         ItemTable = items;
         SkillTable = skills;
+        LevelExpTable = levelExp;
+        ConstantData = constantData;
     }
 }
 
@@ -79,4 +83,9 @@ public class SkillRow
     public float MoveSpeed;
     public float Duration;
     public bool IsConstant;
+}
+
+public class ConstantData
+{
+    public int MAX_RECORD_COUNT;
 }

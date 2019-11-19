@@ -61,7 +61,7 @@ public class Main : MonoBehaviour
         splashView.Init(_gameRecords, _gameData);
 
         yield return splashView.Run();
-        _curRecord = _gameRecords[splashView.SelectRecordId];
+        _curRecord = _gameRecords.Records[splashView.SelectRecordId];
     }
 
     private IEnumerator _Map()
@@ -91,7 +91,7 @@ public class Main : MonoBehaviour
     private PlayerData _CreatePlayerData()
     {
         Dictionary<string, HeroData> heroes = new Dictionary<string, HeroData>();
-        foreach (var heroRecord in _curRecord.HeroRecord)
+        foreach (var heroRecord in _curRecord.HeroRecord.Values)
         {
             var hero = _CreateHero(heroRecord.ID, heroRecord.Exp, heroRecord.Level, heroRecord.UID);
             heroes.Add(hero.UID, hero);

@@ -41,6 +41,8 @@ public class GameUtility
 
         if (record == null)
             record = new GameRecords();
+        else
+            record.Init();
 
         return record;
     }

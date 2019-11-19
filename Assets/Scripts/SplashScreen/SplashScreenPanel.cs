@@ -1,5 +1,6 @@
 ﻿using System.Collections;
 using System.Collections.Generic;
+using System.Linq;
 using UnityEngine;
 using UnityEngine.SceneManagement;
 using UnityEngine.UI;
@@ -13,6 +14,7 @@ public class SplashScreenPanel : MonoBehaviour
     [SerializeField] private Transform _recordAnchor = null;
     [SerializeField] private Button _addRecordBtn = null;
     [SerializeField] private ToggleGroup _toggleGroup = null;
+    [SerializeField] private RecordDisplayView _recordDisplayView = null;
 
     private GameRecords _gameRecords = null;
     private GameData _gameData = null;
@@ -34,6 +36,7 @@ public class SplashScreenPanel : MonoBehaviour
         _gameData = gameData;
         _maxRecordCount = _gameData.ConstantData.MAX_RECORD_COUNT;
         SelectRecordId = -1;
+        _recordDisplayView.Init(gameData);
     }
 
     public IEnumerator Run()
@@ -49,12 +52,19 @@ public class SplashScreenPanel : MonoBehaviour
     private void _Register()
     {
         _UnRegister();
+
+        _recordDisplayView.OnChangeRecordNameAction += _ChangeRecordName;
+        _recordDisplayView.OnRemoveRecordAction += _RemoveRecord;
+
         _enterGameBtn.onClick.AddListener(_Leave);
         _addRecordBtn.onClick.AddListener(() => _AddRecord());
     }
 
     private void _UnRegister()
     {
+        _recordDisplayView.OnChangeRecordNameAction -= _ChangeRecordName;
+        _recordDisplayView.OnRemoveRecordAction -= _RemoveRecord;
+
         _enterGameBtn.onClick.RemoveAllListeners();
         _addRecordBtn.onClick.RemoveAllListeners();
     }
@@ -68,12 +78,11 @@ public class SplashScreenPanel : MonoBehaviour
     private void _CreateRecords()
     {
         _ClearPool();
-        if (_gameRecords.Count > 0)
+        if (_gameRecords.Records.Count > 0)
         {
-            foreach (var pair in _gameRecords)
-            {
-                _AddRecordElement(pair.Value);
-            }
+            var records = _gameRecords.Records.Values.OrderBy(record => record.UpdateTime).ToList();
+            for (int i = 0; i < records.Count; i++)
+                _AddRecordElement(records[i]);
         }
         _UpdateAddElementBtn();
     }
@@ -88,10 +97,10 @@ public class SplashScreenPanel : MonoBehaviour
             var elementView = pair.Value;
             elementView.Dispose();
             _recordPool.ReturnInstance(elementView.gameObject);
-            _gameRecords[pair.Key].Dispose();
+            _gameRecords.RemoveRecord(pair.Key);
         }
         _recordViews.Clear();
-        _gameRecords.Clear();
+        _gameRecords.Records.Clear();
     }
 
     private void _AddRecordElement(GameRecord record)
@@ -109,12 +118,12 @@ public class SplashScreenPanel : MonoBehaviour
 
     private void _AddRecord(string name = "")
     {
-        if (_gameRecords.Count < _maxRecordCount)
+        if (_gameRecords.Records.Count < _maxRecordCount)
         {
             GameRecord record = new GameRecord(name);
-            _gameRecords.Add(record.RecordID, record);
+            _gameRecords.Records.Add(record.RecordID, record);
             _AddRecordElement(record);
-            _SelectRecordElement(record.RecordID, true);
+            _recordViews[record.RecordID].ChangeToggleStatus(true);
             _UpdateAddElementBtn();
             GameUtility.Instance.Save(_gameRecords);
         }
@@ -125,15 +134,14 @@ public class SplashScreenPanel : MonoBehaviour
         var elementView = _recordViews[id];
         elementView.Dispose();
         _recordPool.ReturnInstance(elementView.gameObject);
-        _gameRecords[id].Dispose();
         _recordViews.Remove(id);
-        _gameRecords.Remove(id);
+        _gameRecords.RemoveRecord(id);
         GameUtility.Instance.Save(_gameRecords);
     }
 
     private void _UpdateAddElementBtn()
     {
-        _addRecordBtn.gameObject.SetActive(_gameRecords.Count < _maxRecordCount);
+        _addRecordBtn.gameObject.SetActive(_gameRecords.Records.Count < _maxRecordCount);
         if (_addRecordBtn.gameObject.activeSelf)
             _addRecordBtn.transform.SetAsLastSibling();
     }
@@ -141,8 +149,26 @@ public class SplashScreenPanel : MonoBehaviour
     private void _SelectRecordElement(int recordId,bool select)
     {
         if (select)
+        {
             SelectRecordId = recordId;
+            _recordDisplayView.Show(_gameRecords.Records[recordId]);
+        }
         else if (SelectRecordId == recordId)
+        {
             SelectRecordId = -1;
+            _recordDisplayView.Hide();
+        }
+    }
+
+    private void _ChangeRecordName(int id,string name)
+    {
+        if (!_gameRecords.Records.ContainsKey(id) || string.IsNullOrEmpty(name))
+            return;
+
+        var record = _gameRecords.Records[id];
+        record.RecordName = name;
+        _recordViews[id].SetData(record, _toggleGroup);
+        _recordViews[id].ChangeToggleStatus(true);
+        GameUtility.Instance.Save(_gameRecords);
     }
 }

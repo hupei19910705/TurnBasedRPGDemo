@@ -24,8 +24,14 @@ public class RecordElementView : MonoBehaviour,IDisposable
         _heroCount.text = record.HeroRecord.Count.ToString();
         _itemCount.text = record.ItemRecord.Count.ToString();
         _toggle.group = toggleGroup;
+        _toggle.onValueChanged.RemoveAllListeners();
         _toggle.onValueChanged.AddListener(_SelectElement);
         _toggle.isOn = false;
+    }
+
+    public void ChangeToggleStatus(bool select)
+    {
+        _toggle.isOn = select;
     }
 
     private void _SelectElement(bool select)

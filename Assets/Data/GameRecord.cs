@@ -6,15 +6,25 @@ using Utility.GameUtility;
 
 public class GameRecord : IDisposable
 {
-    private static int[] _indexes = new int[] { -1, -1, -1, -1, -1, -1, -1, -1, -1, -1 };
+    private static int[] _indexes;
 
     public int RecordID;
     public string RecordName;
     public string UpdateTime;
 
-    public List<HeroRecordData> HeroRecord;
+    public Dictionary<string, HeroRecordData> HeroRecord;
     public Dictionary<int, string> TeamRecord;
     public List<ItemRecordData> ItemRecord;
+
+    public static int[] GetIndexes()
+    {
+        return _indexes;
+    }
+
+    public static void InitIndexes(int[] indexes)
+    {
+        _indexes = indexes;
+    }
 
     public GameRecord(string name = "")
     {
@@ -59,7 +69,7 @@ public class GameRecord : IDisposable
     public string AddHero(string id,int exp,int level,string uid = "",int pos = -1)
     {
         if (HeroRecord == null)
-            HeroRecord = new List<HeroRecordData>();
+            HeroRecord = new Dictionary<string, HeroRecordData>();
 
         if (string.IsNullOrEmpty(uid))
             uid = GameUtility.GenerateOrderId();
@@ -73,17 +83,14 @@ public class GameRecord : IDisposable
             Level = level
         };
 
-        HeroRecord.Add(hero);
+        HeroRecord.Add(uid, hero);
         return uid;
     }
 
     public void RemoveHero(string uid)
     {
-        for(int i = HeroRecord.Count;i>=0;i--)
-        {
-            if (string.Equals(uid, HeroRecord[i].UID))
-                HeroRecord.RemoveAt(i);
-        }
+        if (HeroRecord.ContainsKey(uid))
+            HeroRecord.Remove(uid);
     }
 
     public void AddItem(string id,int pos,int count)
@@ -111,7 +118,34 @@ public class GameRecord : IDisposable
     }
 }
 
-public class GameRecords : Dictionary<int, GameRecord> { }
+public class GameRecords
+{
+    public Dictionary<int, GameRecord> Records;
+    public int[] Indexes;
+
+    public GameRecords()
+    {
+        Init();
+    }
+
+    public void Init()
+    {
+        if (Indexes == null)
+            Indexes = new int[] { -1, -1, -1, -1, -1, -1, -1, -1, -1, -1 };
+
+        if (Records == null)
+            Records = new Dictionary<int, GameRecord>();
+
+        GameRecord.InitIndexes(Indexes);
+    }
+
+    public void RemoveRecord(int id)
+    {
+        Records[id].Dispose();
+        Indexes[id] = -1;
+        Records.Remove(id);
+    }
+}
 
 public class HeroRecordData
 {

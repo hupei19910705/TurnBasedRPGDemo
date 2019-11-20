@@ -19,6 +19,8 @@ public class GameUtility
 
     private const string GAMERECORD_JSON_FILE_PATH = "/Data/GameRecord.json";
     private static Random _random = new Random();
+    private GameRecords _gameRecords;
+    private int _curRecordId = -1;
 
     public static string GenerateOrderId()
     {
@@ -27,23 +29,48 @@ public class GameUtility
         return strDateTimeNumber + strRandomResult;
     }
 
-    public void Save(GameRecords records)
+    public void Save()
     {
-        if(records == null)
-            records = new GameRecords();
+        if (_gameRecords == null)
+            _gameRecords = new GameRecords();
 
-        AssetModel.Instance.SaveObjecToJsonFile(records, GAMERECORD_JSON_FILE_PATH);
+        AssetModel.Instance.SaveObjecToJsonFile(_gameRecords, GAMERECORD_JSON_FILE_PATH);
     }
 
-    public GameRecords Load()
+    public GameRecords GetGameRecords()
     {
-        var record = AssetModel.Instance.LoadJsonFileToObject<GameRecords>(GAMERECORD_JSON_FILE_PATH);
+        var records = AssetModel.Instance.LoadJsonFileToObject<GameRecords>(GAMERECORD_JSON_FILE_PATH);
 
-        if (record == null)
-            record = new GameRecords();
+        if (records == null)
+            records = new GameRecords();
         else
-            record.Init();
+            records.Init();
 
-        return record;
+        _gameRecords = records;
+        return records;
+    }
+
+    public GameRecord SelectCurGameRecord(int recordId)
+    {
+        _curRecordId = recordId;
+
+        if (recordId == -1)
+            return null;
+
+        return _gameRecords.Records[_curRecordId];
+    }
+
+    public GameRecord GetCurGameRecord()
+    {
+        if (_curRecordId == -1)
+            return null;
+
+        return _gameRecords.Records[_curRecordId];
+    }
+
+    public Item CaculateDropItems(DropItem dropItem)
+    {
+        bool isDrop = _random.Next(0, 100) < dropItem.DropRate;
+        return isDrop ? dropItem.Item : null;
     }
 }

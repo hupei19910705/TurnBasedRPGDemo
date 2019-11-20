@@ -14,7 +14,7 @@ public class GameRecord : IDisposable
 
     public Dictionary<string, HeroRecordData> HeroRecord;
     public Dictionary<int, string> TeamRecord;
-    public List<ItemRecordData> ItemRecord;
+    public Dictionary<int,ItemRecordData> ItemRecord;
 
     public static int[] GetIndexes()
     {
@@ -48,12 +48,9 @@ public class GameRecord : IDisposable
         var uid2 = AddHero("hero_0002", 0, 1);
         var uid3 = AddHero("hero_0003", 0, 1);
 
-        TeamRecord = new Dictionary<int, string>
-        {
-            {0,uid1},
-            {3,uid2},
-            {2,uid3},
-        };
+        SetTeamHero(0, uid1);
+        SetTeamHero(3, uid2);
+        SetTeamHero(2, uid3);
 
         AddItem("10000", 0, 3);
         AddItem("10001", 2, 120);
@@ -61,12 +58,26 @@ public class GameRecord : IDisposable
         AddItem("20000", 9, 5);
     }
 
+    public void SetTeamHero(int pos,string uid)
+    {
+        if (pos == -1 || !HeroRecord.ContainsKey(uid))
+            return;
+
+        if (TeamRecord == null)
+            TeamRecord = new Dictionary<int, string>();
+
+        if (TeamRecord.ContainsKey(pos))
+            TeamRecord[pos] = uid;
+        else
+            TeamRecord.Add(pos, uid);
+    }
+
     public void Dispose()
     {
         _indexes[RecordID] = -1;
     }
 
-    public string AddHero(string id,int exp,int level,string uid = "",int pos = -1)
+    public string AddHero(string id,double exp,int level,string uid = "")
     {
         if (HeroRecord == null)
             HeroRecord = new Dictionary<string, HeroRecordData>();
@@ -78,7 +89,6 @@ public class GameRecord : IDisposable
         {
             UID = uid,
             ID = id,
-            Pos = pos,
             Exp = exp,
             Level = level
         };
@@ -96,23 +106,22 @@ public class GameRecord : IDisposable
     public void AddItem(string id,int pos,int count)
     {
         if (ItemRecord == null)
-            ItemRecord = new List<ItemRecordData>();
+            ItemRecord = new Dictionary<int, ItemRecordData>();
 
         ItemRecordData item = new ItemRecordData { ID = id, Pos = pos, Count = count };
-        ItemRecord.Add(item);
+        ItemRecord.Add(pos, item);
     }
 
     public void RemoveItem(string id,int pos,int count)
     {
-        for(int i = ItemRecord.Count;i>=0;i--)
+        if(ItemRecord.ContainsKey(pos))
         {
-            var item = ItemRecord[i];
-            if (string.Equals(id, item.ID) && pos == item.Pos)
+            var item = ItemRecord[pos];
+            if(string.Equals(item.ID,id))
             {
                 item.Count -= count;
                 if (item.Count <= 0)
-                    ItemRecord.RemoveAt(i);
-                break;
+                    ItemRecord.Remove(pos);
             }
         }
     }
@@ -151,8 +160,7 @@ public class HeroRecordData
 {
     public string UID;
     public string ID;
-    public int Pos;
-    public int Exp;
+    public double Exp;
     public int Level;
 }
 

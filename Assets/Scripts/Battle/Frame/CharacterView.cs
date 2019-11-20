@@ -4,6 +4,7 @@ using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.EventSystems;
 using UnityEngine.UI;
+using Utility;
 
 public class CharacterView : MonoBehaviour, IPointerDownHandler
 {
@@ -32,16 +33,22 @@ public class CharacterView : MonoBehaviour, IPointerDownHandler
     protected CharacterData _data;
     protected int _pos = -1;
     protected Vector3 _oriPosition;
+    protected ParallelCoroutines _parallelCor;
 
     public event Action<int> SelectAction;
 
     public void SetData(CharacterData data,int pos)
     {
+        gameObject.SetActive(true);
         _data = data;
         _pos = pos;
         _oriPosition = _root.position;
         ChangeHpSliderValue();
         ChangeMpSliderValue();
+        if(_parallelCor == null)
+            _parallelCor = new ParallelCoroutines();
+        _parallelCor.Clear();
+        StartCoroutine(_parallelCor.Execute());
     }
 
     public void BeHit()
@@ -74,7 +81,14 @@ public class CharacterView : MonoBehaviour, IPointerDownHandler
     protected virtual void _CheckAlive()
     {
         if (!_data.IsAlive)
-            _root.gameObject.SetActive(false);
+            _parallelCor.Add(_DestroyView(1f));
+    }
+
+    protected IEnumerator _DestroyView(float time)
+    {
+        yield return MyCoroutine.Sleep(time);
+        _root.gameObject.SetActive(false);
+        gameObject.SetActive(false);
     }
     #endregion
 
@@ -124,4 +138,10 @@ public class CharacterView : MonoBehaviour, IPointerDownHandler
         _root.position = target;
     }
     #endregion
+
+    private void OnDisable()
+    {
+        if(_parallelCor != null)
+            _parallelCor.Stop();
+    }
 }

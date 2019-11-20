@@ -20,12 +20,14 @@ public class HeroElement : MonoBehaviour
     public event Action<bool,int> SelectHeroElement;
 
     private HeroData _heroData;
+    private Dictionary<int, int> _levelExpTable;
     private int _pos = -1;
 
-    public void SetData(HeroData data,int pos,ToggleGroup toggleGroup)
+    public void SetData(HeroData data,int pos,ToggleGroup toggleGroup,Dictionary<int,int> levelExpTable)
     {
         _heroData = data;
         _pos = pos;
+        _levelExpTable = levelExpTable;
         _toggle.onValueChanged.RemoveAllListeners();
         _toggle.onValueChanged.AddListener(SelectElement);
         _toggle.group = toggleGroup;
@@ -62,7 +64,7 @@ public class HeroElement : MonoBehaviour
     public void FreshHeroElementStatus()
     {
         _levelText.text = _heroData.Level.ToString();
-        _expText.text = string.Format("{0}/{1}", _heroData.Exp, BattleUtility.Instance.GetLevelUpExpByLevel(_heroData.Level));
+        _expText.text = string.Format("{0}/{1}", _heroData.Exp, _levelExpTable[_heroData.Level]);
         _hpText.text = string.Format("{0}/{1}", _heroData.CurrentHp, _heroData.MaxHp);
         _mpText.text = string.Format("{0}/{1}", _heroData.CurrentMp, _heroData.MaxMp);
         var lockToggle = !_heroData.IsAlive || _heroData.IsTurnEnd;

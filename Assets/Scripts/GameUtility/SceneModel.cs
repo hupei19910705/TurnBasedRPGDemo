@@ -41,7 +41,7 @@ namespace Utility.GameUtility
             SceneManager.LoadScene(_GetSceneNameByEnum(targetScene));
         }
 
-        public IEnumerator LoadSceneAsync(SceneEnum targetScene,ProcessBar process)
+        public IEnumerator LoadSceneAsync(SceneEnum targetScene,SingleProcessBar process)
         {
             var async = SceneManager.LoadSceneAsync(_GetSceneNameByEnum(targetScene));
             async.allowSceneActivation = false;
@@ -75,14 +75,14 @@ namespace Utility.GameUtility
         #endregion
     }
 
-    public class ProcessBar
+    public class SingleProcessBar
     {
         private Transform _processBar;
         private float _startPosX;
         private float _endPosX;
         private Text _processText;
 
-        public ProcessBar(Transform bar, float start, float end, Text text)
+        public SingleProcessBar(Transform bar, float start, float end, Text text)
         {
             _processBar = bar;
             _startPosX = start;

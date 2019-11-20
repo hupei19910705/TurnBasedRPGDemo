@@ -13,9 +13,13 @@ public class BattlePresenter : IBattlePresenter
     private IBattleView _view = null;
     private PlayerData _playerData = null;
     private Dictionary<int, EnemyData> _enemiesData = null;
-    
+    private GameData _gameData;
+    private GameRecord _gameRecord;
+
+    private bool _battleEnd = false;
     private bool _leave = false;
     private bool _isEnemyTurn = false;
+    private bool _isWin = false;
 
     private int _curHeroIdx = -1;
     private int _targetEnemyIdx = -1;
@@ -27,11 +31,14 @@ public class BattlePresenter : IBattlePresenter
     public BattlePresenter(
         IBattleView view,
         PlayerData playerData,
-        Dictionary<int, EnemyData> enemiesData)
+        Dictionary<int, EnemyData> enemiesData,
+        GameData gameData)
     {
         _view = view;
         _playerData = playerData;
         _enemiesData = enemiesData;
+        _gameData = gameData;
+        _gameRecord = GameUtility.Instance.GetCurGameRecord();
     }
 
     public IEnumerator Run()
@@ -41,7 +48,7 @@ public class BattlePresenter : IBattlePresenter
 
         while (!_leave)
         {
-            if(_isEnemyTurn)
+            if(!_battleEnd && _isEnemyTurn)
             {
                 yield return _EnemiesTurn();
                 _ActiveHeroTurn();
@@ -61,6 +68,8 @@ public class BattlePresenter : IBattlePresenter
         _view.HeroEndTurn += _EndHeroTurn;
         _view.UseItem += _UseItem;
         _view.UseSkill += _UseSkill;
+        _view.OnSettlementBattle += _BattleEndEvent;
+        _view.LeaveBattle += _LeaveBattle;
     }
 
     private void _UnRegister()
@@ -71,6 +80,8 @@ public class BattlePresenter : IBattlePresenter
         _view.HeroEndTurn -= _EndHeroTurn;
         _view.UseItem -= _UseItem;
         _view.UseSkill -= _UseSkill;
+        _view.OnSettlementBattle -= _BattleEndEvent;
+        _view.LeaveBattle -= _LeaveBattle;
     }
     #endregion
 
@@ -105,7 +116,7 @@ public class BattlePresenter : IBattlePresenter
             if (_playerData.TeamHeroes.ContainsKey(i) && _playerData.TeamHeroes[i].IsAlive)
                 return i;
         }
-        _leave = true;
+        _SetBattleEndFlag(false);
         return -1;
     }
 
@@ -184,7 +195,7 @@ public class BattlePresenter : IBattlePresenter
         }
 
         if (!_CheckIsAllEnemiesAlive())
-            _leave = true;
+            _SetBattleEndFlag(true);
     }
     #endregion
 
@@ -205,6 +216,11 @@ public class BattlePresenter : IBattlePresenter
                 yield return _view.EnemyAttack(pair.Key, _targetHeroIdx);
                 if (!_playerData.TeamHeroes[_targetHeroIdx].IsAlive)
                     _targetHeroIdx = _GetAliveHeroIndex();
+                if (_battleEnd)
+                {
+                    _BattleEndEvent();
+                    break;
+                }
             }
         }
     }
@@ -215,6 +231,58 @@ public class BattlePresenter : IBattlePresenter
             if (enemy.IsAlive)
                 return true;
         return false;
+    }
+    #endregion
+
+    #region Settlement
+    private void _SetBattleEndFlag(bool win)
+    {
+        _battleEnd = true;
+        _view.SetBattleEndFlag();
+        _isWin = win;
+    }
+
+    private void _BattleEndEvent()
+    {
+        int totalDropExp = 0;
+        List<Item> totalDropItems = new List<Item>();
+
+        if(_isWin)
+        {
+            foreach (var pair in _enemiesData)
+            {
+                totalDropExp += pair.Value.DropExp;
+                var dropList = pair.Value.DropItems;
+                for (int i = 0; i < dropList.Count; i++)
+                {
+                    var item = GameUtility.Instance.CaculateDropItems(dropList[i]);
+                    if (item != null)
+                        totalDropItems.Add(item);
+                }
+            }
+        }
+        
+        var levelExpDatas = _AddExpToTeamHeroes(totalDropExp);
+        _playerData.AddItems(totalDropItems);
+        GameUtility.Instance.Save();
+        _view.PopupResultPage(_isWin, levelExpDatas, totalDropItems);
+    }
+
+    private Dictionary<string, HeroLevelExpData> _AddExpToTeamHeroes(int exp)
+    {
+        Dictionary<string, HeroLevelExpData> levelExpDatas = new Dictionary<string, HeroLevelExpData>();
+        var levelExpTable = _gameData.LevelExpTable;
+        foreach (var hero in _playerData.Heroes.Values)
+        {
+            HeroLevelExpData levelExpData = _playerData.AddExp(hero.UID, exp, levelExpTable);
+            levelExpDatas.Add(hero.UID, levelExpData);
+        }
+        return levelExpDatas;
+    }
+
+    private void _LeaveBattle()
+    {
+        _leave = true;
     }
     #endregion
 }

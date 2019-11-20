@@ -4,13 +4,13 @@ using UnityEngine;
 using Utility;
 using Utility.GameUtility;
 using System.Linq;
+using System;
 
 public class Main : MonoBehaviour
 {
     private ParallelCoroutines _parallelCor = new ParallelCoroutines();
 
     private GameData _gameData;
-    private GameRecords _gameRecords;
     private GameRecord _curRecord;
 
     private const string GAMEDATA_EXCEL_FILE_PATH = "/Data/GameData.xlsx";
@@ -25,7 +25,7 @@ public class Main : MonoBehaviour
     private IEnumerator _Main()
     {
         _gameData = AssetModel.Instance.LoadGameDataExcelFile(GAMEDATA_EXCEL_FILE_PATH);
-        
+
         while (true)
         {
             //Enter Splash Screen Scene
@@ -57,11 +57,10 @@ public class Main : MonoBehaviour
         yield return null;
         var splashView = FindObjectOfType<SplashScreenPanel>();
 
-        _gameRecords = GameUtility.Instance.Load();
-        splashView.Init(_gameRecords, _gameData);
+        splashView.Init( _gameData);
 
         yield return splashView.Run();
-        _curRecord = _gameRecords.Records[splashView.SelectRecordId];
+        _curRecord = GameUtility.Instance.GetCurGameRecord();
     }
 
     private IEnumerator _Map()
@@ -72,7 +71,7 @@ public class Main : MonoBehaviour
         mapPanel.Initialize();
         IMapPresenter mapPresenter = mapPanel.MapPresenter;
         yield return mapPresenter.Run();
-        GameUtility.Instance.Save(_gameRecords);
+        GameUtility.Instance.Save();
     }
 
     private IEnumerator _Battle(PlayerData playerData)
@@ -85,7 +84,7 @@ public class Main : MonoBehaviour
         battlePanel.Initialize(_gameData, playerData, enemiesData);
         IBattlePresenter battlePresenter = battlePanel.BattlePresenter;
         yield return battlePresenter.Run();
-        GameUtility.Instance.Save(_gameRecords);
+        GameUtility.Instance.Save();
     }
     #region Team Data
     private PlayerData _CreatePlayerData()
@@ -98,7 +97,7 @@ public class Main : MonoBehaviour
         }
 
         List<Item> items = new List<Item>();
-        foreach(var itemRecord in _curRecord.ItemRecord)
+        foreach(var itemRecord in _curRecord.ItemRecord.Values)
         {
             var item = _CreateItem(itemRecord.ID, itemRecord.Pos, itemRecord.Count);
             items.Add(item);
@@ -122,7 +121,7 @@ public class Main : MonoBehaviour
         return new HeroData(uid,heroRow, heroJob, exp, level);
     }
 
-    private Item _CreateItem(string itemId, int pos = -1, int count = -1)
+    private Item _CreateItem(string itemId, int pos = -1, int count = -99)
     {
         if (_gameData == null)
         {

@@ -97,6 +97,10 @@ namespace Utility
         public void Stop()
         {
             _running = false;
+        }
+
+        public void Clear()
+        {
             coroutines.Clear();
         }
     }

@@ -26,7 +26,7 @@ public class Item
 
     public bool IsFull { get { return Count >= MaxCount; } }
 
-    public Item(ItemRow itemRow, int pos = -99, int count = -1)
+    public Item(ItemRow itemRow, int pos = -1, int count = -99)
     {
         ID = itemRow.ID;
         Type = itemRow.Type;
@@ -104,11 +104,11 @@ public class Item
 
     public int AddNum(int num)
     {
-        bool full = Count + num > MaxCount;
-        if(full)
+        int total = Count + num;
+        if(total >= MaxCount)
         {
             Count = MaxCount;
-            return Count + num - MaxCount;
+            return total - MaxCount;
         }
         else
         {

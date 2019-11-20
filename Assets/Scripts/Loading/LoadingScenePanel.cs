@@ -26,7 +26,7 @@ public class LoadingScenePanel : MonoBehaviour
         _processBar.localPosition = new Vector3(_startPosX, _processBar.localPosition.y, _processBar.localPosition.z);
         _processText.text = "0%";
 
-        yield return SceneModel.Instance.LoadSceneAsync(target, new ProcessBar(_processBar, _startPosX, _endPosX, _processText));
+        yield return SceneModel.Instance.LoadSceneAsync(target, new SingleProcessBar(_processBar, _startPosX, _endPosX, _processText));
     }
 }
 

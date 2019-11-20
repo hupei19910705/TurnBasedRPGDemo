@@ -16,10 +16,5 @@ namespace Utility.GameUtility
                 return _instance;
             }
         }
-
-        public double GetLevelUpExpByLevel(int level)
-        {
-            return Math.Floor((Math.Pow(level - 1, 3) + 60) / 5f * (Math.Pow(level - 1, 2) + 60));
-        }
     }
 }

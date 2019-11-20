@@ -18,6 +18,6 @@ public class BattlePanel : MonoBehaviour
     public void Initialize(GameData gameData,PlayerData playerData,Dictionary<int,EnemyData> enemiesData)
     {
         _battleView.Initialize(gameData,_infoView);
-        BattlePresenter = new BattlePresenter(_battleView, playerData, enemiesData) as IBattlePresenter;
+        BattlePresenter = new BattlePresenter(_battleView, playerData, enemiesData, gameData) as IBattlePresenter;
     }
 }

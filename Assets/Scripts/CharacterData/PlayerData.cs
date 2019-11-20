@@ -1,5 +1,6 @@
 ﻿using System.Collections;
 using System.Collections.Generic;
+using System.Linq;
 using UnityEngine;
 
 public class PlayerData
@@ -10,8 +11,11 @@ public class PlayerData
     public Dictionary<int,Item> BackPack { get; private set; }
     private const int BACKPACK_MAX_SIZE = 50;
 
+    private GameRecord _gameRecord;
+
     public PlayerData(Dictionary<string, HeroData> heroes, Dictionary<int, string> teamHeroes , List<Item> items)
     {
+        _gameRecord = GameUtility.Instance.GetCurGameRecord();
         Heroes = heroes;
         foreach (var pair in teamHeroes)
             TeamHeroes.Add(pair.Key, Heroes[pair.Value]);
@@ -43,38 +47,22 @@ public class PlayerData
         if (BackPack == null)
             BackPack = new Dictionary<int, Item>();
 
-        for (int i=0;i<items.Count;i++)
+        for (int i = 0; i < items.Count; i++)
         {
             var newItem = items[i];
+            int extra = newItem.Count;
 
             if (BackPack.ContainsKey(items[i].Pos))
             {
                 var oldItem = BackPack[items[i].Pos];
-                if(string.Equals(oldItem.ID, newItem.ID))
-                {
-                    var extra = oldItem.AddNum(newItem.Count);
-                    _AddItemAtEmptyPos(newItem, extra);
-                }
-                else
-                    _AddItemAtEmptyPos(newItem, newItem.Count);
+                if (string.Equals(oldItem.ID, newItem.ID))
+                    extra = oldItem.AddNum(newItem.Count);
             }
-            else
-            {
-                if (newItem.IsFull)
-                {
-                    var item = newItem.Copy(newItem.MaxCount);
-                    BackPack.Add(item.Pos, item);
 
-                    var extra = newItem.Count - newItem.MaxCount;
-                    _AddItemAtEmptyPos(newItem, extra);
-                }
-                else
-                {
-                    BackPack.Add(newItem.Pos, newItem);
-                    _CheckBackpackSize();
-                }
-            }
+            _AddExtraItem(newItem, extra);
         }
+
+        _SaveBackPackRecord();
     }
 
     private int _GetEmptyPos()
@@ -88,18 +76,42 @@ public class PlayerData
         return -1;
     }
 
-    private void _AddItemAtEmptyPos(Item item,int count)
+    private int _GetNotFullPos(string id)
     {
-        while (count > 0)
+        var items = BackPack.Values.ToList().FindAll(t => string.Equals(id, t.ID)).OrderBy(o => o.Pos).ToList();
+        for(int i = 0;i<items.Count;i++)
         {
-            var pos = _GetEmptyPos();
+            if (!items[i].IsFull)
+                return items[i].Pos;
+        }
+        return -1;
+    }
+
+    private void _AddExtraItem(Item item,int extraCount)
+    {
+        while (extraCount > 0)
+        {
+            bool isNew = false;
+            var pos = _GetNotFullPos(item.ID);
             if (pos < 0)
-                break;
+            {
+                isNew = true;
+                pos = _GetEmptyPos();
+                if (pos < 0)
+                    break;
+            }
+
             item = item.Copy(0);
             item.Pos = pos;
-            count = item.AddNum(count);
-            BackPack.Add(pos, item);
-            _CheckBackpackSize();
+            
+            if (isNew)
+            {
+                extraCount = item.AddNum(extraCount);
+                BackPack.Add(pos, item);
+                _CheckBackpackSize();
+            }
+            else
+                extraCount = BackPack[pos].AddNum(item.Count);
         }
     }
 
@@ -109,7 +121,8 @@ public class PlayerData
             return;
         var item = BackPack[pos];
         item.RemoveNum(count);
-        _AddItemAtEmptyPos(item, count);
+        _AddExtraItem(item, count);
+        _SaveBackPackRecord();
     }
 
     public void FreshBackpack(int pos)
@@ -120,5 +133,44 @@ public class PlayerData
             if (item.Count <= 0)
                 BackPack.Remove(pos);
         }
+        _SaveBackPackRecord();
+    }
+
+    #region Hero
+    public HeroLevelExpData AddExp(string uid,int exp, Dictionary<int, int> expTable)
+    {
+        var hero = Heroes[uid];
+        var levelExpData = hero.AddExp(exp, expTable);
+        _SaveHeroesRecord();
+        return levelExpData;
+    }
+    #endregion
+
+    private void _SaveToRecord()
+    {
+        _SaveBackPackRecord();
+        _SaveHeroesRecord();
+        _SaveTeamRecord();
+    }
+
+    private void _SaveBackPackRecord()
+    {
+        _gameRecord.ItemRecord.Clear();
+        foreach(var item in BackPack.Values)
+            _gameRecord.AddItem(item.ID, item.Pos, item.Count);
+    }
+
+    private void _SaveHeroesRecord()
+    {
+        _gameRecord.HeroRecord.Clear();
+        foreach (var hero in Heroes.Values)
+            _gameRecord.AddHero(hero.ID, hero.Exp, hero.Level, hero.UID);
+    }
+
+    private void _SaveTeamRecord()
+    {
+        _gameRecord.TeamRecord.Clear();
+        foreach (var pair in TeamHeroes)
+            _gameRecord.SetTeamHero(pair.Key, pair.Value.UID);
     }
 }

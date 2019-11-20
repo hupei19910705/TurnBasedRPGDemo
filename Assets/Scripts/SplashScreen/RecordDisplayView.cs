@@ -8,7 +8,7 @@ public class RecordDisplayView : MonoBehaviour
 {
     [SerializeField] private Text _title = null;
     [SerializeField] private HeroPosView[] _teamHeroViews = null;
-    [SerializeField] private HeroCardView _heroDisplay = null;
+    [SerializeField] private HeroDisplayView _heroDisplay = null;
     [SerializeField] private ChangeNamePopUpPanel _changeRecordNameView = null;
 
     [Header("Button")]
@@ -36,7 +36,7 @@ public class RecordDisplayView : MonoBehaviour
         _SetTeamHeroes();
         _HideHeroDisplay();
         _Register();
-
+        
         gameObject.SetActive(true);
     }
 

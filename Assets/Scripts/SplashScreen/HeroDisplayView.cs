@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.UI;
 
-public class HeroCardView : MonoBehaviour
+public class HeroDisplayView : MonoBehaviour
 {
     [SerializeField] private Image _heroImage = null;
     [SerializeField] private Text _name = null;

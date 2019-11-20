@@ -27,10 +27,51 @@ public class HeroData : CharacterData
         HeadImageKey = HEAD_IMAGE_KEY_PREFIX + heroJob.HeadImageKey;
         DeathImageKey = DEATH_IMAGE_KEY_PREFIX + heroJob.DeathImageKey;
         Exp = exp;
+
+        Attack *= 10;
     }
 
     public void SetEndTurnFlag(bool endTurn)
     {
         IsTurnEnd = endTurn;
+    }
+
+    public HeroLevelExpData AddExp(int exp,Dictionary<int,int> expTable)
+    {
+        if (!IsAlive)
+            exp = 0;
+
+        int oldLevel = Level;
+        double oldExp = Exp;
+
+        var maxExp = expTable[Level];
+        float oldExpRate = (float)oldExp / maxExp * 100f;
+
+        Exp += exp;
+        while (Exp >= maxExp)
+        {
+            Level++;
+            Exp -= maxExp;
+            maxExp = expTable[Level];
+        }
+        var newExpRate = (float)Exp / maxExp * 100f;
+
+        return new HeroLevelExpData(oldLevel, oldExpRate, Level, newExpRate);
+    }
+}
+
+public class HeroLevelExpData
+{
+    public int OldLevel { get; private set; }
+    public float OldExpRate { get; private set; }
+    public int NewLevel { get; private set; }
+    public float NewExpRate { get; private set; }
+
+    public HeroLevelExpData(int oldLevel,float oldExpRate,int newLevel,float newExpRate)
+    {
+        OldLevel = oldLevel;
+        OldExpRate = oldExpRate;
+        NewLevel = newLevel;
+        NewExpRate = newExpRate;
     }
 }

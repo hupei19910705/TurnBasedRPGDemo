@@ -27,8 +27,6 @@ public class HeroData : CharacterData
         HeadImageKey = HEAD_IMAGE_KEY_PREFIX + heroJob.HeadImageKey;
         DeathImageKey = DEATH_IMAGE_KEY_PREFIX + heroJob.DeathImageKey;
         Exp = exp;
-
-        Attack *= 10;
     }
 
     public void SetEndTurnFlag(bool endTurn)

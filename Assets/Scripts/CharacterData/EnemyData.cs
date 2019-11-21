@@ -23,8 +23,5 @@ public class EnemyData : CharacterData
         Type = dataRow.Type;
         DropExp = dataRow.DropExp;
         DropItems = dropItems;
-
-        DropExp *= 7;
-        Attack *= 10;
     }
 }

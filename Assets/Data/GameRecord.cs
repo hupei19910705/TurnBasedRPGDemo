@@ -52,10 +52,9 @@ public class GameRecord : IDisposable
         SetTeamHero(3, uid2);
         SetTeamHero(2, uid3);
 
+        ItemRecord = new Dictionary<int, ItemRecordData>();
         AddItem("10000", 0, 3);
-        AddItem("10001", 2, 120);
-        AddItem("10000", 5, 3);
-        AddItem("20000", 9, 5);
+        AddItem("20000", 1, 3);
     }
 
     public void SetTeamHero(int pos,string uid)

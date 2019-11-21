@@ -25,6 +25,7 @@ public class Main : MonoBehaviour
     private IEnumerator _Main()
     {
         _gameData = AssetModel.Instance.LoadGameDataExcelFile(GAMEDATA_EXCEL_FILE_PATH);
+        CharacterUtility.Instance.Init(_gameData);
 
         while (true)
         {
@@ -116,9 +117,11 @@ public class Main : MonoBehaviour
 
         var heroRow = _gameData.HeroTable[heroId];
         var heroJob = _gameData.HeroJobTable[heroRow.Job];
+        var skills = CharacterUtility.Instance.GetUnLockHeroSkills(heroRow.Job, level);
+
         if (string.IsNullOrEmpty(uid))
             uid = GameUtility.GenerateOrderId();
-        return new HeroData(uid,heroRow, heroJob, exp, level);
+        return new HeroData(uid, heroRow, heroJob, exp, level, skills);
     }
 
     private Item _CreateItem(string itemId, int pos = -1, int count = -99)
@@ -155,9 +158,11 @@ public class Main : MonoBehaviour
         }
 
         var enemyRow = _gameData.EnemyTable[enemyId];
+        var skills = CharacterUtility.Instance.GetUnLockEnemySkills(enemyRow.Type, level);
+
         if(string.IsNullOrEmpty(uid))
             uid = GameUtility.GenerateOrderId();
-        return new EnemyData(uid, enemyRow, dropItems, level);
+        return new EnemyData(uid, enemyRow, dropItems, level, skills);
     }
     #endregion
 }

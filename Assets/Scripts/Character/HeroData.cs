@@ -20,13 +20,15 @@ public class HeroData : CharacterData
     private const string HEAD_IMAGE_KEY_PREFIX = "Texture/Characters/Team Member/";
     private const string DEATH_IMAGE_KEY_PREFIX = "Texture/Icons/Death/";
 
-    public HeroData(string uid,HeroDataRow dataRow,HeroJob heroJob,double exp,int level)
-        : base(uid,dataRow.ID,dataRow.Name, dataRow.Skills, heroJob.OriginHp, heroJob.OriginMp, heroJob.Attack, heroJob.Defence, level)
+    public HeroData(string uid,HeroDataRow dataRow,HeroJob heroJob,double exp,int level,List<string> skills)
+        : base(uid,dataRow.ID,dataRow.Name, skills, heroJob.OriginHp, heroJob.OriginMp, heroJob.Attack, heroJob.Defence, level)
     {
         Job = dataRow.Job;
         HeadImageKey = HEAD_IMAGE_KEY_PREFIX + heroJob.HeadImageKey;
         DeathImageKey = DEATH_IMAGE_KEY_PREFIX + heroJob.DeathImageKey;
         Exp = exp;
+
+        Attack *= 10;
     }
 
     public void SetEndTurnFlag(bool endTurn)

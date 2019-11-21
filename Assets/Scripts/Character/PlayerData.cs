@@ -101,17 +101,16 @@ public class PlayerData
                     break;
             }
 
-            item = item.Copy(0);
-            item.Pos = pos;
-            
             if (isNew)
             {
+                item = item.Copy(0);
+                item.Pos = pos;
                 extraCount = item.AddNum(extraCount);
                 BackPack.Add(pos, item);
                 _CheckBackpackSize();
             }
             else
-                extraCount = BackPack[pos].AddNum(item.Count);
+                extraCount = BackPack[pos].AddNum(extraCount);
         }
     }
 

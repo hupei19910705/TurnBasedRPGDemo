@@ -63,13 +63,15 @@ public class AssetModel
 
         var heroes = _LoadDictElement<string,HeroDataRow>(tables[sheetInfos["Heroes"].SheetIndex]);
         var heroJobs = _LoadDictElement<HeroJobType, HeroJob>(tables[sheetInfos["HeroJobs"].SheetIndex]);
+        var heroUnlockSkills = _LoadDictElement<string, UnLockHeroSkillData>(tables[sheetInfos["HeroUnLockSkills"].SheetIndex]);
         var enemies = _LoadDictElement<string, EnemyDataRow>(tables[sheetInfos["Enemies"].SheetIndex]);
+        var enemyUnlockSkills = _LoadDictElement<string, UnLockEnemySkillData>(tables[sheetInfos["EnemyUnLockSkills"].SheetIndex]);
         var items = _LoadDictElement<string, ItemRow>(tables[sheetInfos["Items"].SheetIndex]);
         var skills = _LoadDictElement<string, SkillRow>(tables[sheetInfos["Skills"].SheetIndex]);
         var levelExp = _LoadDictElement<int, int>(tables[sheetInfos["LevelExp"].SheetIndex]);
         var constData = _LoadSingleObject<ConstantData>(tables[sheetInfos["ConstantData"].SheetIndex]);
 
-        GameData gameData = new GameData(heroes, heroJobs, enemies, items, skills, levelExp, constData);
+        GameData gameData = new GameData(heroes, heroJobs, enemies, items, skills, levelExp, constData, heroUnlockSkills, enemyUnlockSkills);
 
         return gameData;
     }

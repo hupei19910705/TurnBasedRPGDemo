@@ -75,7 +75,9 @@ public class RecordDisplayView : MonoBehaviour
             var heroRecord = heroRecords[pair.Value];
             var heroRow = _gameData.HeroTable[heroRecord.ID];
             var heroJob = _gameData.HeroJobTable[heroRow.Job];
-            var heroData = new HeroData(heroRecord.UID, heroRow, heroJob, heroRecord.Exp, heroRecord.Level);
+            var skills = CharacterUtility.Instance.GetUnLockHeroSkills(heroRow.Job, heroRecord.Level);
+
+            var heroData = new HeroData(heroRecord.UID, heroRow, heroJob, heroRecord.Exp, heroRecord.Level, skills);
             _heroDatas[pair.Key] = heroData;
         }
     }

@@ -132,7 +132,7 @@ public class BattlePresenter : IBattlePresenter
         _view.ActiveHeroElement();
     }
 
-    private void _HeroBeHit(double attack)
+    private void _HeroBeHit(int attack)
     {
         var hero = _playerData.TeamHeroes[_targetHeroIdx];
         hero.BeHit(attack);
@@ -172,7 +172,7 @@ public class BattlePresenter : IBattlePresenter
 
             var changeValue = skill.EffectValue;
             if (!skill.IsConstant)
-                changeValue = Mathf.FloorToInt(skill.Multiple * (float)from.Attack);
+                changeValue = Mathf.FloorToInt(skill.Multiple * from.Attack);
 
             CharacterData target = null;
             switch(skill.EffectiveResult)

@@ -21,14 +21,13 @@ public class HeroData : CharacterData
     private const string DEATH_IMAGE_KEY_PREFIX = "Texture/Icons/Death/";
 
     public HeroData(string uid,HeroDataRow dataRow,HeroJob heroJob,double exp,int level,List<string> skills)
-        : base(uid,dataRow.ID,dataRow.Name, skills, heroJob.OriginHp, heroJob.OriginMp, heroJob.Attack, heroJob.Defence, level)
+        : base(uid,dataRow.ID,dataRow.Name, skills, heroJob.InitHp, heroJob.InitMp, heroJob.InitAtk,
+            heroJob.InitDef, level, heroJob.HPGrowthRate,heroJob.MPGrowthRate,heroJob.AtkGrowthRate,heroJob.DefGrowthRate)
     {
         Job = dataRow.Job;
         HeadImageKey = HEAD_IMAGE_KEY_PREFIX + heroJob.HeadImageKey;
         DeathImageKey = DEATH_IMAGE_KEY_PREFIX + heroJob.DeathImageKey;
         Exp = exp;
-
-        Attack *= 10;
     }
 
     public void SetEndTurnFlag(bool endTurn)
@@ -55,6 +54,7 @@ public class HeroData : CharacterData
             maxExp = expTable[Level];
         }
         var newExpRate = (float)Exp / maxExp * 100f;
+        _CaculateValueByLevel();
 
         return new HeroLevelExpData(oldLevel, oldExpRate, Level, newExpRate);
     }

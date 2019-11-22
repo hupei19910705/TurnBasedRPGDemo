@@ -15,15 +15,20 @@ public class EnemyData : CharacterData
 {
     public EnemyType Type;
     public int DropExp;
+    public float DropExpGrowthRate;
     public List<DropItem> DropItems = new List<DropItem>();
 
-    public EnemyData(string uid,EnemyDataRow dataRow, List<DropItem> dropItems,int level,List<string> skills)
-        : base(uid, dataRow.ID, dataRow.Name, skills, dataRow.OriginHp, dataRow.OriginMp, dataRow.Attack, dataRow.Defence, level)
+    private int _initDropExp;
+
+    public EnemyData(string uid, EnemyDataRow dataRow, List<DropItem> dropItems, int level, List<string> skills)
+        : base(uid, dataRow.ID, dataRow.Name, skills, dataRow.InitHp, dataRow.InitMp, dataRow.InitAtk, dataRow.InitDef, level,
+            dataRow.HPGrowthRate, dataRow.MPGrowthRate, dataRow.AtkGrowthRate, dataRow.DefGrowthRate)
     {
         Type = dataRow.Type;
-        DropExp = dataRow.DropExp;
         DropItems = dropItems;
+        DropExpGrowthRate = dataRow.DropExpGrowthRate;
 
-        DropExp *= 10;
+        _initDropExp = dataRow.InitDropExp;
+        DropExp = Mathf.FloorToInt(_initDropExp * Mathf.Pow((1 + DropExpGrowthRate), Level - 1));
     }
 }

@@ -90,16 +90,16 @@ public class HeroJob
 {
     public HeroJobType Type;
     public string Name;
-    public double OriginHp;
-    public double OriginMp;
+    public int InitHp;
+    public int InitMp;
     public string HeadImageKey;
     public string DeathImageKey;
-    public double Attack;
-    public double Defence;
-    public double HPGrowthRate;
-    public double MPGrowthRate;
-    public double AtkGrowthRate;
-    public double DefGrowthRate;
+    public int InitAtk;
+    public int InitDef;
+    public float HPGrowthRate;
+    public float MPGrowthRate;
+    public float AtkGrowthRate;
+    public float DefGrowthRate;
 }
 
 public class UnLockHeroSkillData
@@ -115,11 +115,16 @@ public class EnemyDataRow
     public string ID;
     public string Name;
     public EnemyType Type;
-    public double OriginHp;
-    public double OriginMp;
-    public double Attack;
-    public double Defence;
-    public int DropExp;
+    public int InitHp;
+    public int InitMp;
+    public int InitAtk;
+    public int InitDef;
+    public int InitDropExp;
+    public float HPGrowthRate;
+    public float MPGrowthRate;
+    public float AtkGrowthRate;
+    public float DefGrowthRate;
+    public float DropExpGrowthRate;
 }
 
 public class UnLockEnemySkillData
@@ -135,7 +140,7 @@ public class ItemRow
     public string ID;
     public ItemType Type;
     public string Name;
-    public double EffectValue;
+    public int EffectValue;
     public string IconKey;
 }
 

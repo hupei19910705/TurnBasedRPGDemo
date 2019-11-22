@@ -64,7 +64,7 @@ public class CharacterView : MonoBehaviour, IPointerDownHandler
         if (_hpSlider == null)
             return;
 
-        var value = (float)(_data.CurrentHp / _data.MaxHp * 100f);
+        var value = (float)_data.CurrentHp / _data.MaxHp * 100f;
         _hpSlider.value = value;
         _CheckAlive();
     }
@@ -74,7 +74,7 @@ public class CharacterView : MonoBehaviour, IPointerDownHandler
         if (_mpSlider == null)
             return;
 
-        var value = (float)(_data.CurrentMp / _data.MaxMp * 100f);
+        var value = (float)_data.CurrentMp / _data.MaxMp * 100f;
         _mpSlider.value = value;
     }
 

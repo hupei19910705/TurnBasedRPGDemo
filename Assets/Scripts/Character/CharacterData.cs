@@ -8,33 +8,61 @@ public class CharacterData
     public string UID;
     public string ID;
     public string Name;
-    public double OriginHp;
-    public double MaxHp;
-    public double CurrentHp;
-    public double OriginMp;
-    public double MaxMp = 0;
-    public double CurrentMp = 0;
+    public int OriginHp;
+    public int MaxHp;
+    public int CurrentHp;
+    public int OriginMp;
+    public int MaxMp = 0;
+    public int CurrentMp = 0;
     public int Level;
-    public double Attack;
-    public double Defence;
+    public int Attack;
+    public int Defence;
+    public float HPGrowthRate;
+    public float MPGrowthRate;
+    public float AtkGrowthRate;
+    public float DefGrowthRate;
     public bool IsAlive { get { return CurrentHp > 0; } }
     public Dictionary<string, Skill> Skills;
     public List<string> SkillList;
 
-    public CharacterData(string uid,string id,string name, List<string> skills, double hp,double mp, double attack, double defence, int level)
+    private int _initHp;
+    private int _initMp;
+    private int _initAtk;
+    private int _initDef;
+
+    public CharacterData(string uid,string id,string name, List<string> skills, int hp, int mp, int attack,
+        int defence, int level, float hpGrowth, float mpGrowth, float atkGrowth, float defGrowth)
     {
         UID = uid;
         ID = id;
         Name = name;
-        OriginHp = MaxHp = CurrentHp = hp;
-        OriginMp = MaxMp = CurrentMp = mp;
         Level = level;
-        Attack = attack;
-        Defence = defence;
         SkillList = skills;
+
+        HPGrowthRate = hpGrowth;
+        MPGrowthRate = mpGrowth;
+        AtkGrowthRate = atkGrowth;
+        DefGrowthRate = defGrowth;
+
+        _initHp = hp;
+        _initMp = mp;
+        _initAtk = attack;
+        _initDef = defence;
+        _CaculateValueByLevel();
+
+        MaxHp = CurrentHp = OriginHp;
+        MaxMp = CurrentMp = OriginMp;
     }
 
-    public void BeHit(double attack, bool isReal = false)
+    protected virtual void _CaculateValueByLevel()
+    {
+        OriginHp = Mathf.FloorToInt(_initHp * Mathf.Pow((1 + HPGrowthRate), Level - 1));
+        OriginMp = Mathf.FloorToInt(_initMp * Mathf.Pow((1 + MPGrowthRate), Level - 1));
+        Attack = Mathf.FloorToInt(_initAtk * Mathf.Pow((1 + AtkGrowthRate), Level - 1));
+        Defence = Mathf.FloorToInt(_initDef * Mathf.Pow((1 + DefGrowthRate), Level - 1));
+    }
+
+    public void BeHit(int attack, bool isReal = false)
     {
         var changeVlaue = attack - Defence;
         if (isReal)
@@ -45,23 +73,23 @@ public class CharacterData
         ChangeHp(-changeVlaue);
     }
 
-    public bool ChangeHp(double changeValue)
+    public bool ChangeHp(int changeValue)
     {
         if (!IsAlive)
             return false;
 
         CurrentHp += changeValue;
-        CurrentHp = Math.Floor(Mathf.Lerp(0f, (float)MaxHp, (float)(CurrentHp / MaxHp)));
+        CurrentHp = Mathf.Clamp(CurrentHp, 0, MaxHp);
         return true;
     }
 
-    public bool ChangeMp(double changeValue)
+    public bool ChangeMp(int changeValue)
     {
         if (!IsAlive)
             return false;
 
         CurrentMp += changeValue;
-        CurrentMp = Math.Floor(Mathf.Lerp(0f, (float)MaxMp, (float)(CurrentMp / MaxMp)));
+        CurrentMp = Mathf.Clamp(CurrentMp, 0, MaxMp);
         return true;
     }
 

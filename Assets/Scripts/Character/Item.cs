@@ -16,7 +16,7 @@ public class Item
     public string ID;
     public int Count;
     public string Name;
-    public double EffectValue;
+    public int EffectValue;
     public int Pos;
     public string IconKey;
     public string Desc;
@@ -39,7 +39,7 @@ public class Item
         _inCompleteIconKey = itemRow.IconKey;
     }
 
-    public Item(ItemType type,string id,int count,string name,double effectValue,int pos,string iconKey)
+    public Item(ItemType type,string id,int count,string name,int effectValue,int pos,string iconKey)
     {
         Type = type;
         ID = id;

@@ -23,7 +23,9 @@ public enum EffectiveResult
     Restore
 }
 
-public class Skill
+public interface IUseData { }
+
+public class Skill : IUseData
 {
     public EffectType EffectType;
     public EffectiveWay EffectiveWay;

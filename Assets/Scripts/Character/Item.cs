@@ -10,7 +10,7 @@ public enum ItemType
     Other
 }
 
-public class Item
+public class Item : IUseData
 {
     public ItemType Type;
     public string ID;

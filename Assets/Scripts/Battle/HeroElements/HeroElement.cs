@@ -45,9 +45,13 @@ public class HeroElement : MonoBehaviour
 
     public void SelectElement(bool select)
     {
-        _indicator.SetActive(select);
-        if (SelectHeroElement != null && _pos != -1)
+        if (SelectHeroElement != null)
             SelectHeroElement(select, _pos);
+    }
+
+    public void ShowIndicator(bool isShow)
+    {
+        _indicator.SetActive(isShow);
     }
 
     public void LockToggle(bool isLock)

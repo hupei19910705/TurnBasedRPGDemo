@@ -21,10 +21,7 @@ public class BattlePresenter : IBattlePresenter
     private bool _isEnemyTurn = false;
     private bool _isWin = false;
 
-    private int _curHeroIdx = -1;
-    private int _targetEnemyIdx = -1;
-    private int _targetHeroIdx = -1;
-    private int _selectTargetHeroIdx = -1;
+    //private int _selectTargetHeroIdx = -1;
 
     private SerialCoroutines _serialCor = new SerialCoroutines();
 
@@ -62,9 +59,6 @@ public class BattlePresenter : IBattlePresenter
     private void _Register()
     {
         _UnRegister();
-        _view.ChangeSelectHero += _ChangeSelectHero;
-        _view.ChangeSelectEnemy += _ChangeSelectEnemy;
-        _view.ChangeTargetHero += _ChangeTargetHero;
         _view.HeroEndTurn += _EndHeroTurn;
         _view.UseItem += _UseItem;
         _view.UseSkill += _UseSkill;
@@ -74,9 +68,6 @@ public class BattlePresenter : IBattlePresenter
 
     private void _UnRegister()
     {
-        _view.ChangeSelectHero -= _ChangeSelectHero;
-        _view.ChangeSelectEnemy -= _ChangeSelectEnemy;
-        _view.ChangeTargetHero -= _ChangeTargetHero;
         _view.HeroEndTurn -= _EndHeroTurn;
         _view.UseItem -= _UseItem;
         _view.UseSkill -= _UseSkill;
@@ -86,11 +77,6 @@ public class BattlePresenter : IBattlePresenter
     #endregion
 
     #region Hero
-    private void _ChangeSelectHero(bool select,int pos)
-    {
-        _curHeroIdx = select ? pos : -1;
-    }
-
     private void _EndHeroTurn(int pos)
     {
         _playerData.TeamHeroes[pos].SetEndTurnFlag(true);
@@ -132,26 +118,21 @@ public class BattlePresenter : IBattlePresenter
         _view.ActiveHeroElement();
     }
 
-    private void _HeroBeHit(int attack)
+    private void _HeroBeHit(int attack,int heroIdx)
     {
-        var hero = _playerData.TeamHeroes[_targetHeroIdx];
+        var hero = _playerData.TeamHeroes[heroIdx];
         hero.BeHit(attack);
     }
 
-    private void _ChangeTargetHero(int pos)
-    {
-        _selectTargetHeroIdx = pos;
-    }
-
-    private void _UseItem(Item item)
+    private void _UseItem(Item item,int toIdx)
     {
         switch (item.Type)
         {
             case ItemType.RedPotion:
-                _playerData.TeamHeroes[_selectTargetHeroIdx].ChangeHp(item.EffectValue);
+                _playerData.TeamHeroes[toIdx].ChangeHp(item.EffectValue);
                 break;
             case ItemType.BluePotion:
-                _playerData.TeamHeroes[_selectTargetHeroIdx].ChangeMp(item.EffectValue);
+                _playerData.TeamHeroes[toIdx].ChangeMp(item.EffectValue);
                 break;
             default:
                 return;
@@ -160,12 +141,12 @@ public class BattlePresenter : IBattlePresenter
         _playerData.FreshBackpack(item.Pos);
     }
 
-    private void _UseSkill(Skill skill)
+    private void _UseSkill(Skill skill,int fromIdx,int toIdx)
     {
-        var from = _playerData.TeamHeroes[_curHeroIdx];
+        var from = _playerData.TeamHeroes[fromIdx];
 
         if(skill == null)
-            _enemiesData[_targetEnemyIdx].BeHit(_playerData.TeamHeroes[_curHeroIdx].Attack);
+            _enemiesData[toIdx].BeHit(_playerData.TeamHeroes[fromIdx].Attack);
         else
         {
             from.ChangeMp(-skill.MpCost);
@@ -178,14 +159,14 @@ public class BattlePresenter : IBattlePresenter
             switch(skill.EffectiveResult)
             {
                 case EffectiveResult.Restore:
-                    target = _playerData.TeamHeroes[_selectTargetHeroIdx];
+                    target = _playerData.TeamHeroes[toIdx];
                     if (skill.EffectType == EffectType.Mp)
                         target.ChangeMp(changeValue);
                     else
                         target.ChangeHp(changeValue);
                     break;
                 case EffectiveResult.Reduce:
-                    target = _enemiesData[_targetEnemyIdx];
+                    target = _enemiesData[toIdx];
                     if (skill.EffectType == EffectType.Mp)
                         target.ChangeMp(-changeValue);
                     else
@@ -200,22 +181,17 @@ public class BattlePresenter : IBattlePresenter
     #endregion
 
     #region Enemy
-    private void _ChangeSelectEnemy(int pos)
-    {
-        _targetEnemyIdx = pos;
-    }
-
     private IEnumerator _EnemiesTurn()
     {
-        _targetHeroIdx = _GetAliveHeroIndex();
+        var heroIdx = _GetAliveHeroIndex();
         foreach(var pair in _enemiesData)
         {
-            if (pair.Value.IsAlive && _targetHeroIdx != -1)
+            if (pair.Value.IsAlive && heroIdx != -1)
             {
-                _HeroBeHit(pair.Value.Attack);
-                yield return _view.EnemyAttack(pair.Key, _targetHeroIdx);
-                if (!_playerData.TeamHeroes[_targetHeroIdx].IsAlive)
-                    _targetHeroIdx = _GetAliveHeroIndex();
+                _HeroBeHit(pair.Value.Attack, heroIdx);
+                yield return _view.EnemyAttack(pair.Key, heroIdx);
+                if (!_playerData.TeamHeroes[heroIdx].IsAlive)
+                    heroIdx = _GetAliveHeroIndex();
                 if (_battleEnd)
                 {
                     _BattleEndEvent();

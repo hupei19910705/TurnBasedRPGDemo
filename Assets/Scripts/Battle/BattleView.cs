@@ -16,12 +16,9 @@ public interface IBattleView
     void PopupResultPage(bool win, Dictionary<string, HeroLevelExpData> levelExpDatas,List<Item> items);
     void SetBattleEndFlag();
 
-    event Action<bool, int> ChangeSelectHero;
-    event Action<int> ChangeSelectEnemy;
     event Action<int> HeroEndTurn;
-    event Action<int> ChangeTargetHero;
-    event Action<Item> UseItem;
-    event Action<Skill> UseSkill;
+    event Action<Item, int> UseItem;
+    event Action<Skill, int, int> UseSkill;
     event Action OnSettlementBattle;
     event Action LeaveBattle;
 }
@@ -73,12 +70,9 @@ public class BattleView : MonoBehaviour, IBattleView
     [SerializeField] private ResultPopupPanel _resultPopupPanel = null;
 
     #region Events
-    public event Action<bool,int> ChangeSelectHero;
-    public event Action<int> ChangeSelectEnemy;
     public event Action<int> HeroEndTurn;
-    public event Action<int> ChangeTargetHero;
-    public event Action<Item> UseItem;
-    public event Action<Skill> UseSkill;
+    public event Action<Item, int> UseItem;
+    public event Action<Skill, int, int> UseSkill;
     public event Action LeaveBattle;
     public event Action OnSettlementBattle;
     #endregion
@@ -97,7 +91,6 @@ public class BattleView : MonoBehaviour, IBattleView
 
     private IInfoView _infoView = null;
 
-    private bool _operable = true;
     private bool _battleEnd = false;
 
     private int _curHeroIdx = -1;
@@ -111,7 +104,7 @@ public class BattleView : MonoBehaviour, IBattleView
 
     private BattleStatus _curStatus = BattleStatus.None;
 
-    private ParallelCoroutines _parallelCor = new ParallelCoroutines();
+    private SerialCoroutines _serialCor = new SerialCoroutines();
 
     private enum ListViewType
     {
@@ -150,7 +143,16 @@ public class BattleView : MonoBehaviour, IBattleView
         _Init();
         _SetFirstEnemySelectArrow();
         _SetTopTipText(BattleOperationType.HeroTurn);
-        StartCoroutine(_parallelCor.Execute());
+        StartCoroutine(_serialCor.Execute());
+    }
+
+    private void _Leave()
+    {
+        if (LeaveBattle != null)
+            LeaveBattle();
+
+        _serialCor.Stop();
+        StopAllCoroutines();
     }
 
     #region Init
@@ -218,19 +220,22 @@ public class BattleView : MonoBehaviour, IBattleView
         element.SetActive(true);
         element.transform.SetParent(_elementRoot);
         var elementView = element.GetComponent<HeroElement>();
+        _heroElements.Add(pos, elementView);
         elementView.SelectHeroElement -= _SelectHeroElement;
         elementView.SelectHeroElement += _SelectHeroElement;
         elementView.SetData(data, pos, _heroElementToggleGroup,_gameData.LevelExpTable);
-        _heroElements.Add(pos, elementView);
         elementView.LockToggle(!data.IsAlive);
     }
 
-    private void _SelectHeroElement(bool select, int pos = -1)
+    private void _SelectHeroElement(bool select, int pos)
     {
-        _curHeroIdx = select ? pos : -1;
+        if (_heroElements.ContainsKey(pos))
+            _heroElements[pos].ShowIndicator(select);
 
-        if (ChangeSelectHero != null)
-            ChangeSelectHero(select, pos);
+        if (select)
+            _curHeroIdx = pos;
+        else if (_curHeroIdx == pos)
+            _curHeroIdx = -1;
 
         _ShowHeroSelections(select);
     }
@@ -272,21 +277,22 @@ public class BattleView : MonoBehaviour, IBattleView
 
     private void _Skip()
     {
-        if (!_operable)
+        if (_curHeroIdx == -1)
             return;
-        _operable = false;
-        _CurHeroEndTurn();
-        _operable = true;
+
+        _serialCor.Add(_CurHeroEndTurn(_curHeroIdx));
     }
 
-    private void _CurHeroEndTurn()
+    private IEnumerator _CurHeroEndTurn(int heroIdx)
     {
         _SetTopTipText(BattleOperationType.HeroTurn);
         if (HeroEndTurn != null)
-            HeroEndTurn(_curHeroIdx);
-        var heroElement = _heroElements[_curHeroIdx];
-        heroElement.SelectElement(false);
+            HeroEndTurn(heroIdx);
+        var heroElement = _heroElements[heroIdx];
+        if(_curHeroIdx == heroIdx)
+            heroElement.SelectElement(false);
         heroElement.LockToggle(true);
+        yield return null;
     }
     #endregion
 
@@ -424,22 +430,38 @@ public class BattleView : MonoBehaviour, IBattleView
         _curStatus = BattleStatus.UseItem;
         _curSelectItemIdx = item.Pos;
 
-        _infoView.Show(item.Name, "数量:" + item.Count, item.Desc, () => _UseItem(item));
+        _infoView.Show(item.Name, "数量:" + item.Count, item.Desc, item);
+
         _infoView.HideArrowAndSelectImage -= _HideHeroTargetArrowAndItemSelectImage;
+        _infoView.OnUseAction -= _UseItem;
         _infoView.HideArrowAndSelectImage += _HideHeroTargetArrowAndItemSelectImage;
+        _infoView.OnUseAction += _UseItem;
 
         _SetTopTipText(BattleOperationType.SelectUseTarget);
         _SelectTargetHero(_playerData.TeamHeroes.Keys.First());
     }
 
-    private void _UseItem(Item item)
+    private void _UseItem(IUseData data)
     {
+        var item = data as Item;
+
+        if (item == null)
+            return;
+
+        _serialCor.Add(_UseItem(item));
+    }
+
+    private IEnumerator _UseItem(Item item)
+    {
+        int toIdx = _selectTargetHeroIdx;
+
         if (UseItem != null)
-            UseItem(item);
+            UseItem(item, toIdx);
 
         _FreshAllHeroViews();
         _FreshAllHeroElements();
         _FreshItemView(item.Pos);
+        yield return null;
     }
 
     private ItemView _GetItemView(int pos)
@@ -465,44 +487,62 @@ public class BattleView : MonoBehaviour, IBattleView
 
         var useAble = skill.MpCost <= _playerData.TeamHeroes[_curHeroIdx].CurrentMp;
 
-        _infoView.Show(skill.Name, "消耗MP:" + skill.MpCost, skill.Desc, () => _UseSkill(skill), useAble);
         _infoView.HideArrowAndSelectImage -= _HideHeroTargetArrowAndSkillSelectImage;
+        _infoView.OnUseAction -= _UseSkill;
         _infoView.HideArrowAndSelectImage += _HideHeroTargetArrowAndSkillSelectImage;
+        _infoView.OnUseAction += _UseSkill;
 
+        _infoView.Show(skill.Name, "消耗MP:" + skill.MpCost, skill.Desc, skill, useAble);
+        
         _SetTopTipText(BattleOperationType.SelectAttackTarget);
     }
 
-    private void _UseSkill(Skill skill)
+    private void _UseSkill(IUseData data)
     {
-        if (!_operable)
+        if (_curHeroIdx == -1)
             return;
-        _operable = false;
 
-        _SetTopTipText(BattleOperationType.HeroTurn);
-        if (_curEnemyIdx == -1)
-            _curEnemyIdx = _enemiesData.First().Key;
+        Skill skill = data as Skill;
+        if (data != null && skill == null)
+            return;
+
+        int fromIdx = _curHeroIdx;
+        int toIdx = skill != null && skill.EffectiveResult == EffectiveResult.Restore ? _selectTargetHeroIdx : _curEnemyIdx;
 
         if (UseSkill != null)
-            UseSkill(skill);
+            UseSkill(skill, fromIdx, toIdx);
 
-        var heroView = _heroViews[_curHeroIdx];
-        var targetEnemyView = _enemyViews[_curEnemyIdx];
+        _SetTopTipText(BattleOperationType.HeroTurn);
         _ShowHeroSelections(false);
+        _heroElements[_curHeroIdx].ShowIndicator(false);
+        _heroElements[_curHeroIdx].LockToggle(true);
 
-        _parallelCor.Add(_PlaySkill(skill, heroView, targetEnemyView,() =>
-        {
-            if (!_enemiesData[_curEnemyIdx].IsAlive)
-                _SetFirstEnemySelectArrow();
+        _serialCor.Add(_UseSkill(skill, fromIdx, toIdx));
+    }
 
-            if (skill != null)
-                _FreshAllSkillView();
+    private IEnumerator _UseSkill(Skill skill,int fromIdx,int toIdx)
+    {
+        if (_battleEnd)
+            yield break;
 
-            _CurHeroEndTurn();
+        if(toIdx == -1)
+            toIdx = _enemiesData.First().Key;
 
-            if (_battleEnd && OnSettlementBattle != null)
-                OnSettlementBattle();
-            _operable = true;
-        }));
+        if (!_enemiesData[toIdx].IsAlive)
+            _SetFirstEnemySelectArrow();
+
+        var heroView = _heroViews[fromIdx];
+        var targetEnemyView = _enemyViews[toIdx];
+        
+        yield return _PlaySkillAni(skill, heroView, targetEnemyView);
+
+        if (skill != null)
+            _FreshAllSkillView();
+
+        yield return _CurHeroEndTurn(fromIdx);
+
+        if (_battleEnd && OnSettlementBattle != null)
+            OnSettlementBattle();
     }
 
     private SkillView _GetSkillView(int id)
@@ -516,7 +556,7 @@ public class BattleView : MonoBehaviour, IBattleView
         _ShowArrow(ArrowType.HeroTargetArrow);
     }
 
-    private IEnumerator _PlaySkill(Skill skill,CharacterView from, CharacterView target,UnityAction callBack = null)
+    private IEnumerator _PlaySkillAni(Skill skill,CharacterView from, CharacterView target)
     {
         var isRemote = skill != null && skill.IsRemote;
 
@@ -535,9 +575,6 @@ public class BattleView : MonoBehaviour, IBattleView
             yield return MyCoroutine.Sleep(0.1f);
             yield return from.BackToOriPosition();
         }
-
-        if (callBack != null)
-            callBack();
     }
     #endregion
 
@@ -551,9 +588,6 @@ public class BattleView : MonoBehaviour, IBattleView
     {
         if (_curStatus != BattleStatus.UseItem)
             return;
-
-        if (ChangeTargetHero != null)
-            ChangeTargetHero(pos);
 
         _selectTargetHeroIdx = pos;
         _ShowArrow(ArrowType.HeroTargetArrow, _heroViews[pos].TopLocate);
@@ -590,8 +624,6 @@ public class BattleView : MonoBehaviour, IBattleView
     private void _SelectTargetEnemy(int pos)
     {
         _curEnemyIdx = pos;
-        if (ChangeSelectEnemy != null)
-            ChangeSelectEnemy(pos);
         _enemySelectArrow.gameObject.SetActive(true);
         _enemySelectArrow.SetParent(_enemyViews[_curEnemyIdx].FrontLocate);
         _enemySelectArrow.localPosition = Vector3.zero;
@@ -610,8 +642,6 @@ public class BattleView : MonoBehaviour, IBattleView
         }
         if (_curEnemyIdx == -1)
             return;
-        if (ChangeSelectEnemy != null)
-            ChangeSelectEnemy(_curEnemyIdx);
         _SelectTargetEnemy(_curEnemyIdx);
     }
 
@@ -656,14 +686,16 @@ public class BattleView : MonoBehaviour, IBattleView
         var enemyView = _enemyViews[enemyPos];
         var targetHeroView = _heroViews[_targetHeroIdx];
 
-        yield return _PlaySkill(null, enemyView, targetHeroView);
+        yield return _PlaySkillAni(null, enemyView, targetHeroView);
     }
     #endregion
 
     #region Settlement
     public void PopupResultPage(bool win, Dictionary<string, HeroLevelExpData> levelExpDatas, List<Item> items)
     {
-        _resultPopupPanel.Show(win, _playerData.Heroes, levelExpDatas, items, LeaveBattle);
+        _resultPopupPanel.OnComfirmAction -= _Leave;
+        _resultPopupPanel.OnComfirmAction += _Leave;
+        _resultPopupPanel.Show(win, _playerData.Heroes, levelExpDatas, items);
     }
 
     public void SetBattleEndFlag()

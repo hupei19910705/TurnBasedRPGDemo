@@ -7,9 +7,10 @@ using UnityEngine.UI;
 
 public interface IInfoView
 {
-    void Show(string name,string subText, string desc, Action useAction, bool useAble = true);
+    void Show(string name,string subText, string desc, IUseData data, bool useAble = true);
     void EndShow();
     event Action HideArrowAndSelectImage;
+    event Action<IUseData> OnUseAction;
 }
 
 public class InfoView : MonoBehaviour, IInfoView
@@ -23,25 +24,24 @@ public class InfoView : MonoBehaviour, IInfoView
 
     [SerializeField] private Color _titleColor = default;
 
-    public event Action HideArrowAndSelectImage;
+    private IUseData _data;
 
-    public void Show(string name,string subText ,string desc, Action useAction,bool useAble = true)
+    public event Action HideArrowAndSelectImage;
+    public event Action<IUseData> OnUseAction;
+
+    public void Show(string name,string subText ,string desc, IUseData data,bool useAble = true)
     {
         gameObject.SetActive(true);
 
         _name.text = name;
         _subText.text = subText;
         _desc.text = desc;
+        _data = data;
 
         _useBtn.onClick.RemoveAllListeners();
         _cancelBtn.onClick.RemoveAllListeners();
-        
-        _useBtn.onClick.AddListener(() =>
-        {
-            if (useAction != null)
-                useAction();
-            EndShow();
-        });
+
+        _useBtn.onClick.AddListener(_UseSKill);
         _cancelBtn.onClick.AddListener(EndShow);
 
         _tip.gameObject.SetActive(!useAble);
@@ -57,6 +57,14 @@ public class InfoView : MonoBehaviour, IInfoView
             _useBtn.interactable = true;
             _subText.color = _titleColor;
         }
+    }
+
+    private void _UseSKill()
+    {
+        if (OnUseAction != null)
+            OnUseAction(_data);
+
+        EndShow();
     }
 
     public void EndShow()

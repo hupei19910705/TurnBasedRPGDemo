@@ -14,8 +14,10 @@ public class ResultPopupPanel : MonoBehaviour
     [SerializeField] private Transform _itemAnchor = null;
     [SerializeField] private Button _confirmBtn = null;
 
+    public event Action OnComfirmAction;
+
     public void Show(bool win,Dictionary<string,HeroData> heroes, Dictionary<string, HeroLevelExpData> levelExpDatas,
-        List<Item> items,Action confirmCallBack)
+        List<Item> items)
     {
         gameObject.SetActive(true);
         _title.text = win ? "胜利" : "失败";
@@ -23,12 +25,15 @@ public class ResultPopupPanel : MonoBehaviour
         _CreateItems(items);
 
         _confirmBtn.onClick.RemoveAllListeners();
-        _confirmBtn.onClick.AddListener(() =>
-        {
-            if (confirmCallBack != null)
-                confirmCallBack();
-            gameObject.SetActive(false);
-        });
+        _confirmBtn.onClick.AddListener(_Comfirm);
+    }
+
+    private void _Comfirm()
+    {
+        if (OnComfirmAction != null)
+            OnComfirmAction();
+
+        gameObject.SetActive(false);
     }
 
     private void _CreateHeroes(Dictionary<string, HeroData> heroes, Dictionary<string, HeroLevelExpData> levelExpDatas)

@@ -21,8 +21,6 @@ public class BattlePresenter : IBattlePresenter
     private bool _isEnemyTurn = false;
     private bool _isWin = false;
 
-    //private int _selectTargetHeroIdx = -1;
-
     private SerialCoroutines _serialCor = new SerialCoroutines();
 
     public BattlePresenter(

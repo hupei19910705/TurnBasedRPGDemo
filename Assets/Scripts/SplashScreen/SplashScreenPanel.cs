@@ -138,6 +138,7 @@ public class SplashScreenPanel : MonoBehaviour
         _recordPool.ReturnInstance(elementView.gameObject);
         _recordViews.Remove(id);
         _gameRecords.RemoveRecord(id);
+        _selectRecordId = -1;
         GameUtility.Instance.Save();
     }
 

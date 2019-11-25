@@ -84,11 +84,8 @@ public class RecordDisplayView : MonoBehaviour
 
     private void _SetTeamHeroes()
     {
-        for(int i = 0;i<_heroDatas.Length;i++)
+        for (int i = 0;i<_heroDatas.Length;i++)
         {
-            if (_heroDatas[i] == null)
-                continue;
-
             var heroView = _teamHeroViews[i];
             heroView.OnSelectAction -= _OnSelectTeamHero;
             heroView.OnSelectAction += _OnSelectTeamHero;

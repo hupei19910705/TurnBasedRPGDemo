@@ -15,7 +15,7 @@ public class HeroPosView : MonoBehaviour
 
     private int _pos;
 
-    public void SetData(int pos,HeroData data)
+    public void SetData(int pos = -1,HeroData data = null)
     {
         if (data == null)
         {

@@ -21,11 +21,11 @@ public class SkillEffectManager : MonoBehaviour
 
     public void Init()
     {
-        _fireBall.Init(transform, true);
+        _fireBall.Init(transform, false, true);
         _fireBallExplotion.Init(transform);
         _hit.Init(transform);
         _iceExplotion.Init(transform);
-        _magicAura.Init(transform);
+        _magicAura.Init(transform, true);
     }
 
     public IEnumerator PlaySkillEffect(Skill skill,Transform fromTrans,Transform targetTrans)
@@ -40,13 +40,13 @@ public class SkillEffectManager : MonoBehaviour
         {
             var skillEffect = skillEffects[i];
 
-            if(skillEffect == null)
-                yield return skillEffect.PlaySkillAni(targetTrans);
-            else if(skillEffect.Ballistic)
+            if (skillEffect.Ballistic)
             {
                 skillEffect.LocateTo(fromTrans);
                 yield return skillEffect.PlaySkillAni(targetTrans, skill.MoveSpeed);
             }
+            else
+                yield return skillEffect.PlaySkillAni(targetTrans);
         }
     }
 

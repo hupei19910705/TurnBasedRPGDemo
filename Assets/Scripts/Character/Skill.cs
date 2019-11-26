@@ -14,7 +14,7 @@ public enum EffectType
 public enum EffectiveWay
 {
     Direct,
-    Sustained
+    EffectOverTime
 }
 
 public enum EffectiveResult

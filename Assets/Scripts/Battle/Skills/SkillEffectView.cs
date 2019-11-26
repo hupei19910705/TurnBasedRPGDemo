@@ -8,14 +8,19 @@ public class SkillEffectView : MonoBehaviour
     [SerializeField] private Transform _root = null;
 
     private Transform _defaultRoot = null;
+    private ParallelCoroutines _parallelCor;
 
     private bool _playFinished = false;
+    private bool _isOverTime = false;
     public bool Ballistic { get; private set; }
 
-    public void Init(Transform transform,bool ballistic = false)
+    public void Init(Transform transform, bool isOverTime = false, bool ballistic = false)
     {
         _defaultRoot = transform;
         Ballistic = ballistic;
+        _isOverTime = isOverTime;
+        if (isOverTime)
+            _parallelCor = new ParallelCoroutines();
     }
 
     public void LocateTo(Transform locate)
@@ -33,6 +38,21 @@ public class SkillEffectView : MonoBehaviour
         _playFinished = false;
         LocateTo(target);
 
+        if(_isOverTime)
+        {
+            if(!_parallelCor.Running)
+                StartCoroutine(_parallelCor.Execute());
+            _parallelCor.Add(_OverTimePlay());
+        }
+        else
+        {
+            while (!_playFinished)
+                yield return null;
+        }
+    }
+
+    private IEnumerator _OverTimePlay()
+    {
         while (!_playFinished)
             yield return null;
     }

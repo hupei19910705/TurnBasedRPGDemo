@@ -392,12 +392,12 @@ public class BattleView : MonoBehaviour, IBattleView
             itemView.SetData(_playerData.BackPack[pos]);
     }
 
-    private void _FreshAllSkillView()
+    private void _FreshAllSkillView(int heroIdx)
     {
-        var curHero = _playerData.TeamHeroes[_curHeroIdx];
-        var skills = _GetSkillsByID(curHero.SkillList);
+        var hero = _playerData.TeamHeroes[heroIdx];
+        var skills = _GetSkillsByID(hero.SkillList);
         foreach (var view in _skillViews)
-            view.SetSkillViewUseAble(skills[view.ID].MpCost <= curHero.CurrentMp);
+            view.SetSkillViewUseAble(skills[view.ID].MpCost <= hero.CurrentMp);
     }
 
     private void _HideSelectImage(ListViewType type)
@@ -543,7 +543,7 @@ public class BattleView : MonoBehaviour, IBattleView
         yield return _PlaySkillAni(skill, heroView, targetEnemyView);
 
         if (skill != null)
-            _FreshAllSkillView();
+            _FreshAllSkillView(fromIdx);
 
         yield return _CurHeroEndTurn(fromIdx);
 
@@ -569,8 +569,7 @@ public class BattleView : MonoBehaviour, IBattleView
 
         yield return from.AttackAni(target.FrontLocate.position, isRemote, skill != null);
 
-        if (skill == null || skill.EffectiveWay == EffectiveWay.Direct)
-            target.BeHit();
+        target.BeHit();
 
         _FreshAllHeroViews();
         _FreshAllHeroElements();

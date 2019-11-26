@@ -63,6 +63,7 @@ namespace Utility
         private List<MyCoroutine> coroutines = new List<MyCoroutine>();
         private bool _running = false;
         public bool Finished { get { return coroutines == null || coroutines.Count == 0; } }
+        public bool Running { get { return _running; } }
 
         public IEnumerator Execute()
         {

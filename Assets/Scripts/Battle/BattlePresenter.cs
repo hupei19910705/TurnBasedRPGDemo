@@ -8,6 +8,21 @@ public interface IBattlePresenter
 {
     IEnumerator Run();
 }
+
+public enum RoundStatus
+{
+    None,
+    HeroTurn,
+    EnemyTurn
+}
+
+public enum FightStatus
+{
+    Fighting,
+    FightResult,
+    FightEnd
+}
+
 public class BattlePresenter : IBattlePresenter
 {
     private IBattleView _view = null;
@@ -16,12 +31,13 @@ public class BattlePresenter : IBattlePresenter
     private GameData _gameData;
     private GameRecord _gameRecord;
 
-    private bool _battleEnd = false;
+    private RoundStatus _roundStatus;
+    private FightStatus _fightStatus;
+
     private bool _leave = false;
-    private bool _isEnemyTurn = false;
     private bool _isWin = false;
 
-    private SerialCoroutines _serialCor = new SerialCoroutines();
+    private int _roundCount = 0;
 
     public BattlePresenter(
         IBattleView view,
@@ -40,19 +56,43 @@ public class BattlePresenter : IBattlePresenter
     {
         _Register();
         _view.Enter(_playerData, _enemiesData);
+        _fightStatus = FightStatus.Fighting;
+        _roundStatus = RoundStatus.HeroTurn;
 
         while (!_leave)
         {
-            if(!_battleEnd && _isEnemyTurn)
+            switch (_fightStatus)
             {
-                yield return _EnemiesTurn();
-                _ActiveHeroTurn();
-                _isEnemyTurn = false;
+                case FightStatus.Fighting:
+                    yield return _FightRound();
+                    break;
+                case FightStatus.FightResult:
+                    _BattleResultEvent();
+                    _fightStatus = FightStatus.FightEnd;
+                    Debug.LogError("回合数=" + _roundCount);
+                    break;
+                case FightStatus.FightEnd:
+                    break;
             }
             yield return null;
         }
     }
 
+    private IEnumerator _FightRound()
+    {
+        _roundCount++;
+        switch (_roundStatus)
+        {
+            case RoundStatus.HeroTurn:
+                while (_roundStatus == RoundStatus.HeroTurn)
+                    yield return null;
+                break;
+            case RoundStatus.EnemyTurn:
+                yield return _EnemiesTurn();
+                _ActiveHeroTurn();
+                break;
+        }
+    }
     #region Init
     private void _Register()
     {
@@ -60,8 +100,8 @@ public class BattlePresenter : IBattlePresenter
         _view.HeroEndTurn += _EndHeroTurn;
         _view.UseItem += _UseItem;
         _view.UseSkill += _UseSkill;
-        _view.OnSettlementBattle += _BattleEndEvent;
-        _view.LeaveBattle += _LeaveBattle;
+        _view.CheckIsFightWin += _CheckIsFightWin;
+        _view.LeaveFight += _LeaveFight;
     }
 
     private void _UnRegister()
@@ -69,8 +109,8 @@ public class BattlePresenter : IBattlePresenter
         _view.HeroEndTurn -= _EndHeroTurn;
         _view.UseItem -= _UseItem;
         _view.UseSkill -= _UseSkill;
-        _view.OnSettlementBattle -= _BattleEndEvent;
-        _view.LeaveBattle -= _LeaveBattle;
+        _view.CheckIsFightWin -= _CheckIsFightWin;
+        _view.LeaveFight -= _LeaveFight;
     }
     #endregion
 
@@ -78,7 +118,8 @@ public class BattlePresenter : IBattlePresenter
     private void _EndHeroTurn(int pos)
     {
         _playerData.TeamHeroes[pos].SetEndTurnFlag(true);
-        _isEnemyTurn = _CheckIsAllHeroTurnEnd();
+        if (_CheckIsAllHeroTurnEnd())
+            _roundStatus = RoundStatus.EnemyTurn;
     }
 
     private bool _CheckIsAllHeroTurnEnd()
@@ -100,12 +141,16 @@ public class BattlePresenter : IBattlePresenter
             if (_playerData.TeamHeroes.ContainsKey(i) && _playerData.TeamHeroes[i].IsAlive)
                 return i;
         }
-        _SetBattleEndFlag(false);
+        _SetFightResultFlag(false);
         return -1;
     }
 
     private void _ActiveHeroTurn()
     {
+        if (_fightStatus != FightStatus.Fighting)
+            return;
+
+        _roundStatus = RoundStatus.HeroTurn;
         foreach (var hero in _playerData.TeamHeroes.Values.ToList())
         {
             if (!hero.IsAlive)
@@ -172,9 +217,6 @@ public class BattlePresenter : IBattlePresenter
                     break;
             }
         }
-
-        if (!_CheckIsAllEnemiesAlive())
-            _SetBattleEndFlag(true);
     }
     #endregion
 
@@ -190,11 +232,9 @@ public class BattlePresenter : IBattlePresenter
                 yield return _view.EnemyAttack(pair.Key, heroIdx);
                 if (!_playerData.TeamHeroes[heroIdx].IsAlive)
                     heroIdx = _GetAliveHeroIndex();
-                if (_battleEnd)
-                {
-                    _BattleEndEvent();
-                    break;
-                }
+
+                if(_fightStatus == FightStatus.FightResult)
+                    yield break;
             }
         }
     }
@@ -209,14 +249,21 @@ public class BattlePresenter : IBattlePresenter
     #endregion
 
     #region Settlement
-    private void _SetBattleEndFlag(bool win)
+    private void _CheckIsFightWin()
     {
-        _battleEnd = true;
-        _view.SetBattleEndFlag();
+        if(!_CheckIsAllEnemiesAlive())
+            _SetFightResultFlag(true);
+    }
+
+    private void _SetFightResultFlag(bool win)
+    {
+        _fightStatus = FightStatus.FightResult;
+        _roundStatus = RoundStatus.None;
+        _view.SetFightEndFlag();
         _isWin = win;
     }
 
-    private void _BattleEndEvent()
+    private void _BattleResultEvent()
     {
         int totalDropExp = 0;
         List<Item> totalDropItems = new List<Item>();
@@ -254,7 +301,7 @@ public class BattlePresenter : IBattlePresenter
         return levelExpDatas;
     }
 
-    private void _LeaveBattle()
+    private void _LeaveFight()
     {
         _leave = true;
     }

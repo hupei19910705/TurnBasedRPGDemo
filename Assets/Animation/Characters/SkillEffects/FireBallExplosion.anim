@@ -32,7 +32,7 @@ AnimationClip:
     - time: 0.5
       value: {fileID: 21300010, guid: 185c67d02a95ba74db0194df53d59c4d, type: 3}
     attribute: m_Sprite
-    path: 
+    path: FireBallExplosionSprite
     classID: 114
     script: {fileID: -765806418, guid: f70555f144d8491a825f0804e09c671c, type: 3}
   m_SampleRate: 10
@@ -43,7 +43,7 @@ AnimationClip:
   m_ClipBindingConstant:
     genericBindings:
     - serializedVersion: 2
-      path: 0
+      path: 1063510718
       attribute: 2015549526
       script: {fileID: -765806418, guid: f70555f144d8491a825f0804e09c671c, type: 3}
       typeID: 114

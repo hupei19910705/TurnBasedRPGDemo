@@ -1,22 +1,27 @@
-﻿using System.Collections;
+﻿using System;
+using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 using Utility;
 
 public class SkillEffectView : MonoBehaviour
 {
-    [SerializeField] private Transform _root = null;
-
     private Transform _defaultRoot = null;
     private ParallelCoroutines _parallelCor;
 
     private bool _playFinished = false;
     private bool _isOverTime = false;
     public bool Ballistic { get; private set; }
+    public SkillEffectViewType Type { get; private set; }
 
-    public void Init(Transform transform, bool isOverTime = false, bool ballistic = false)
+    private Action<SkillEffectView> _onDisableAction;
+
+    public void Init(SkillEffectViewType type, Transform transform,Action<SkillEffectView> disableAction,
+        bool isOverTime = false, bool ballistic = false)
     {
+        Type = type;
         _defaultRoot = transform;
+        _onDisableAction = disableAction;
         Ballistic = ballistic;
         _isOverTime = isOverTime;
         if (isOverTime)
@@ -25,9 +30,9 @@ public class SkillEffectView : MonoBehaviour
 
     public void LocateTo(Transform locate)
     {
-        _root.SetParent(locate, false);
-        _root.localPosition = Vector3.zero;
-        _root.gameObject.SetActive(true);
+        transform.SetParent(locate, false);
+        transform.localPosition = Vector3.zero;
+        gameObject.SetActive(true);
     }
 
     public IEnumerator PlaySkillAni(Transform target)
@@ -59,6 +64,7 @@ public class SkillEffectView : MonoBehaviour
 
     public IEnumerator PlaySkillAni(Transform target, float speed)
     {
+        speed *= 0.1f;
         if (!Ballistic)
             yield break;
 
@@ -68,22 +74,29 @@ public class SkillEffectView : MonoBehaviour
 
     private IEnumerator _MoveToTarget(Vector3 target,float moveSpeed)
     {
-        _root.gameObject.SetActive(true);
-        var speed = (target - _root.position).normalized * moveSpeed;
-        while (Mathf.Abs((target - _root.position).x) > Mathf.Abs(speed.x))
+        gameObject.SetActive(true);
+        var speed = (target - transform.position).normalized * moveSpeed;
+        while (Mathf.Abs((target - transform.position).x) > Mathf.Abs(speed.x))
         {
-            _root.position += speed;
+            transform.position += speed;
             yield return null;
         }
-        _root.position = target;
+        transform.position = target;
         PlayFinish();
     }
 
     public void PlayFinish()
     {
-        _root.gameObject.SetActive(false);
-        _root.SetParent(_defaultRoot,false);
-        _root.localPosition = Vector3.zero;
+        gameObject.SetActive(false);
+        transform.SetParent(_defaultRoot,false);
+        transform.localPosition = Vector3.zero;
         _playFinished = true;
+        if (_onDisableAction != null)
+            _onDisableAction(this);
+    }
+
+    public void CopyTo(SkillEffectView target)
+    {
+        target.Init(Type, _defaultRoot, _onDisableAction, _isOverTime, Ballistic);
     }
 }

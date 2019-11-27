@@ -14,16 +14,16 @@ public interface IBattleView
     IEnumerator EnemyAttack(int enemyPos, int targetHeroPos);
     void ActiveHeroElement();
     void PopupResultPage(bool win, Dictionary<string, HeroLevelExpData> levelExpDatas,List<Item> items);
-    void SetBattleEndFlag();
+    void SetFightEndFlag();
 
     event Action<int> HeroEndTurn;
     event Action<Item, int> UseItem;
     event Action<Skill, int, int> UseSkill;
-    event Action OnSettlementBattle;
-    event Action LeaveBattle;
+    event Action CheckIsFightWin;
+    event Action LeaveFight;
 }
 
-public enum BattleOperationType
+public enum TopTipType
 {
     SelectAttackTarget,
     SelectUseTarget,
@@ -34,7 +34,7 @@ public enum BattleOperationType
     EnemyTurn
 }
 
-public enum BattleStatus
+public enum UseType
 {
     None,
     UseItem,
@@ -73,8 +73,8 @@ public class BattleView : MonoBehaviour, IBattleView
     public event Action<int> HeroEndTurn;
     public event Action<Item, int> UseItem;
     public event Action<Skill, int, int> UseSkill;
-    public event Action LeaveBattle;
-    public event Action OnSettlementBattle;
+    public event Action LeaveFight;
+    public event Action CheckIsFightWin;
     #endregion
 
     private GameData _gameData = null;
@@ -91,7 +91,7 @@ public class BattleView : MonoBehaviour, IBattleView
 
     private IInfoView _infoView = null;
 
-    private bool _battleEnd = false;
+    private bool _fightEnd = false;
 
     private int _curHeroIdx = -1;
     private int _targetHeroIdx = -1;
@@ -102,7 +102,7 @@ public class BattleView : MonoBehaviour, IBattleView
     private int _curSelectItemIdx = -1;
     private int _curSelectSkillId = -1;
 
-    private BattleStatus _curStatus = BattleStatus.None;
+    private UseType _curStatus = UseType.None;
 
     private SerialCoroutines _serialCor = new SerialCoroutines();
 
@@ -119,15 +119,15 @@ public class BattleView : MonoBehaviour, IBattleView
         EnemySelectArrow
     }
 
-    private static Dictionary<BattleOperationType, string> _operationTips = new Dictionary<BattleOperationType, string>
+    private static Dictionary<TopTipType, string> _operationTips = new Dictionary<TopTipType, string>
     {
-        { BattleOperationType.SelectAttackTarget,"选择技能使用对象"},
-        { BattleOperationType.SelectUseTarget,"选择物品使用对象"},
-        { BattleOperationType.SelectHeroOperation,"选择操作类型"},
-        { BattleOperationType.SelectSkill,"选择技能"},
-        { BattleOperationType.SelectItem,"选择物品"},
-        { BattleOperationType.HeroTurn,"己方回合"},
-        { BattleOperationType.EnemyTurn,"敌方回合"}
+        { TopTipType.SelectAttackTarget,"选择技能使用对象"},
+        { TopTipType.SelectUseTarget,"选择物品使用对象"},
+        { TopTipType.SelectHeroOperation,"选择操作类型"},
+        { TopTipType.SelectSkill,"选择技能"},
+        { TopTipType.SelectItem,"选择物品"},
+        { TopTipType.HeroTurn,"己方回合"},
+        { TopTipType.EnemyTurn,"敌方回合"}
     };
 
     public void Enter(PlayerData playerData, Dictionary<int, EnemyData> enemiesData)
@@ -142,14 +142,14 @@ public class BattleView : MonoBehaviour, IBattleView
 
         _Init();
         _SetFirstEnemySelectArrow();
-        _SetTopTipText(BattleOperationType.HeroTurn);
+        _SetTopTipText(TopTipType.HeroTurn);
         StartCoroutine(_serialCor.Execute());
     }
 
     private void _Leave()
     {
-        if (LeaveBattle != null)
-            LeaveBattle();
+        if (LeaveFight != null)
+            LeaveFight();
 
         _serialCor.Stop();
         StopAllCoroutines();
@@ -197,10 +197,14 @@ public class BattleView : MonoBehaviour, IBattleView
 
     private void _InitHeroes()
     {
-        foreach(var pair in _playerData.TeamHeroes)
+        for (int i = 0; i < 6; i++)
         {
-            _SetHeroView(pair.Key, pair.Value);
-            _SetHeroElement(pair.Key, pair.Value);
+            var heroes = _playerData.TeamHeroes;
+            if (heroes.ContainsKey(i) && heroes[i] != null)
+            {
+                _SetHeroView(i, heroes[i]);
+                _SetHeroElement(i, heroes[i]);
+            }
         }
     }
 
@@ -253,7 +257,7 @@ public class BattleView : MonoBehaviour, IBattleView
             arrowRoot = _heroViews[_curHeroIdx].BackLocate;
         }
         else
-            _SetTopTipText(BattleOperationType.HeroTurn);
+            _SetTopTipText(TopTipType.HeroTurn);
 
         _ShowArrow(ArrowType.HeroSelectArrow, arrowRoot);
     }
@@ -263,7 +267,7 @@ public class BattleView : MonoBehaviour, IBattleView
         foreach (var pair in _playerData.TeamHeroes)
             _heroElements[pair.Key].LockToggle(!pair.Value.IsAlive);
         _SetFirstEnemySelectArrow();
-        _SetTopTipText(BattleOperationType.HeroTurn);
+        _SetTopTipText(TopTipType.HeroTurn);
     }
 
     private void _FreshAllHeroViews()
@@ -288,7 +292,7 @@ public class BattleView : MonoBehaviour, IBattleView
 
         if (isShow)
         {
-            _SetTopTipText(BattleOperationType.SelectSkill);
+            _SetTopTipText(TopTipType.SelectSkill);
             _ItemsOrSkillsScroll.gameObject.SetActive(true);
 
             var skills = _GetSkillsByID(_playerData.TeamHeroes[_curHeroIdx].SkillList).Values.OrderBy(skill => int.Parse(skill.ID)).ToList();
@@ -311,7 +315,7 @@ public class BattleView : MonoBehaviour, IBattleView
         }
         else
         {
-            _SetTopTipText(BattleOperationType.SelectHeroOperation);
+            _SetTopTipText(TopTipType.SelectHeroOperation);
             _ItemsOrSkillsScroll.gameObject.SetActive(false);
         }
     }
@@ -322,7 +326,7 @@ public class BattleView : MonoBehaviour, IBattleView
 
         if (isShow)
         {
-            _SetTopTipText(BattleOperationType.SelectItem);
+            _SetTopTipText(TopTipType.SelectItem);
             _ItemsOrSkillsScroll.gameObject.SetActive(true);
 
             var items = _playerData.BackPack.Values.OrderBy(item => item.Pos).ToList();
@@ -343,7 +347,7 @@ public class BattleView : MonoBehaviour, IBattleView
         }
         else
         {
-            _SetTopTipText(BattleOperationType.SelectHeroOperation);
+            _SetTopTipText(TopTipType.SelectHeroOperation);
             _ItemsOrSkillsScroll.gameObject.SetActive(false);
         }
     }
@@ -415,7 +419,7 @@ public class BattleView : MonoBehaviour, IBattleView
                     skillView.HideSelectImage();
                 break;
         }
-        _curStatus = BattleStatus.None;
+        _curStatus = UseType.None;
     }
 
     private Dictionary<string,Skill> _GetSkillsByID(List<string> skillIds)
@@ -446,7 +450,7 @@ public class BattleView : MonoBehaviour, IBattleView
         //先关闭上一个信息界面相关的箭头和选中效果
         _HideHeroTargetArrowAndItemSelectImage();
         //再设置此次信息界面
-        _curStatus = BattleStatus.UseItem;
+        _curStatus = UseType.UseItem;
         _curSelectItemIdx = item.Pos;
 
         _infoView.HideArrowAndSelectImage -= _HideHeroTargetArrowAndItemSelectImage;
@@ -456,7 +460,7 @@ public class BattleView : MonoBehaviour, IBattleView
 
         _infoView.Show(item.Name, "数量:" + item.Count, item.Desc, item);
 
-        _SetTopTipText(BattleOperationType.SelectUseTarget);
+        _SetTopTipText(TopTipType.SelectUseTarget);
         _SelectTargetHero(_playerData.TeamHeroes.Keys.First());
     }
 
@@ -467,7 +471,7 @@ public class BattleView : MonoBehaviour, IBattleView
 
     private IEnumerator _UseItem(Item item, int toIdx)
     {
-        if (_battleEnd || toIdx == -1)
+        if (_fightEnd || toIdx == -1)
             yield break;
 
         if (UseItem != null)
@@ -486,7 +490,7 @@ public class BattleView : MonoBehaviour, IBattleView
 
     private void _HideHeroTargetArrowAndItemSelectImage()
     {
-        _SetTopTipText(BattleOperationType.SelectItem);
+        _SetTopTipText(TopTipType.SelectItem);
         _HideSelectImage(ListViewType.Item);
         _ShowArrow(ArrowType.HeroTargetArrow);
     }
@@ -496,7 +500,7 @@ public class BattleView : MonoBehaviour, IBattleView
         //先关闭上一个信息界面相关的箭头和选中效果
         _HideHeroTargetArrowAndSkillSelectImage();
         //再设置此次信息界面
-        _curStatus = BattleStatus.UseSkill;
+        _curStatus = UseType.UseSkill;
         _curSelectSkillId = int.Parse(skill.ID);
 
         var useAble = skill.MpCost <= _playerData.TeamHeroes[_curHeroIdx].CurrentMp;
@@ -508,7 +512,7 @@ public class BattleView : MonoBehaviour, IBattleView
 
         _infoView.Show(skill.Name, "消耗MP:" + skill.MpCost, skill.Desc, skill, useAble);
 
-        _SetTopTipText(BattleOperationType.SelectAttackTarget);
+        _SetTopTipText(TopTipType.SelectAttackTarget);
     }
 
     private void _UseSkill(Skill skill)
@@ -528,7 +532,7 @@ public class BattleView : MonoBehaviour, IBattleView
 
     private IEnumerator _UseSkill(Skill skill, int fromIdx, int toIdx)
     {
-        if (_battleEnd || toIdx == -1)
+        if (_fightEnd || toIdx == -1)
             yield break;
 
         if (!_enemiesData[toIdx].IsAlive)
@@ -547,8 +551,8 @@ public class BattleView : MonoBehaviour, IBattleView
 
         yield return _CurHeroEndTurn(fromIdx);
 
-        if (_battleEnd && OnSettlementBattle != null)
-            OnSettlementBattle();
+        if (CheckIsFightWin != null)
+            CheckIsFightWin();
     }
 
     private SkillView _GetSkillView(int id)
@@ -558,7 +562,7 @@ public class BattleView : MonoBehaviour, IBattleView
 
     private void _HideHeroTargetArrowAndSkillSelectImage()
     {
-        _SetTopTipText(BattleOperationType.SelectSkill);
+        _SetTopTipText(TopTipType.SelectSkill);
         _HideSelectImage(ListViewType.Skill);
         _ShowArrow(ArrowType.HeroTargetArrow);
     }
@@ -569,12 +573,10 @@ public class BattleView : MonoBehaviour, IBattleView
 
         yield return from.AttackAni(target.FrontLocate.position, isRemote, skill != null);
 
-        target.BeHit();
+        yield return _skillEffectManager.PlaySkillEffect(skill, from.SkillEffectPos, target.SkillEffectPos, target.BeHit);
 
         _FreshAllHeroViews();
         _FreshAllHeroElements();
-
-        yield return _skillEffectManager.PlaySkillEffect(skill, from.SkillEffectPos, target.SkillEffectPos);
 
         if (!isRemote)
         {
@@ -585,14 +587,14 @@ public class BattleView : MonoBehaviour, IBattleView
     #endregion
 
     #region Battle Frame
-    private void _SetTopTipText(BattleOperationType type)
+    private void _SetTopTipText(TopTipType type)
     {
         _topText.text = _operationTips[type];
     }
 
     private void _SelectTargetHero(int pos)
     {
-        if (_curStatus != BattleStatus.UseItem)
+        if (_curStatus != UseType.UseItem)
             return;
 
         _selectTargetHeroIdx = pos;
@@ -683,7 +685,7 @@ public class BattleView : MonoBehaviour, IBattleView
     #region Enemy Turn
     public IEnumerator EnemyAttack(int enemyPos, int targetHeroPos)
     {
-        _SetTopTipText(BattleOperationType.EnemyTurn);
+        _SetTopTipText(TopTipType.EnemyTurn);
 
         _ShowArrow(ArrowType.HeroSelectArrow);
         _ShowArrow(ArrowType.EnemySelectArrow);
@@ -704,9 +706,9 @@ public class BattleView : MonoBehaviour, IBattleView
         _resultPopupPanel.Show(win, _playerData.Heroes, levelExpDatas, items);
     }
 
-    public void SetBattleEndFlag()
+    public void SetFightEndFlag()
     {
-        _battleEnd = true;
+        _fightEnd = true;
     }
     #endregion
 }

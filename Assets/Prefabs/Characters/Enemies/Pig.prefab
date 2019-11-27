@@ -295,7 +295,7 @@ RectTransform:
   m_GameObject: {fileID: 798075884}
   m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
   m_LocalPosition: {x: 0, y: 0, z: 0}
-  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_LocalScale: {x: -1, y: 1, z: 1}
   m_Children: []
   m_Father: {fileID: 5981811921697628230}
   m_RootOrder: 1
@@ -565,10 +565,12 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   _animator: {fileID: 5921027394386569014}
   _skillEffectPos: {fileID: 798075885}
-  _hpSlider: {fileID: 690275633}
   _leftLocate: {fileID: 101483769}
+  _rightLocate: {fileID: 0}
   _topLocate: {fileID: 426502728}
   _bottomLocate: {fileID: 1989466369}
+  _hpSlider: {fileID: 690275633}
+  _mpSlider: {fileID: 0}
   _root: {fileID: 5981811921697628230}
 --- !u!114 &253554916
 MonoBehaviour:

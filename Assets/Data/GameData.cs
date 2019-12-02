@@ -13,11 +13,13 @@ public class GameData
     public Dictionary<string, ItemRow> ItemTable;
     public Dictionary<string, SkillRow> SkillTable;
     public Dictionary<int, int> LevelExpTable;
+    public Dictionary<string, BuffRow> BuffTable;
     public ConstantData ConstantData;
 
     public GameData(Dictionary<string, HeroDataRow> heroes, Dictionary<HeroJobType, HeroJob> heroJobs, Dictionary<string, EnemyDataRow> enemies,
         Dictionary<string, ItemRow> items, Dictionary<string, SkillRow> skills, Dictionary<int, int> levelExp, ConstantData constantData,
-        Dictionary<string, UnLockHeroSkillData> heroUnlockSkills, Dictionary<string, UnLockEnemySkillData> enemyUnlockSkills)
+        Dictionary<string, UnLockHeroSkillData> heroUnlockSkills, Dictionary<string, UnLockEnemySkillData> enemyUnlockSkills, 
+        Dictionary<string, BuffRow> buffs)
     {
         HeroTable = heroes;
         HeroJobTable = heroJobs;
@@ -28,6 +30,7 @@ public class GameData
         ConstantData = constantData;
         HeroUnlockSkillTable = _ConvertHeroUnlockSkillTable(heroUnlockSkills);
         EnemyUnlockSkillTable = _ConvertEnemyUnlockSkillTable(enemyUnlockSkills);
+        BuffTable = buffs;
     }
 
     private Dictionary<HeroJobType, Dictionary<int, List<string>>> _ConvertHeroUnlockSkillTable(Dictionary<string, UnLockHeroSkillData> heroUnlockSkills)
@@ -158,11 +161,21 @@ public class SkillRow
     public EffectiveWay EffectiveWay;
     public EffectiveResult EffectiveResult;
     public float MoveSpeed;
-    public float Duration;
+    public int Duration;
     public bool IsConstant;
+    public List<string> BuffIds;
 }
 
 public class ConstantData
 {
     public int MAX_RECORD_COUNT;
+    public int MAX_LEVEL;
+}
+
+public class BuffRow
+{
+    public string ID;
+    public BuffType Type;
+    public SpecialBuffType SType;
+    public EffectType EffectType;
 }

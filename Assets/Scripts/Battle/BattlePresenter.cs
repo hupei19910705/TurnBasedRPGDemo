@@ -58,6 +58,7 @@ public class BattlePresenter : IBattlePresenter
         _view.Enter(_playerData, _enemiesData);
         _fightStatus = FightStatus.Fighting;
         _roundStatus = RoundStatus.HeroTurn;
+        _roundCount = 0;
 
         while (!_leave)
         {
@@ -69,7 +70,6 @@ public class BattlePresenter : IBattlePresenter
                 case FightStatus.FightResult:
                     _BattleResultEvent();
                     _fightStatus = FightStatus.FightEnd;
-                    Debug.LogError("回合数=" + _roundCount);
                     break;
                 case FightStatus.FightEnd:
                     break;
@@ -89,9 +89,11 @@ public class BattlePresenter : IBattlePresenter
                 break;
             case RoundStatus.EnemyTurn:
                 yield return _EnemiesTurn();
+                _view.OverTimeSkillEffectView();
                 _ActiveHeroTurn();
                 break;
         }
+        
     }
     #region Init
     private void _Register()

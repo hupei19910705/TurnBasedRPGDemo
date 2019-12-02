@@ -42,7 +42,7 @@ public class Skill : IUseData
     public int MpCost;
     public bool IsRemote;
     public float MoveSpeed;
-    public float Duration = 0f;
+    public int Duration = 0;
 
     private const string IMAGE_PATH_PREFIX = "Texture/Icons/";
 
@@ -56,12 +56,12 @@ public class Skill : IUseData
         Multiple = skillRow.Multiple;
         IsConstant = skillRow.IsConstant;
         EffectValue = skillRow.EffectValue;
-        Desc = _GetDescription();
         IsRemote = skillRow.IsRemote;
         EffectiveWay = skillRow.EffectiveWay;
         EffectiveResult = skillRow.EffectiveResult;
         Duration = skillRow.Duration;
         MoveSpeed = skillRow.MoveSpeed;
+        Desc = _GetDescription();
         if (!string.IsNullOrEmpty(skillRow.ImageKey))
             ImageKey = IMAGE_PATH_PREFIX + skillRow.ImageKey;
     }
@@ -96,6 +96,10 @@ public class Skill : IUseData
         else
             effectValue = Math.Round(Multiple, 2).ToString();
 
-        return string.Format("{0}\n造成 {1}{2} 点{3}", Name, type, effectValue, effectType);
+        var desc = string.Format("{0}\n造成 {1}{2} 点{3}", Name, type, effectValue, effectType);
+        if (EffectiveWay == EffectiveWay.EffectOverTime)
+            desc = string.Format("{0}\n每回合造成 {1}{2} 点{3}\n持续{4}回合", Name, type, effectValue, effectType, Duration);
+
+        return desc;
     }
 }

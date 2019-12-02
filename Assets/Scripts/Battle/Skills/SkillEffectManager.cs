@@ -28,8 +28,8 @@ public class SkillEffectManager : MonoBehaviour
     [SerializeField] private SkillEffectView _iceExplosion = null;
     [SerializeField] private SkillEffectView _magicAura = null;
 
-    private List<SkillEffectView> _overTimeSkillView;
     private Dictionary<SkillEffectViewType, Queue<SkillEffectView>> _skillEffectPool;
+    private List<SkillEffectView> _overTimeSkillViews;
 
     public void Init()
     {
@@ -38,8 +38,8 @@ public class SkillEffectManager : MonoBehaviour
         _hit.Init(SkillEffectViewType.GeneralHit, transform, _ReturnEffectView);
         _iceExplosion.Init(SkillEffectViewType.IceExplosion, transform, _ReturnEffectView);
         _magicAura.Init(SkillEffectViewType.MagicAura, transform, _ReturnEffectView, true);
-        _overTimeSkillView = new List<SkillEffectView>();
         _skillEffectPool = new Dictionary<SkillEffectViewType, Queue<SkillEffectView>>();
+        _overTimeSkillViews = new List<SkillEffectView>();
     }
 
     public IEnumerator PlaySkillEffect(Skill skill,Transform fromTrans,Transform targetTrans,UnityAction callBack = null)
@@ -68,8 +68,15 @@ public class SkillEffectManager : MonoBehaviour
                     callBack();
                     callBackExecuted = true;
                 }
-                    
-                yield return skillEffect.PlaySkillAni(targetTrans);
+
+                int duration = 0;
+                if (skill != null && skill.EffectiveWay == EffectiveWay.EffectOverTime)
+                {
+                    _overTimeSkillViews.Add(skillEffect);
+                    duration = skill.Duration;
+                }
+
+                yield return skillEffect.PlaySkillAni(targetTrans, duration);
             }
         }
     }
@@ -163,6 +170,13 @@ public class SkillEffectManager : MonoBehaviour
 
     public void OverTime(int round = 1)
     {
-
+        if (_overTimeSkillViews == null || _overTimeSkillViews.Count == 0)
+            return;
+        for(int i = _overTimeSkillViews.Count-1;i>=0;i--)
+        {
+            var view = _overTimeSkillViews[i];
+            if (view.OverTime(round))
+                _overTimeSkillViews.RemoveAt(i);
+        }
     }
 }

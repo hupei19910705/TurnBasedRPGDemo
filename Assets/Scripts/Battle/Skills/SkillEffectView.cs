@@ -11,6 +11,7 @@ public class SkillEffectView : MonoBehaviour
 
     private bool _playFinished = false;
     private bool _isOverTime = false;
+    private int _duration = 0;
     public bool Ballistic { get; private set; }
     public SkillEffectViewType Type { get; private set; }
 
@@ -35,19 +36,20 @@ public class SkillEffectView : MonoBehaviour
         gameObject.SetActive(true);
     }
 
-    public IEnumerator PlaySkillAni(Transform target)
+    public IEnumerator PlaySkillAni(Transform target,int duration = 0)
     {
         if (Ballistic)
             yield break;
 
         _playFinished = false;
+        _duration = duration;
         LocateTo(target);
 
-        if(_isOverTime)
+        if (_isOverTime)
         {
-            if(!_parallelCor.Running)
+            if (!_parallelCor.Running)
                 StartCoroutine(_parallelCor.Execute());
-            _parallelCor.Add(_OverTimePlay());
+            _parallelCor.Add(_WateToFinish());
         }
         else
         {
@@ -56,15 +58,16 @@ public class SkillEffectView : MonoBehaviour
         }
     }
 
-    private IEnumerator _OverTimePlay()
+    private IEnumerator _WateToFinish()
     {
-        while (!_playFinished)
+        while (_duration > 0)
             yield return null;
+
+        PlayFinish();
     }
 
     public IEnumerator PlaySkillAni(Transform target, float speed)
     {
-        speed *= 0.1f;
         if (!Ballistic)
             yield break;
 
@@ -98,5 +101,11 @@ public class SkillEffectView : MonoBehaviour
     public void CopyTo(SkillEffectView target)
     {
         target.Init(Type, _defaultRoot, _onDisableAction, _isOverTime, Ballistic);
+    }
+
+    public bool OverTime(int round = 1)
+    {
+        _duration -= round;
+        return _duration <= 0;
     }
 }

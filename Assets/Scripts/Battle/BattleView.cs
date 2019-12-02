@@ -15,6 +15,7 @@ public interface IBattleView
     void ActiveHeroElement();
     void PopupResultPage(bool win, Dictionary<string, HeroLevelExpData> levelExpDatas,List<Item> items);
     void SetFightEndFlag();
+    void OverTimeSkillEffectView(int round = 1);
 
     event Action<int> HeroEndTurn;
     event Action<Item, int> UseItem;
@@ -679,6 +680,11 @@ public class BattleView : MonoBehaviour, IBattleView
         arrow.SetParent(root);
         arrow.transform.localPosition = Vector3.zero;
         arrow.gameObject.SetActive(isShow);
+    }
+
+    public void OverTimeSkillEffectView(int round = 1)
+    {
+        _skillEffectManager.OverTime(round);
     }
     #endregion
 

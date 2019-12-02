@@ -70,8 +70,9 @@ public class AssetModel
         var skills = _LoadDictElement<string, SkillRow>(tables[sheetInfos["Skills"].SheetIndex]);
         var levelExp = _LoadDictElement<int, int>(tables[sheetInfos["LevelExp"].SheetIndex]);
         var constData = _LoadSingleObject<ConstantData>(tables[sheetInfos["ConstantData"].SheetIndex]);
+        var buffs = _LoadDictElement<string, BuffRow>(tables[sheetInfos["Buff"].SheetIndex]);
 
-        GameData gameData = new GameData(heroes, heroJobs, enemies, items, skills, levelExp, constData, heroUnlockSkills, enemyUnlockSkills);
+        GameData gameData = new GameData(heroes, heroJobs, enemies, items, skills, levelExp, constData, heroUnlockSkills, enemyUnlockSkills, buffs);
 
         return gameData;
     }
@@ -92,7 +93,7 @@ public class AssetModel
                 fieldsName[i] = name;
         }
 
-        for (int i = 1; i < rowCount; i++)
+        for (int i = 2; i < rowCount; i++)
         {
             var objIns = type.Assembly.CreateInstance(type.ToString());
             object key = string.Empty;
@@ -166,7 +167,7 @@ public class AssetModel
             return default;
 
         var objIns = type.Assembly.CreateInstance(type.ToString());
-        for(int i =1;i< rowCount; i++)
+        for(int i =2;i< rowCount; i++)
         {
             var fieldName = collect[i][0].ToString();
             var field = type.GetField(fieldName);

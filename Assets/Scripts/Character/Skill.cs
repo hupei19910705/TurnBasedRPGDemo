@@ -54,21 +54,21 @@ public class Skill : IUseData
     //rebuild
     public string ID;
     public string Name;
-    public SkillVariety Variety;
     public int MpCost;
     public bool IsRemote;
     public string ImageKey;
     public float MoveSpeed;
     public string Desc;
+    public List<string> SkillEffects = new List<string>();
 
     public bool CanUseToSelf { get { return _useToSelfSideDatas.Count > 0 || _useToSelfSideBuffs.Count > 0; } }
     public bool CanUseToOpposite { get { return _useToOppositeSideDatas.Count > 0 || _useToOppositeSideBuffs.Count > 0; } }
 
     private List<EffectData> _useToSelfSideDatas = new List<EffectData>();
-    private List<string> _useToSelfSideBuffs = new List<string>();
+    private List<string> _useToSelfSideBuffs;
 
     private List<EffectData> _useToOppositeSideDatas = new List<EffectData>();
-    private List<string> _useToOppositeSideBuffs = new List<string>();
+    private List<string> _useToOppositeSideBuffs;
 
     private const string IMAGE_PATH_PREFIX = "Texture/Icons/";
 
@@ -76,7 +76,7 @@ public class Skill : IUseData
     {
         ID = skillRow.ID;
         Name = skillRow.Name;
-        Variety = skillRow.Variety;
+        SkillEffects = skillRow.Effects;
         MpCost = skillRow.MpCost;
         IsRemote = skillRow.IsRemote;
         if (!string.IsNullOrEmpty(skillRow.ImageKey))
@@ -84,6 +84,13 @@ public class Skill : IUseData
         MoveSpeed = skillRow.MoveSpeed;
         Desc = skillRow.Desc;
         _SetEffectDatas(skillRow);
+
+        _useToSelfSideBuffs = skillRow.UseToSelfSideBuffIds;
+        if (_useToSelfSideBuffs == null)
+            _useToSelfSideBuffs = new List<string>();
+        _useToOppositeSideBuffs = skillRow.UseToOppositeSideBuffIds;
+        if (_useToOppositeSideBuffs == null)
+            _useToOppositeSideBuffs = new List<string>();
     }
 
     private void _SetEffectDatas(SkillRow skillRow)
@@ -118,7 +125,6 @@ public class Skill : IUseData
             _useToOppositeSideDatas.Add(new EffectData(rows[oppositeId1], skillRow.UseToOppositeSideDataValue1));
     }
 
-    //rebuild
     public List<EffectModel> GetImmediatelyEffectModels(CharacterData from, SkillTarget target)
     {
         List<EffectData> datas = null;
@@ -144,17 +150,7 @@ public class Skill : IUseData
 
     public List<Buff> GetBuffs(CharacterData from, SkillTarget target)
     {
-        List<BuffRow> buffRows = null;
-
-        switch (target)
-        {
-            case SkillTarget.SelfSide:
-                buffRows = CharacterUtility.Instance.GetBuffRows(_useToSelfSideBuffs);
-                break;
-            case SkillTarget.OppositeSide:
-                buffRows = CharacterUtility.Instance.GetBuffRows(_useToOppositeSideBuffs);
-                break;
-        }
+        List<BuffRow> buffRows = GetBuffRows(target);
 
         if (buffRows == null || buffRows.Count == 0)
             return null;
@@ -167,6 +163,23 @@ public class Skill : IUseData
         }
 
         return result;
+    }
+
+    public List<BuffRow> GetBuffRows(SkillTarget target)
+    {
+        List<BuffRow> buffRows = null;
+
+        switch (target)
+        {
+            case SkillTarget.SelfSide:
+                buffRows = CharacterUtility.Instance.GetBuffRows(_useToSelfSideBuffs);
+                break;
+            case SkillTarget.OppositeSide:
+                buffRows = CharacterUtility.Instance.GetBuffRows(_useToOppositeSideBuffs);
+                break;
+        }
+
+        return buffRows;
     }
 
     public static EffectModel GeneralAtkModel(int attack)

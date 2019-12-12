@@ -11,15 +11,17 @@ public class SkillEffectView : MonoBehaviour
 
     private bool _playFinished = false;
     private bool _isOverTime = false;
-    private int _duration = 0;
+    private int _roundCount = 0;
     public bool Ballistic { get; private set; }
     public SkillEffectViewType Type { get; private set; }
+    public string ID { get; private set; }
 
     private Action<SkillEffectView> _onDisableAction;
 
-    public void Init(SkillEffectViewType type, Transform transform,Action<SkillEffectView> disableAction,
+    public void Init(string id,SkillEffectViewType type, Transform transform,Action<SkillEffectView> disableAction,
         bool isOverTime = false, bool ballistic = false)
     {
+        ID = id;
         Type = type;
         _defaultRoot = transform;
         _onDisableAction = disableAction;
@@ -36,13 +38,12 @@ public class SkillEffectView : MonoBehaviour
         gameObject.SetActive(true);
     }
 
-    public IEnumerator PlaySkillAni(Transform target,int duration = 0)
+    public IEnumerator PlaySkillAni(Transform target)
     {
         if (Ballistic)
             yield break;
 
         _playFinished = false;
-        _duration = duration;
         LocateTo(target);
 
         if (_isOverTime)
@@ -60,7 +61,7 @@ public class SkillEffectView : MonoBehaviour
 
     private IEnumerator _WateToFinish()
     {
-        while (_duration > 0)
+        while (_roundCount > 0)
             yield return null;
 
         PlayFinish();
@@ -100,12 +101,17 @@ public class SkillEffectView : MonoBehaviour
 
     public void CopyTo(SkillEffectView target)
     {
-        target.Init(Type, _defaultRoot, _onDisableAction, _isOverTime, Ballistic);
+        target.Init(ID, Type, _defaultRoot, _onDisableAction, _isOverTime, Ballistic);
     }
 
-    public bool OverTime(int round = 1)
+    public void SetRoundCount(int count)
     {
-        _duration -= round;
-        return _duration <= 0;
+        _roundCount = count;
+    }
+
+    public bool EndRound(int round = 1)
+    {
+        _roundCount -= round;
+        return _roundCount <= 0;
     }
 }

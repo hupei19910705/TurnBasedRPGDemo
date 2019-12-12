@@ -5,6 +5,7 @@ using UnityEngine;
 
 public class GameData
 {
+    public ConstantData ConstantData;
     public Dictionary<string, HeroDataRow> HeroTable;
     public Dictionary<HeroJobType, HeroJob> HeroJobTable;
     public Dictionary<HeroJobType, Dictionary<int,List<string>>> HeroUnlockSkillTable;
@@ -14,8 +15,8 @@ public class GameData
     public Dictionary<string, SkillRow> SkillTable;
     public Dictionary<string, BuffRow> BuffTable;
     public Dictionary<string, EffectDataRow> EffectDataTable;
+    public Dictionary<string, SkillEffectRow> EffectTable;
     public Dictionary<int, int> LevelExpTable;
-    public ConstantData ConstantData;
 
     public GameData(Dictionary<string, HeroDataRow> heroes, 
         Dictionary<HeroJobType, HeroJob> heroJobs, 
@@ -24,6 +25,7 @@ public class GameData
         Dictionary<string, SkillRow> skills,
         Dictionary<string,BuffRow> buffs,
         Dictionary<string,EffectDataRow> effectDatas,
+        Dictionary<string, SkillEffectRow> effects,
         Dictionary<int, int> levelExp,
         ConstantData constantData,
         Dictionary<string, UnLockHeroSkillData> heroUnlockSkills,
@@ -41,6 +43,7 @@ public class GameData
         _InitBuffDatas(buffs);
         BuffTable = buffs;
         EffectDataTable = effectDatas;
+        EffectTable = effects;
 
         LevelExpTable = levelExp;
         ConstantData = constantData;
@@ -158,6 +161,12 @@ public class GameData
     }
 }
 
+public class ConstantData
+{
+    public int MAX_RECORD_COUNT;
+    public int MAX_LEVEL;
+}
+
 public class HeroDataRow
 {
     public string ID;
@@ -235,7 +244,7 @@ public class SkillRow
 {
     public string ID;
     public string Name;
-    public SkillVariety Variety;
+    public List<string> Effects;
     public int MpCost;
     public bool IsRemote;
     public string ImageKey;
@@ -259,7 +268,9 @@ public class BuffRow
 {
     public string ID;
     public string Name;
+    public BuffType Type;
     public string IconKey;
+    public List<string> Effects;
     public int RoundCount;
 
     public string DataId0;
@@ -276,8 +287,11 @@ public class EffectDataRow
     public SkillEffectType EffectType;
 }
 
-public class ConstantData
+public class SkillEffectRow
 {
-    public int MAX_RECORD_COUNT;
-    public int MAX_LEVEL;
+    public string ID;
+    public SkillEffectViewType Type;
+    public string PrefabKey;
+    public bool IsOverTime;
+    public bool Ballistic;
 }

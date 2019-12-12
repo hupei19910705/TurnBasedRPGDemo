@@ -4,6 +4,16 @@ using UnityEngine;
 
 public enum BuffType
 {
+    //None,
+    //Hot,
+    //Blind,
+    //Sleeping,
+    //Comatose,
+    //Burning,
+    //Poisoned,
+    //Tearing,
+    //Cursed
+
     None,
     Hot,
     Blind,                  //致盲
@@ -11,7 +21,8 @@ public enum BuffType
     Comatose,               //昏迷
     Burning,                //燃烧
     Poisoned,               //中毒
-    Tearing                 //撕裂
+    Tearing,                //撕裂
+    Cursed                  //诅咒
 }
 
 public class Buff
@@ -30,7 +41,9 @@ public class Buff
 
     public string ID { get; private set; }
     public string Name { get; private set; }
+    public BuffType Type { get; private set; }
     public string IconKey { get; private set; }
+    public List<string> Effects { get; private set; }
     public int RoundCount { get; private set; }
     private CharacterData _fromCharacter;
 
@@ -40,7 +53,9 @@ public class Buff
     {
         ID = row.ID;
         Name = row.Name;
+        Type = row.Type;
         IconKey = row.IconKey;
+        Effects = row.Effects;
         RoundCount = row.RoundCount;
         _fromCharacter = impact;
         _SetEffectDatas(row);

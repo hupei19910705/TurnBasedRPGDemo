@@ -71,11 +71,12 @@ public class AssetModel
         var skills = _LoadDictElement<string, SkillRow>(tables[sheetInfos["Skills"].SheetIndex]);
         var buffs = _LoadDictElement<string, BuffRow>(tables[sheetInfos["Buffs"].SheetIndex]);
         var effectDatas = _LoadDictElement<string, EffectDataRow>(tables[sheetInfos["EffectDatas"].SheetIndex]);
+        var effects = _LoadDictElement<string, SkillEffectRow>(tables[sheetInfos["SkillEffects"].SheetIndex]);
 
         var levelExp = _LoadDictElement<int, int>(tables[sheetInfos["LevelExp"].SheetIndex]);
         var constData = _LoadSingleObject<ConstantData>(tables[sheetInfos["ConstantData"].SheetIndex]);
 
-        GameData gameData = new GameData(heroes, heroJobs, enemies, items, skills, buffs, effectDatas, 
+        GameData gameData = new GameData(heroes, heroJobs, enemies, items, skills, buffs, effectDatas, effects,
             levelExp, constData, heroUnlockSkills, enemyUnlockSkills);
 
         return gameData;

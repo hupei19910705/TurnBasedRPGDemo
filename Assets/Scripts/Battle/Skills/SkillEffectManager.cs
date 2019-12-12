@@ -3,14 +3,6 @@ using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.Events;
 
-public enum SkillVariety
-{
-    GeneralHit,
-    FireBall,
-    IceExplosion,
-    MagicAura
-}
-
 public enum SkillEffectViewType
 {
     FireBall,
@@ -20,37 +12,47 @@ public enum SkillEffectViewType
     MagicAura
 }
 
-public class SkillEffectManager : MonoBehaviour
+public class SkillEffectManager
 {
-    [SerializeField] private SkillEffectView _fireBall = null;
-    [SerializeField] private SkillEffectView _fireBallExplosion = null;
-    [SerializeField] private SkillEffectView _hit = null;
-    [SerializeField] private SkillEffectView _iceExplosion = null;
-    [SerializeField] private SkillEffectView _magicAura = null;
-
-    private Dictionary<SkillEffectViewType, Queue<SkillEffectView>> _skillEffectPool;
+    private Dictionary<string, Queue<SkillEffectView>> _skillEffectPool;
     private List<SkillEffectView> _overTimeSkillViews;
 
-    public void Init()
+    private Dictionary<string, SkillEffectView> _skillEffectPrefabs;
+
+    private string SKILL_EFFECT_PATH_PREFIX = "Prefabs/Characters/SkillEffect/";
+
+    public SkillEffectManager(Transform defaultRoot, Dictionary<string, SkillEffectRow> table)
     {
-        _fireBall.Init(SkillEffectViewType.FireBall, transform, _ReturnEffectView, false, true);
-        _fireBallExplosion.Init(SkillEffectViewType.FireBallExplosion, transform, _ReturnEffectView);
-        _hit.Init(SkillEffectViewType.GeneralHit, transform, _ReturnEffectView);
-        _iceExplosion.Init(SkillEffectViewType.IceExplosion, transform, _ReturnEffectView);
-        _magicAura.Init(SkillEffectViewType.MagicAura, transform, _ReturnEffectView, true);
-        _skillEffectPool = new Dictionary<SkillEffectViewType, Queue<SkillEffectView>>();
+        _skillEffectPrefabs = new Dictionary<string, SkillEffectView>();
+
+        if (table != null && table.Count > 0)
+        {
+            foreach (var row in table.Values)
+            {
+                var view = _LoadPrefab(row.PrefabKey);
+                view.Init(row.ID, row.Type, defaultRoot, _ReturnEffectView, row.IsOverTime, row.Ballistic);
+                _skillEffectPrefabs.Add(row.ID, view);
+            }
+        }
+
+        _skillEffectPool = new Dictionary<string, Queue<SkillEffectView>>();
         _overTimeSkillViews = new List<SkillEffectView>();
     }
 
-    public IEnumerator PlaySkillEffect(Skill skill,Transform fromTrans,Transform targetTrans,UnityAction callBack, SkillTarget targetType)
+    private SkillEffectView _LoadPrefab(string key)
     {
-        var variety = skill == null ? SkillVariety.GeneralHit : skill.Variety;
-        var skillEffects = _GetSkillEffects(variety);
+        var path = SKILL_EFFECT_PATH_PREFIX + key;
+        var prefab = Resources.Load<GameObject>(path);
+        return prefab.GetComponent<SkillEffectView>();
+    }
+
+    public IEnumerator PlayImmediatelyEffectViews(Skill skill, Transform fromTrans, Transform targetTrans)
+    {
+        List<string> skillEffectIds = skill == null ? null : skill.SkillEffects;
+        var skillEffects = _GetSkillEffects(skillEffectIds);
 
         if (skillEffects == null || skillEffects.Count == 0)
             yield break;
-
-        bool callBackExecuted = false;
 
         for (int i = 0; i < skillEffects.Count; i++)
         {
@@ -62,57 +64,52 @@ public class SkillEffectManager : MonoBehaviour
                 yield return skillEffect.PlaySkillAni(targetTrans, skill.MoveSpeed);
             }
             else
+                yield return skillEffect.PlaySkillAni(targetTrans);
+        }
+    }
+
+    public IEnumerator AddBuffEffectViews(List<BuffRow> buffRows,Transform target)
+    {
+        if (buffRows == null || buffRows.Count == 0)
+            yield break;
+
+        foreach (var row in buffRows)
+        {
+            var effects = _GetSkillEffects(row.Effects);
+            if (effects == null || effects.Count == 0)
+                continue;
+
+            foreach (var effect in effects)
             {
-                if (!callBackExecuted && callBack != null)
-                {
-                    callBack();
-                    callBackExecuted = true;
-                }
-
-                //int duration = 0;
-                //if (skill != null && skill.EffectiveWay == EffectiveWay.EffectOverTime)
-                //{
-
-                //    _overTimeSkillViews.Add(skillEffect);
-                //    duration = skill.Duration;
-                //}
-                int duration = 1;
-
-                yield return skillEffect.PlaySkillAni(targetTrans, duration);
+                effect.SetRoundCount(row.RoundCount);
+                _overTimeSkillViews.Add(effect);
+                yield return effect.PlaySkillAni(target);
             }
         }
     }
 
-    private List<SkillEffectView> _GetSkillEffects(SkillVariety variety)
+    private List<SkillEffectView> _GetSkillEffects(List<string> ids)
     {
-        List<SkillEffectView> list = new List<SkillEffectView>();
-        switch(variety)
-        {
-            case SkillVariety.FireBall:
-                list.Add(_GetEffectView(SkillEffectViewType.FireBall));
-                list.Add(_GetEffectView(SkillEffectViewType.FireBallExplosion));
-                break;
-            case SkillVariety.GeneralHit:
-                list.Add(_GetEffectView(SkillEffectViewType.GeneralHit));
-                break;
-            case SkillVariety.IceExplosion:
-                list.Add(_GetEffectView(SkillEffectViewType.IceExplosion));
-                break;
-            case SkillVariety.MagicAura:
-                list.Add(_GetEffectView(SkillEffectViewType.MagicAura));
-                break;
-            default:
-                list.Add(null);
-                break;
-        }
-        return list;
+        if (ids == null || ids.Count == 0)
+            return _GetDefaultSkillEffects();
+
+        List<SkillEffectView> result = new List<SkillEffectView>();
+        for (int i = 0; i < ids.Count; i++)
+            result.Add(_GetEffectView(ids[i]));
+
+        return result;
     }
 
-    private SkillEffectView _GetEffectView(SkillEffectViewType type)
+    private List<SkillEffectView> _GetDefaultSkillEffects()
     {
-        if(_skillEffectPool.ContainsKey(type))
+        return new List<SkillEffectView> { _GetEffectView("10003") };
+    }
+
+    private SkillEffectView _GetEffectView(string id)
+    {
+        if (_skillEffectPool.ContainsKey(id))
         {
-            var queue = _skillEffectPool[type];
+            var queue = _skillEffectPool[id];
             if (queue == null)
                 queue = new Queue<SkillEffectView>();
 
@@ -120,8 +117,8 @@ public class SkillEffectManager : MonoBehaviour
                 return queue.Dequeue();
             else
             {
-                var oriView = _GetOriSkillEffectView(type);
-                var obj = Instantiate(oriView.gameObject);
+                var oriView = _skillEffectPrefabs[id];
+                var obj = Object.Instantiate(oriView.gameObject);
                 var newView = obj.GetComponent<SkillEffectView>();
                 oriView.CopyTo(newView);
                 return newView;
@@ -130,9 +127,9 @@ public class SkillEffectManager : MonoBehaviour
         else
         {
             var queue = new Queue<SkillEffectView>();
-            _skillEffectPool.Add(type, queue);
-            var oriView = _GetOriSkillEffectView(type);
-            var obj = Instantiate(oriView.gameObject);
+            _skillEffectPool.Add(id, queue);
+            var oriView = _skillEffectPrefabs[id];
+            var obj = Object.Instantiate(oriView.gameObject);
             var newView = obj.GetComponent<SkillEffectView>();
             oriView.CopyTo(newView);
             return newView;
@@ -142,42 +139,25 @@ public class SkillEffectManager : MonoBehaviour
     private void _ReturnEffectView(SkillEffectView view)
     {
         Queue<SkillEffectView> queue = null;
-        if (_skillEffectPool.ContainsKey(view.Type))
-            queue = _skillEffectPool[view.Type];
+        if (_skillEffectPool.ContainsKey(view.ID))
+            queue = _skillEffectPool[view.ID];
         else
-            _skillEffectPool.Add(view.Type, queue);
+            _skillEffectPool.Add(view.ID, queue);
 
         if (queue == null)
             queue = new Queue<SkillEffectView>();
         queue.Enqueue(view);
     }
 
-    private SkillEffectView _GetOriSkillEffectView(SkillEffectViewType type)
-    {
-        switch (type)
-        {
-            case SkillEffectViewType.FireBall:
-                return _fireBall;
-            case SkillEffectViewType.FireBallExplosion:
-                return _fireBallExplosion;
-            case SkillEffectViewType.GeneralHit:
-                return _hit;
-            case SkillEffectViewType.IceExplosion:
-                return _iceExplosion;
-            case SkillEffectViewType.MagicAura:
-                return _magicAura;
-        }
-        return null;
-    }
-
-    public void OverTime(int round = 1)
+    public void EndRound(int round = 1)
     {
         if (_overTimeSkillViews == null || _overTimeSkillViews.Count == 0)
             return;
-        for(int i = _overTimeSkillViews.Count-1;i>=0;i--)
+
+        for (int i = _overTimeSkillViews.Count - 1; i >= 0; i--)
         {
             var view = _overTimeSkillViews[i];
-            if (view.OverTime(round))
+            if (view.EndRound(round))
                 _overTimeSkillViews.RemoveAt(i);
         }
     }

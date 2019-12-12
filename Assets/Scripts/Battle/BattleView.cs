@@ -63,7 +63,7 @@ public class BattleView : MonoBehaviour, IBattleView
     [SerializeField] private ScrollRect _ItemsOrSkillsScroll = null;
     [SerializeField] private GeneralObjectPool _itemPool = null;
     [SerializeField] private GeneralObjectPool _skillPool = null;
-    [SerializeField] private SkillEffectManager _skillEffectManager = null;
+    [SerializeField] private Transform _skillEffectRoot = null;
     [SerializeField] private Text _topText = null;
 
     [Header("Settlement")]
@@ -90,6 +90,7 @@ public class BattleView : MonoBehaviour, IBattleView
     private List<SkillView> _skillViews = new List<SkillView>();
 
     private IInfoView _infoView = null;
+    private SkillEffectManager _skillEffectManager = null;
 
     private bool _fightEnd = false;
 
@@ -174,7 +175,7 @@ public class BattleView : MonoBehaviour, IBattleView
         _skillPool.InitPool(10);
 
         _heroSelectionView.Init();
-        _skillEffectManager.Init();
+        _skillEffectManager = new SkillEffectManager(_skillEffectRoot, _gameData.EffectTable);
 
         _InitHeroes();
         _InitEnemies();
@@ -599,15 +600,24 @@ public class BattleView : MonoBehaviour, IBattleView
 
     private IEnumerator _PlaySkillAni(Skill skill, CharacterView from, CharacterView target,SkillTarget targetType = SkillTarget.OppositeSide)
     {
-        var isRemote = skill != null && skill.IsRemote;
+        var isRemote = false;
+        List<BuffRow> buffRows = null;
+        if (skill != null)
+        {
+            isRemote = skill.IsRemote;
+            buffRows = skill.GetBuffRows(targetType);
+        }
 
         yield return from.AttackAni(target.FrontLocate.position, isRemote, skill != null);
 
-        yield return _skillEffectManager.PlaySkillEffect(skill, from.SkillEffectPos, target.SkillEffectPos, target.BeHit, targetType);
+        yield return _skillEffectManager.PlayImmediatelyEffectViews(skill, from.SkillEffectPos, target.SkillEffectPos);
 
+        target.BeHit();
         _FreshAllHeroViews();
         _FreshAllEnemyViews();
         _FreshAllHeroElements();
+        
+        yield return _skillEffectManager.AddBuffEffectViews(buffRows, target.SkillEffectPos);
 
         if (!isRemote)
         {
@@ -779,7 +789,7 @@ public class BattleView : MonoBehaviour, IBattleView
         _FreshAllHeroViews();
         _FreshAllHeroElements();
         _FreshAllEnemyViews();
-        _skillEffectManager.OverTime(round);
+        _skillEffectManager.EndRound(round);
     }
     #endregion
 

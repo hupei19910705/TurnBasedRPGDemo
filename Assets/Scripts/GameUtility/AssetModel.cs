@@ -67,12 +67,16 @@ public class AssetModel
         var enemies = _LoadDictElement<string, EnemyDataRow>(tables[sheetInfos["Enemies"].SheetIndex]);
         var enemyUnlockSkills = _LoadDictElement<string, UnLockEnemySkillData>(tables[sheetInfos["EnemyUnLockSkills"].SheetIndex]);
         var items = _LoadDictElement<string, ItemRow>(tables[sheetInfos["Items"].SheetIndex]);
+
         var skills = _LoadDictElement<string, SkillRow>(tables[sheetInfos["Skills"].SheetIndex]);
+        var buffs = _LoadDictElement<string, BuffRow>(tables[sheetInfos["Buffs"].SheetIndex]);
+        var effectDatas = _LoadDictElement<string, EffectDataRow>(tables[sheetInfos["EffectDatas"].SheetIndex]);
+
         var levelExp = _LoadDictElement<int, int>(tables[sheetInfos["LevelExp"].SheetIndex]);
         var constData = _LoadSingleObject<ConstantData>(tables[sheetInfos["ConstantData"].SheetIndex]);
-        var buffs = _LoadDictElement<string, BuffRow>(tables[sheetInfos["Buff"].SheetIndex]);
 
-        GameData gameData = new GameData(heroes, heroJobs, enemies, items, skills, levelExp, constData, heroUnlockSkills, enemyUnlockSkills, buffs);
+        GameData gameData = new GameData(heroes, heroJobs, enemies, items, skills, buffs, effectDatas, 
+            levelExp, constData, heroUnlockSkills, enemyUnlockSkills);
 
         return gameData;
     }
@@ -139,7 +143,11 @@ public class AssetModel
                     catch (InvalidCastException)
                     {
                         var result = collect[i][j];
-                        value = result.ToString().Split(',').ToList();
+                        var list = result.ToString().Split(',').ToList();
+                        if (list.Count == 1 && string.IsNullOrEmpty(list[0]))
+                            value = null;
+                        else
+                            value = result.ToString().Split(',').ToList();
                     }
 
                     if (j == 0 && typeof(Tkey).Equals(field.FieldType))

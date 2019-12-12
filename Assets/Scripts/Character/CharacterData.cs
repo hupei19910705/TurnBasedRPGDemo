@@ -5,33 +5,50 @@ using UnityEngine;
 
 public class CharacterData
 {
-    public string UID;
-    public string ID;
-    public string Name;
-    public int OriginHp;
-    public int MaxHp;
-    public int CurrentHp;
-    public int OriginMp;
-    public int MaxMp = 0;
-    public int CurrentMp = 0;
-    public int Level;
-    public int Attack;
-    public int Defence;
-    public float HPGrowthRate;
-    public float MPGrowthRate;
-    public float AtkGrowthRate;
-    public float DefGrowthRate;
+    public string UID { get; protected set; }
+    public string ID { get; protected set; }
+    public string Name { get; protected set; }
+    public int Level { get; protected set; }
     public bool IsAlive { get { return CurrentHp > 0; } }
-    public Dictionary<string, Skill> Skills;
-    public List<string> SkillList;
+    public List<string> SkillList { get; protected set; }
 
+    //rebuild
     private int _initHp;
-    private int _initMp;
-    private int _initAtk;
-    private int _initDef;
+    public int OriginHp { get; protected set; }
+    public int MaxHp { get; protected set; }
+    public int CurrentHp { get; protected set; }
+    public float HPGrowthRate { get; protected set; }
 
-    public CharacterData(string uid,string id,string name, List<string> skills, int hp, int mp, int attack,
-        int defence, int level, float hpGrowth, float mpGrowth, float atkGrowth, float defGrowth)
+    private int _initMp;
+    public int OriginMp { get; protected set; }
+    public int MaxMp { get; protected set; }
+    public int CurrentMp { get; protected set; }
+    public float MPGrowthRate { get; protected set; }
+
+    private int _initPAtk;
+    public int OriginPAtk { get; protected set; }
+    public int PAttack { get; protected set; }
+    public float PAtkGrowthRate { get; protected set; }
+
+    private int _initMAtk;
+    public int OriginMAtk { get; protected set; }
+    public int MAttack { get; protected set; }
+    public float MAtkGrowthRate { get; protected set; }
+
+    private int _initPDef;
+    public int OriginPDef { get; protected set; }
+    public int PDefence { get; protected set; }
+    public float PDefGrowthRate { get; protected set; }
+
+    private int _initMDef;
+    public int OriginMDef { get; protected set; }
+    public int MDefence { get; protected set; }
+    public float MDefGrowthRate { get; protected set; }
+
+    private Dictionary<string, Buff> _buffs = new Dictionary<string, Buff>();
+
+    public CharacterData(string uid,string id,string name, int level, List<string> skills, int hp, float hpGrowth, int mp, float mpGrowth, 
+        int pAtk, float pAtkGrowth, int mAtk, float mAtkGrowth,int pDef, float pDefGrowth, int mDef, float mDefGrowth)
     {
         UID = uid;
         ID = id;
@@ -41,30 +58,34 @@ public class CharacterData
 
         HPGrowthRate = hpGrowth;
         MPGrowthRate = mpGrowth;
-        AtkGrowthRate = atkGrowth;
-        DefGrowthRate = defGrowth;
+        PAtkGrowthRate = pAtkGrowth;
+        MAtkGrowthRate = mAtkGrowth;
+        PDefGrowthRate = pDefGrowth;
+        MDefGrowthRate = mDefGrowth;
 
         _initHp = hp;
         _initMp = mp;
-        _initAtk = attack;
-        _initDef = defence;
-        _CaculateValueByLevel();
+        _initPAtk = pAtk;
+        _initMAtk = mAtk;
+        _initPDef = pDef;
+        _initMDef = mDef;
 
-        MaxHp = CurrentHp = OriginHp;
-        MaxMp = CurrentMp = OriginMp;
+        _CaculateValueByLevel();
     }
 
     protected virtual void _CaculateValueByLevel()
     {
-        OriginHp = Mathf.FloorToInt(_initHp * Mathf.Pow((1 + HPGrowthRate), Level - 1));
-        OriginMp = Mathf.FloorToInt(_initMp * Mathf.Pow((1 + MPGrowthRate), Level - 1));
-        Attack = Mathf.FloorToInt(_initAtk * Mathf.Pow((1 + AtkGrowthRate), Level - 1));
-        Defence = Mathf.FloorToInt(_initDef * Mathf.Pow((1 + DefGrowthRate), Level - 1));
+        OriginHp = MaxHp = CurrentHp = Mathf.FloorToInt(_initHp * Mathf.Pow((1 + HPGrowthRate), Level - 1));
+        OriginMp = MaxMp = CurrentMp = Mathf.FloorToInt(_initMp * Mathf.Pow((1 + MPGrowthRate), Level - 1));
+        OriginPAtk = PAttack = Mathf.FloorToInt(_initPAtk * Mathf.Pow((1 + PAtkGrowthRate), Level - 1));
+        OriginMAtk = MAttack = Mathf.FloorToInt(_initMAtk * Mathf.Pow((1 + MAtkGrowthRate), Level - 1));
+        OriginPDef = PDefence = Mathf.FloorToInt(_initPDef * Mathf.Pow((1 + PDefGrowthRate), Level - 1));
+        OriginMDef = MDefence = Mathf.FloorToInt(_initMDef * Mathf.Pow((1 + MDefGrowthRate), Level - 1));
     }
 
     public void BeHit(int attack, bool isReal = false)
     {
-        var changeVlaue = attack - Defence;
+        var changeVlaue = attack - PDefence;
         if (isReal)
             changeVlaue = attack;
 
@@ -93,16 +114,213 @@ public class CharacterData
         return true;
     }
 
-    public void SetSkills(Dictionary<string, Skill> skills)
+    //rebuild
+    public void AddBuffOrDebuffs(List<Buff> datas)
     {
-        Skills = skills;
+        if (datas == null || datas.Count == 0)
+            return;
+
+        foreach (var data in datas)
+        {
+            var key = data.SingleID;
+            if (_buffs.ContainsKey(key))
+                _buffs.Remove(key);
+            _buffs.Add(key, data);
+        }
     }
 
-    public void AddSkill(Skill skill)
+    public void RemoveBuffOrDebuff(Buff data)
     {
-        if (Skills.ContainsKey(skill.ID) && Skills[skill.ID].SkillLv > skill.SkillLv)
-            Skills[skill.ID] = skill;
-        else
-            Skills.Add(skill.ID, skill);
+        var key = data.SingleID;
+        if (_buffs.ContainsKey(key))
+            _buffs.Remove(key);
+    }
+
+    public void RemoveAllBuffOrDebuffs()
+    {
+        _buffs.Clear();
+    }
+
+    public void BuffAndDebuffsEffect()
+    {
+        if (_buffs == null || _buffs.Count == 0)
+            return;
+
+        List<EffectModel> models = new List<EffectModel>();
+
+        foreach (var buff in _buffs.Values)
+            models.AddRange(buff.BuffEffectThenReturnModels());
+
+        ValueEffectByModels(models);
+        _UpdateBuffStatus();
+    }
+
+    public void ValueEffectByModels(List<EffectModel> models)
+    {
+        if (models == null || models.Count == 0)
+            return;
+
+        foreach (var model in models)
+            ValueEffectByModel(model);
+    }
+
+    public void ValueEffectByModel(EffectModel model)
+    {
+        float value = model.ChangeValue;
+        switch (model.ValueType)
+        {
+            case CharacterValueType.HP:
+                if (model.IsTargetPercent)
+                    value *= OriginHp;
+                _ChangeHp(Mathf.FloorToInt(value), model.EffectWay);
+                break;
+            case CharacterValueType.MaxHp:
+                if (model.IsTargetPercent)
+                    value *= OriginHp;
+                _ChangeMaxHp(Mathf.FloorToInt(value), model.EffectWay);
+                break;
+            case CharacterValueType.MP:
+                if (model.IsTargetPercent)
+                    value *= OriginMp;
+                _ChangeMp(Mathf.FloorToInt(value));
+                break;
+            case CharacterValueType.PAttack:
+                if (model.IsTargetPercent)
+                    value *= OriginPAtk;
+                _ChangePAtk(Mathf.FloorToInt(value));
+                break;
+            case CharacterValueType.MAttack:
+                if (model.IsTargetPercent)
+                    value *= OriginMAtk;
+                _ChangeMAtk(Mathf.FloorToInt(value));
+                break;
+            case CharacterValueType.PDefence:
+                if (model.IsTargetPercent)
+                    value *= OriginPDef;
+                _ChangePDef(Mathf.FloorToInt(value));
+                break;
+            case CharacterValueType.MDefence:
+                if (model.IsTargetPercent)
+                    value *= OriginMDef;
+                _ChangeMDef(Mathf.FloorToInt(value));
+                break;
+        }
+    }
+
+    private void _UpdateBuffStatus()
+    {
+        List<string> endBuffs = new List<string>();
+        foreach(var pair in _buffs)
+        {
+            if (!pair.Value.IsActive)
+                endBuffs.Add(pair.Key);
+        }
+
+        if (endBuffs.Count == 0)
+            return;
+
+        foreach (var id in endBuffs)
+            _buffs.Remove(id);
+    }
+
+    private int _DerateByEffectWay(int value, ValueEffectWay effectWay)
+    {
+        if (value > 0)
+            return value;
+
+        switch (effectWay)
+        {
+            case ValueEffectWay.Phisical:
+                value += PDefence;
+                if (value >= 0)
+                    value = -1;
+                break;
+            case ValueEffectWay.Magic:
+                value += MDefence;
+                if (value >= 0)
+                    value = -1;
+                break;
+        }
+
+        return value;
+    }
+
+    private void _ChangeHp(int changeValue, ValueEffectWay effectWay = ValueEffectWay.None)
+    {
+        if (!IsAlive)
+            return;
+
+        changeValue = _DerateByEffectWay(changeValue, effectWay);
+        CurrentHp += changeValue;
+        CurrentHp = Mathf.Clamp(CurrentHp, 0, MaxHp);
+    }
+
+    private void _ChangeMaxHp(int changeValue, ValueEffectWay effectWay = ValueEffectWay.None)
+    {
+        if (!IsAlive)
+            return;
+
+        changeValue = _DerateByEffectWay(changeValue, effectWay);
+
+        MaxHp += changeValue;
+        if (MaxHp < 1)
+            MaxHp = 1;
+
+        CurrentHp += changeValue;
+        CurrentHp = Mathf.Clamp(CurrentHp, 0, MaxHp);
+    }
+
+    private void _ChangeMp(int changeValue)
+    {
+        if (!IsAlive)
+            return;
+
+        CurrentMp += changeValue;
+        CurrentMp = Mathf.Clamp(CurrentMp, 0, MaxMp);
+    }
+
+    private void _ChangePAtk(int changeValue)
+    {
+        PAttack += changeValue;
+        if (PAttack <= 0)
+            PAttack = 1;
+    }
+
+    private void _ChangeMAtk(int changeValue)
+    {
+        MAttack += changeValue;
+        if (MAttack <= 0)
+            MAttack = 1;
+    }
+
+    private void _ChangePDef(int changeValue)
+    {
+        PDefence += changeValue;
+        if (PDefence <= 0)
+            PDefence = 1;
+    }
+
+    private void _ChangeMDef(int changeValue)
+    {
+        MDefence += changeValue;
+        if (MDefence <= 0)
+            MDefence = 1;
+    }
+}
+
+//rebuild
+public struct EffectModel
+{
+    public CharacterValueType ValueType;
+    public ValueEffectWay EffectWay;
+    public float ChangeValue;
+    public bool IsTargetPercent;
+
+    public EffectModel(CharacterValueType valueType, ValueEffectWay effectWay,bool isTargetPercent,float changeValue)
+    {
+        ValueType = valueType;
+        IsTargetPercent = isTargetPercent;
+        EffectWay = effectWay;
+        ChangeValue = changeValue;
     }
 }

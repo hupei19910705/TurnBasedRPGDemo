@@ -21,8 +21,9 @@ public class HeroData : CharacterData
     private const string DEATH_IMAGE_KEY_PREFIX = "Texture/Icons/Death/";
 
     public HeroData(string uid,HeroDataRow dataRow,HeroJob heroJob,double exp,int level,List<string> skills)
-        : base(uid,dataRow.ID,dataRow.Name, skills, heroJob.InitHp, heroJob.InitMp, heroJob.InitAtk,
-            heroJob.InitDef, level, heroJob.HPGrowthRate,heroJob.MPGrowthRate,heroJob.AtkGrowthRate,heroJob.DefGrowthRate)
+        :base(uid,dataRow.ID,dataRow.Name,level,skills,heroJob.InitHp,heroJob.HPGrowthRate,heroJob.InitMp,heroJob.MPGrowthRate,
+            heroJob.InitPAtk,heroJob.PAtkGrowthRate,heroJob.InitMAtk,heroJob.MAtkGrowthRate,heroJob.InitPDef,heroJob.PDefGrowthRate,
+            heroJob.InitMDef,heroJob.MDefGrowthRate)
     {
         Job = dataRow.Job;
         HeadImageKey = HEAD_IMAGE_KEY_PREFIX + heroJob.HeadImageKey;

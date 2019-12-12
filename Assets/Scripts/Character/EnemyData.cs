@@ -21,8 +21,9 @@ public class EnemyData : CharacterData
     private int _initDropExp;
 
     public EnemyData(string uid, EnemyDataRow dataRow, List<DropItem> dropItems, int level, List<string> skills)
-        : base(uid, dataRow.ID, dataRow.Name, skills, dataRow.InitHp, dataRow.InitMp, dataRow.InitAtk, dataRow.InitDef, level,
-            dataRow.HPGrowthRate, dataRow.MPGrowthRate, dataRow.AtkGrowthRate, dataRow.DefGrowthRate)
+        :base(uid,dataRow.ID,dataRow.Name,level,skills, dataRow.InitHp, dataRow.HPGrowthRate, dataRow.InitMp, dataRow.MPGrowthRate,
+            dataRow.InitPAtk, dataRow.PAtkGrowthRate, dataRow.InitMAtk, dataRow.MAtkGrowthRate, dataRow.InitPDef, dataRow.PDefGrowthRate,
+            dataRow.InitMDef, dataRow.MDefGrowthRate)
     {
         Type = dataRow.Type;
         DropItems = dropItems;

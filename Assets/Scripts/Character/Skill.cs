@@ -3,7 +3,7 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
-public enum EffectType
+public enum OldEffectType
 {
     Physical,
     Magic,
@@ -23,83 +23,219 @@ public enum EffectiveResult
     Restore
 }
 
-public interface IUseData { }
+public enum SkillTarget
+{
+    SelfSide,
+    OppositeSide
+}
+
+public enum EffectTiming
+{
+    Immediately,
+    EndRound
+}
+
+public enum SkillType
+{
+    Damage,
+    Heal,
+    Buff,
+    Debuff
+}
+
+public interface IUseData
+{
+    bool CanUseToSelf { get; }
+    bool CanUseToOpposite { get; }
+}
 
 public class Skill : IUseData
 {
-    public EffectType EffectType;
-    public EffectiveWay EffectiveWay;
-    public EffectiveResult EffectiveResult;
-    public bool IsConstant;
-    public SkillVariety Variety;
-    public int EffectValue;
+    //rebuild
     public string ID;
     public string Name;
-    public string ImageKey;
-    public int SkillLv = 1;
-    public float Multiple = 1f;
-    public string Desc;
+    public SkillVariety Variety;
     public int MpCost;
     public bool IsRemote;
+    public string ImageKey;
     public float MoveSpeed;
-    public int Duration = 0;
+    public string Desc;
+
+    public bool CanUseToSelf { get { return _useToSelfSideDatas.Count > 0 || _useToSelfSideBuffs.Count > 0; } }
+    public bool CanUseToOpposite { get { return _useToOppositeSideDatas.Count > 0 || _useToOppositeSideBuffs.Count > 0; } }
+
+    private List<EffectData> _useToSelfSideDatas = new List<EffectData>();
+    private List<string> _useToSelfSideBuffs = new List<string>();
+
+    private List<EffectData> _useToOppositeSideDatas = new List<EffectData>();
+    private List<string> _useToOppositeSideBuffs = new List<string>();
 
     private const string IMAGE_PATH_PREFIX = "Texture/Icons/";
 
     public Skill(SkillRow skillRow)
     {
-        EffectType = skillRow.EffectType;
-        Variety = skillRow.Variety;
         ID = skillRow.ID;
         Name = skillRow.Name;
+        Variety = skillRow.Variety;
         MpCost = skillRow.MpCost;
-        Multiple = skillRow.Multiple;
-        IsConstant = skillRow.IsConstant;
-        EffectValue = skillRow.EffectValue;
         IsRemote = skillRow.IsRemote;
-        EffectiveWay = skillRow.EffectiveWay;
-        EffectiveResult = skillRow.EffectiveResult;
-        Duration = skillRow.Duration;
-        MoveSpeed = skillRow.MoveSpeed;
-        Desc = _GetDescription();
         if (!string.IsNullOrEmpty(skillRow.ImageKey))
             ImageKey = IMAGE_PATH_PREFIX + skillRow.ImageKey;
+        MoveSpeed = skillRow.MoveSpeed;
+        Desc = skillRow.Desc;
+        _SetEffectDatas(skillRow);
     }
 
-    private string _GetDescription()
+    private void _SetEffectDatas(SkillRow skillRow)
     {
-        var type = string.Empty;
+        _useToSelfSideDatas.Clear();
+        _useToOppositeSideDatas.Clear();
 
-        var effectType = string.Empty;
-        switch (EffectType)
+        var selfId0 = skillRow.UseToSelfSideDataId0;
+        var selfId1 = skillRow.UseToSelfSideDataId1;
+        var oppositeId0 = skillRow.UseToOppositeSideDataId0;
+        var oppositeId1 = skillRow.UseToOppositeSideDataId1;
+        List<string> tempList = new List<string>
         {
-            case EffectType.Physical:
-                effectType = "物理伤害";
-                type = "攻击x";
+            selfId0,
+            selfId1,
+            oppositeId0,
+            oppositeId1
+        };
+        var ids = tempList.FindAll(id => !string.IsNullOrEmpty(id));
+        var rows = CharacterUtility.Instance.GetEffectDataRows(ids);
+        if (rows == null || rows.Count == 0)
+            return;
+
+        if (rows.ContainsKey(selfId0))
+            _useToSelfSideDatas.Add(new EffectData(rows[selfId0], skillRow.UseToSelfSideDataValue0));
+        if (rows.ContainsKey(selfId1))
+            _useToSelfSideDatas.Add(new EffectData(rows[selfId1], skillRow.UseToSelfSideDataValue1));
+        
+        if (rows.ContainsKey(oppositeId0))
+            _useToOppositeSideDatas.Add(new EffectData(rows[oppositeId0], skillRow.UseToOppositeSideDataValue0));
+        if (rows.ContainsKey(oppositeId1))
+            _useToOppositeSideDatas.Add(new EffectData(rows[oppositeId1], skillRow.UseToOppositeSideDataValue1));
+    }
+
+    //rebuild
+    public List<EffectModel> GetImmediatelyEffectModels(CharacterData from, SkillTarget target)
+    {
+        List<EffectData> datas = null;
+        switch (target)
+        {
+            case SkillTarget.SelfSide:
+                datas = _useToSelfSideDatas;
                 break;
-            case EffectType.Magic:
-                effectType = "魔法伤害";
-                type = "魔力x";
-                break;
-            case EffectType.Real:
-                effectType = "真实伤害";
-                type = "攻击x";
+            case SkillTarget.OppositeSide:
+                datas = _useToOppositeSideDatas;
                 break;
         }
 
-        if (IsConstant)
-            type = "固定 ";
+        if (datas == null || datas.Count == 0)
+            return null;
 
-        var effectValue = string.Empty;
-        if (IsConstant && EffectValue > 0)
-            effectValue = EffectValue.ToString();
-        else
-            effectValue = Math.Round(Multiple, 2).ToString();
+        List<EffectModel> result = new List<EffectModel>();
+        foreach (var data in datas)
+            result.Add(data.CreateEffectModel(from));
 
-        var desc = string.Format("{0}\n造成 {1}{2} 点{3}", Name, type, effectValue, effectType);
-        if (EffectiveWay == EffectiveWay.EffectOverTime)
-            desc = string.Format("{0}\n每回合造成 {1}{2} 点{3}\n持续{4}回合", Name, type, effectValue, effectType, Duration);
+        return result;
+    }
 
-        return desc;
+    public List<Buff> GetBuffs(CharacterData from, SkillTarget target)
+    {
+        List<BuffRow> buffRows = null;
+
+        switch (target)
+        {
+            case SkillTarget.SelfSide:
+                buffRows = CharacterUtility.Instance.GetBuffRows(_useToSelfSideBuffs);
+                break;
+            case SkillTarget.OppositeSide:
+                buffRows = CharacterUtility.Instance.GetBuffRows(_useToOppositeSideBuffs);
+                break;
+        }
+
+        if (buffRows == null || buffRows.Count == 0)
+            return null;
+
+        List<Buff> result = new List<Buff>();
+        foreach (var row in buffRows)
+        {
+            var buff = new Buff(row, from);
+            result.Add(buff);
+        }
+
+        return result;
+    }
+
+    public static EffectModel GeneralAtkModel(int attack)
+    {
+        return new EffectModel(CharacterValueType.HP, ValueEffectWay.Phisical, false, -attack);
+    }
+}
+
+//rebuild
+public enum CharacterValueType
+{
+    None,
+    HP,
+    MaxHp,
+    MP,
+    PAttack,
+    MAttack,
+    PDefence,
+    MDefence
+}
+
+public enum ValueEffectWay
+{
+    None,
+    Phisical,
+    Magic,
+    Real
+}
+
+public enum SkillEffectType
+{
+    None,
+    Multiple,
+    Constant,
+    TargetPercent
+}
+
+public struct EffectData
+{
+    public CharacterValueType ValueType { get; private set; }
+    public ValueEffectWay EffectWay { get; private set; }
+    public SkillEffectType EffectType { get; private set; }
+    public float EffectValue { get; private set; }
+
+    public EffectData(EffectDataRow row,float effectValue)
+    {
+        ValueType = row.ValueType;
+        EffectWay = row.EffectWay;
+        EffectType = row.EffectType;
+        EffectValue = effectValue;
+    }
+
+    public EffectModel CreateEffectModel(CharacterData impact)
+    {
+        float changeValue = EffectValue;
+
+        if (EffectType == SkillEffectType.Multiple)
+        {
+            switch (EffectWay)
+            {
+                case ValueEffectWay.Phisical:
+                    changeValue = EffectValue * impact.PAttack;
+                    break;
+                case ValueEffectWay.Magic:
+                    changeValue = EffectValue * impact.MAttack;
+                    break;
+            }
+        }
+
+        return new EffectModel(ValueType, EffectWay, EffectType == SkillEffectType.TargetPercent, changeValue);
     }
 }

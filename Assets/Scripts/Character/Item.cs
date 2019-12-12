@@ -25,6 +25,8 @@ public class Item : IUseData
     public int MaxCount = 99;
 
     public bool IsFull { get { return Count >= MaxCount; } }
+    public bool CanUseToSelf { get; private set; }
+    public bool CanUseToOpposite { get; private set; }
 
     public Item(ItemRow itemRow, int pos = -1, int count = -99)
     {
@@ -37,6 +39,7 @@ public class Item : IUseData
         Pos = pos;
         Desc = _GetDescription();
         _inCompleteIconKey = itemRow.IconKey;
+        _CheckUseLimit();
     }
 
     public Item(ItemType type,string id,int count,string name,int effectValue,int pos,string iconKey)
@@ -50,6 +53,19 @@ public class Item : IUseData
         IconKey = _GetIconKeyPrefixByItemType(Type) + iconKey;
         Desc = _GetDescription();
         _inCompleteIconKey = iconKey;
+        _CheckUseLimit();
+    }
+
+    private void _CheckUseLimit()
+    {
+        switch(Type)
+        {
+            case ItemType.RedPotion:
+            case ItemType.BluePotion:
+                CanUseToSelf = true;
+                CanUseToOpposite = false;
+                break;
+        }
     }
 
     public void SetItemCount(int count)

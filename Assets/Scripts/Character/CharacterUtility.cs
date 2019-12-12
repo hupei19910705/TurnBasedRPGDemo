@@ -57,4 +57,36 @@ public class CharacterUtility
 
         return skills;
     }
+
+    public Dictionary<string,EffectDataRow> GetEffectDataRows(List<string> ids)
+    {
+        if (ids == null || ids.Count == 0)
+            return null;
+
+        Dictionary<string, EffectDataRow> result = new Dictionary<string, EffectDataRow>();
+        var dataTable = _gameData.EffectDataTable;
+        foreach(var id in ids)
+        {
+            if (dataTable.ContainsKey(id))
+                result.Add(id, dataTable[id]);
+        }
+
+        return result;
+    }
+
+    public List<BuffRow> GetBuffRows(List<string> ids)
+    {
+        if (ids == null || ids.Count == 0)
+            return null;
+
+        List<BuffRow> result = new List<BuffRow>();
+        var dataTable = _gameData.BuffTable;
+        foreach (var id in ids)
+        {
+            if (dataTable.ContainsKey(id))
+                result.Add(dataTable[id]);
+        }
+
+        return result;
+    }
 }

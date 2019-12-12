@@ -5,8 +5,8 @@ using UnityEngine.Events;
 
 public enum SkillVariety
 {
-    FireBall,
     GeneralHit,
+    FireBall,
     IceExplosion,
     MagicAura
 }
@@ -42,7 +42,7 @@ public class SkillEffectManager : MonoBehaviour
         _overTimeSkillViews = new List<SkillEffectView>();
     }
 
-    public IEnumerator PlaySkillEffect(Skill skill,Transform fromTrans,Transform targetTrans,UnityAction callBack = null)
+    public IEnumerator PlaySkillEffect(Skill skill,Transform fromTrans,Transform targetTrans,UnityAction callBack, SkillTarget targetType)
     {
         var variety = skill == null ? SkillVariety.GeneralHit : skill.Variety;
         var skillEffects = _GetSkillEffects(variety);
@@ -69,12 +69,14 @@ public class SkillEffectManager : MonoBehaviour
                     callBackExecuted = true;
                 }
 
-                int duration = 0;
-                if (skill != null && skill.EffectiveWay == EffectiveWay.EffectOverTime)
-                {
-                    _overTimeSkillViews.Add(skillEffect);
-                    duration = skill.Duration;
-                }
+                //int duration = 0;
+                //if (skill != null && skill.EffectiveWay == EffectiveWay.EffectOverTime)
+                //{
+
+                //    _overTimeSkillViews.Add(skillEffect);
+                //    duration = skill.Duration;
+                //}
+                int duration = 1;
 
                 yield return skillEffect.PlaySkillAni(targetTrans, duration);
             }

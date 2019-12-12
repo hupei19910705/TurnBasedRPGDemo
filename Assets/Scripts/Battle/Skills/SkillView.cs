@@ -36,6 +36,9 @@ public class SkillView : MonoBehaviour, IPointerClickHandler, IPointerEnterHandl
 
     public void OnPointerClick(PointerEventData eventData)
     {
+        if (_selectImage.enabled)
+            return;
+
         if (ClickAction != null)
             ClickAction();
         _selectImage.enabled = true;

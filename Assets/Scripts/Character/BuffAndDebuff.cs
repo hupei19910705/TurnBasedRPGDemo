@@ -4,70 +4,80 @@ using UnityEngine;
 
 public enum BuffType
 {
-    NoValueChange,
-    HpChange,
-    MpChange,
-    HpMpChange
-}
-
-public enum SpecialBuffType
-{
     None,
-    Blind
+    Hot,
+    Blind,                  //致盲
+    Sleeping,               //沉睡
+    Comatose,               //昏迷
+    Burning,                //燃烧
+    Poisoned,               //中毒
+    Tearing                 //撕裂
 }
 
 public class Buff
 {
-    public string From { get; private set; }
-    public string ID { get; private set; }
-    private int _effectValue;
-    private int _duration;
-    private BuffType _type;
-    private SpecialBuffType _sType;
-    private EffectType _effectType;
-
-    public bool IsActive { get { return _duration > 0; } }
-
-    public Buff(string from,int effectValue,int duration,BuffRow row)
+    public string SingleID
     {
-        From = from;
-        ID = row.ID;
-
-        _effectValue = effectValue;
-        _duration = duration;
-        _type = row.Type;
-        _sType = row.SType;
-        _effectType = row.EffectType;
+        get
+        {
+            if (_fromCharacter == null)
+                return string.Empty;
+            return _fromCharacter.UID + ID;
+        }
     }
 
-    public int TakeEffect(int def)
+    public bool IsActive { get { return RoundCount > 0; } }
+
+    public string ID { get; private set; }
+    public string Name { get; private set; }
+    public string IconKey { get; private set; }
+    public int RoundCount { get; private set; }
+    private CharacterData _fromCharacter;
+
+    List<EffectData> _effectDatas = new List<EffectData>();
+
+    public Buff(BuffRow row, CharacterData impact)
     {
-        _duration--;
-        var changeValue = _effectValue;
-        switch(_effectType)
+        ID = row.ID;
+        Name = row.Name;
+        IconKey = row.IconKey;
+        RoundCount = row.RoundCount;
+        _fromCharacter = impact;
+        _SetEffectDatas(row);
+    }
+
+    private void _SetEffectDatas(BuffRow buffRow)
+    {
+        _effectDatas.Clear();
+        var id0 = buffRow.DataId0;
+        var id1 = buffRow.DataId1;
+        List<string> tempList = new List<string>
         {
-            case EffectType.Physical:
-            case EffectType.Magic:
-                changeValue -= def;
-                break;
-            case EffectType.Real:
-                break;
-            case EffectType.Mp:
-                break;
-        }
+            id0,
+            id1
+        };
+        var ids = tempList.FindAll(id => !string.IsNullOrEmpty(id));
+        var rows = CharacterUtility.Instance.GetEffectDataRows(ids);
+        if (rows == null || rows.Count == 0)
+            return;
 
-        return changeValue;
+        if (rows.ContainsKey(id0))
+            _effectDatas.Add(new EffectData(rows[id0], buffRow.DataValue0));
+        if (rows.ContainsKey(id1))
+            _effectDatas.Add(new EffectData(rows[id1], buffRow.DataValue1));
+    }
 
-        //switch (_type)
-        //{
-        //    case BuffType.NoValueChange:
-        //        break;
-        //    case BuffType.HpChange:
-        //        break;
-        //    case BuffType.MpChange:
-        //        break;
-        //    case BuffType.HpMpChange:
-        //        break;
-        //}
+    public List<EffectModel> BuffEffectThenReturnModels()
+    {
+        if (_effectDatas == null || _effectDatas.Count == 0 || _fromCharacter == null)
+            return null;
+
+        List<EffectModel> result = new List<EffectModel>();
+
+        foreach(var data in _effectDatas)
+            result.Add(data.CreateEffectModel(_fromCharacter));
+
+        RoundCount--;
+        return result;
     }
 }

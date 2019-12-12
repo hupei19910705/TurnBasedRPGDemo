@@ -26,8 +26,8 @@ public class HeroDisplayView : MonoBehaviour
         _expSlider.value = (float)(data.Exp / maxExp);
         _hp.text = data.OriginHp.ToString();
         _mp.text = data.OriginMp.ToString();
-        _attack.text = data.Attack.ToString();
-        _defence.text = data.Defence.ToString();
+        _attack.text = data.PAttack.ToString();
+        _defence.text = data.PDefence.ToString();
         _job.text = data.Job.ToString();
         _pos.text = pos.ToString();
     }

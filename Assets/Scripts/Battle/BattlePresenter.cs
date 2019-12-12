@@ -89,11 +89,29 @@ public class BattlePresenter : IBattlePresenter
                 break;
             case RoundStatus.EnemyTurn:
                 yield return _EnemiesTurn();
-                _view.OverTimeSkillEffectView();
+                _BuffsEffect();
+                _view.FreshInTheEndOfRound();
                 _ActiveHeroTurn();
                 break;
         }
         
+    }
+
+    private void _BuffsEffect()
+    {
+        var heroes = _playerData.TeamHeroes.Values;
+        foreach(var hero in heroes)
+        {
+            if (hero.IsAlive)
+                hero.BuffAndDebuffsEffect();
+        }
+
+        var enemies = _enemiesData.Values;
+        foreach(var enemy in enemies)
+        {
+            if (enemy.IsAlive)
+                enemy.BuffAndDebuffsEffect();
+        }
     }
     #region Init
     private void _Register()
@@ -186,39 +204,21 @@ public class BattlePresenter : IBattlePresenter
         _playerData.FreshBackpack(item.Pos);
     }
 
-    private void _UseSkill(Skill skill,int fromIdx,int toIdx)
+    private void _UseSkill(Skill skill,CharacterData fromData, CharacterData toData,SkillTarget targetType)
     {
-        var from = _playerData.TeamHeroes[fromIdx];
-
         if(skill == null)
-            _enemiesData[toIdx].BeHit(_playerData.TeamHeroes[fromIdx].Attack);
-        else
         {
-            from.ChangeMp(-skill.MpCost);
-
-            var changeValue = skill.EffectValue;
-            if (!skill.IsConstant)
-                changeValue = Mathf.FloorToInt(skill.Multiple * from.Attack);
-
-            CharacterData target = null;
-            switch(skill.EffectiveResult)
-            {
-                case EffectiveResult.Restore:
-                    target = _playerData.TeamHeroes[toIdx];
-                    if (skill.EffectType == EffectType.Mp)
-                        target.ChangeMp(changeValue);
-                    else
-                        target.ChangeHp(changeValue);
-                    break;
-                case EffectiveResult.Reduce:
-                    target = _enemiesData[toIdx];
-                    if (skill.EffectType == EffectType.Mp)
-                        target.ChangeMp(-changeValue);
-                    else
-                        target.BeHit(changeValue, skill.EffectType == EffectType.Real);
-                    break;
-            }
+            var model = Skill.GeneralAtkModel(fromData.PAttack);
+            toData.ValueEffectByModel(model);
+            return;
         }
+
+        fromData.ChangeMp(-skill.MpCost);
+        var models = skill.GetImmediatelyEffectModels(fromData, targetType);
+        var buffs = skill.GetBuffs(fromData, targetType);
+
+        toData.ValueEffectByModels(models);
+        toData.AddBuffOrDebuffs(buffs);
     }
     #endregion
 
@@ -230,7 +230,7 @@ public class BattlePresenter : IBattlePresenter
         {
             if (pair.Value.IsAlive && heroIdx != -1)
             {
-                _HeroBeHit(pair.Value.Attack, heroIdx);
+                _HeroBeHit(pair.Value.PAttack, heroIdx);
                 yield return _view.EnemyAttack(pair.Key, heroIdx);
                 if (!_playerData.TeamHeroes[heroIdx].IsAlive)
                     heroIdx = _GetAliveHeroIndex();

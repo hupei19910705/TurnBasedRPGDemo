@@ -3,44 +3,10 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
-public enum OldEffectType
-{
-    Physical,
-    Magic,
-    Real,
-    Mp
-}
-
-public enum EffectiveWay
-{
-    Direct,
-    EffectOverTime
-}
-
-public enum EffectiveResult
-{
-    Reduce,
-    Restore
-}
-
-public enum SkillTarget
+public enum UseTarget
 {
     SelfSide,
     OppositeSide
-}
-
-public enum EffectTiming
-{
-    Immediately,
-    EndRound
-}
-
-public enum SkillType
-{
-    Damage,
-    Heal,
-    Buff,
-    Debuff
 }
 
 public interface IUseData
@@ -125,15 +91,15 @@ public class Skill : IUseData
             _useToOppositeSideDatas.Add(new EffectData(rows[oppositeId1], skillRow.UseToOppositeSideDataValue1));
     }
 
-    public List<EffectModel> GetImmediatelyEffectModels(CharacterData from, SkillTarget target)
+    public List<EffectModel> GetImmediatelyEffectModels(CharacterData from, UseTarget target)
     {
         List<EffectData> datas = null;
         switch (target)
         {
-            case SkillTarget.SelfSide:
+            case UseTarget.SelfSide:
                 datas = _useToSelfSideDatas;
                 break;
-            case SkillTarget.OppositeSide:
+            case UseTarget.OppositeSide:
                 datas = _useToOppositeSideDatas;
                 break;
         }
@@ -148,7 +114,7 @@ public class Skill : IUseData
         return result;
     }
 
-    public List<Buff> GetBuffs(CharacterData from, SkillTarget target)
+    public List<Buff> GetBuffs(CharacterData from, UseTarget target)
     {
         List<BuffRow> buffRows = GetBuffRows(target);
 
@@ -165,16 +131,16 @@ public class Skill : IUseData
         return result;
     }
 
-    public List<BuffRow> GetBuffRows(SkillTarget target)
+    public List<BuffRow> GetBuffRows(UseTarget target)
     {
         List<BuffRow> buffRows = null;
 
         switch (target)
         {
-            case SkillTarget.SelfSide:
+            case UseTarget.SelfSide:
                 buffRows = CharacterUtility.Instance.GetBuffRows(_useToSelfSideBuffs);
                 break;
-            case SkillTarget.OppositeSide:
+            case UseTarget.OppositeSide:
                 buffRows = CharacterUtility.Instance.GetBuffRows(_useToOppositeSideBuffs);
                 break;
         }
@@ -232,11 +198,11 @@ public struct EffectData
         EffectValue = effectValue;
     }
 
-    public EffectModel CreateEffectModel(CharacterData impact)
+    public EffectModel CreateEffectModel(CharacterData impact = null)
     {
         float changeValue = EffectValue;
 
-        if (EffectType == SkillEffectType.Multiple)
+        if (EffectType == SkillEffectType.Multiple && impact != null)
         {
             switch (EffectWay)
             {

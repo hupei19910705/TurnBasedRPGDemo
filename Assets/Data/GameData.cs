@@ -36,6 +36,8 @@ public class GameData
         HeroJobTable = heroJobs;
         _InitEnemyTable(enemies);
         EnemyTable = enemies;
+
+        _InitItemTable(items);
         ItemTable = items;
 
         _InitSkillTable(skills);
@@ -82,6 +84,17 @@ public class GameData
             enemy.PDefGrowthRate /= 100;
             enemy.MDefGrowthRate /= 100;
             enemy.DropExpGrowthRate /= 100;
+        }
+    }
+
+    private void _InitItemTable(Dictionary<string, ItemRow> items)
+    {
+        if (items == null || items.Count == 0)
+            return;
+
+        foreach (var item in items.Values)
+        {
+            item.UseToDataValue /= 100;
         }
     }
 
@@ -165,6 +178,7 @@ public class ConstantData
 {
     public int MAX_RECORD_COUNT;
     public int MAX_LEVEL;
+    public int BACKPACK_MAX_SIZE;
 }
 
 public class HeroDataRow
@@ -234,10 +248,16 @@ public class UnLockEnemySkillData
 public class ItemRow
 {
     public string ID;
-    public ItemType Type;
     public string Name;
-    public int EffectValue;
+    public ItemType Type;
+    public ItemTargetType TargetType;
     public string IconKey;
+    public string Desc;
+    public int MaxCount;
+
+    public string UseToDataId;
+    public float UseToDataValue;
+    public List<string> UseToBuffIds;
 }
 
 public class SkillRow

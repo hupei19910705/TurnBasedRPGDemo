@@ -97,14 +97,15 @@ public class Main : MonoBehaviour
             heroes.Add(hero.UID, hero);
         }
 
-        List<Item> items = new List<Item>();
-        foreach(var itemRecord in _curRecord.ItemRecord.Values)
+        Dictionary<int, Item> items = new Dictionary<int, Item>();
+        foreach(var pair in _curRecord.ItemRecord)
         {
-            var item = _CreateItem(itemRecord.ID, itemRecord.Pos, itemRecord.Count);
-            items.Add(item);
+            var itemRecord = pair.Value;
+            var item = _CreateItem(itemRecord.ID, itemRecord.Count);
+            items.Add(pair.Key, item);
         }
 
-        return new PlayerData(heroes, _curRecord.TeamRecord, items);
+        return new PlayerData(heroes, _curRecord.TeamRecord, items, _gameData.ConstantData.BACKPACK_MAX_SIZE);
     }
 
     private HeroData _CreateHero(string heroId,double exp,int level, string uid = "")
@@ -124,7 +125,7 @@ public class Main : MonoBehaviour
         return new HeroData(uid, heroRow, heroJob, exp, level, skills);
     }
 
-    private Item _CreateItem(string itemId, int pos = -1, int count = -99)
+    private Item _CreateItem(string itemId,int count = 1)
     {
         if (_gameData == null)
         {
@@ -133,7 +134,7 @@ public class Main : MonoBehaviour
         }
 
         var itemRow = _gameData.ItemTable[itemId];
-        return new Item(itemRow, pos, count);
+        return new Item(itemRow, count);
     }
     #endregion
 

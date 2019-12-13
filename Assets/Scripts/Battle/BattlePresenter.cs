@@ -187,24 +187,37 @@ public class BattlePresenter : IBattlePresenter
         hero.BeHit(attack);
     }
 
-    private void _UseItem(Item item,int toIdx)
+    private void _UseItem(int pos,int toIdx, SelectTargetType targetType)
     {
-        switch (item.Type)
+        var item = _playerData.BackPack[pos];
+        if (item == null)
+            return;
+
+        var model = item.GetImmediatelyEffectModel();
+        var buffs = item.GetBuffs();
+
+        CharacterData target = null;
+        switch(targetType)
         {
-            case ItemType.RedPotion:
-                _playerData.TeamHeroes[toIdx].ChangeHp(item.EffectValue);
+            case SelectTargetType.Hero:
+                target = _playerData.TeamHeroes[toIdx];
                 break;
-            case ItemType.BluePotion:
-                _playerData.TeamHeroes[toIdx].ChangeMp(item.EffectValue);
+            case SelectTargetType.Enemy:
+                target = _enemiesData[toIdx];
                 break;
-            default:
-                return;
         }
+
+        if (target == null)
+            return;
+
+        target.ValueEffectByModel(model);
+        target.AddBuffOrDebuffs(buffs);
+
         item.RemoveNum(1);
-        _playerData.FreshBackpack(item.Pos);
+        _playerData.FreshBackpack(pos);
     }
 
-    private void _UseSkill(Skill skill,CharacterData fromData, CharacterData toData,SkillTarget targetType)
+    private void _UseSkill(Skill skill,CharacterData fromData, CharacterData toData,UseTarget targetType)
     {
         if(skill == null)
         {

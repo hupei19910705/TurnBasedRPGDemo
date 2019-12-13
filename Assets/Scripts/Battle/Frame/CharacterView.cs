@@ -51,10 +51,8 @@ public class CharacterView : MonoBehaviour, IPointerDownHandler
         StartCoroutine(_parallelCor.Execute());
     }
 
-    public void BeHit()
+    public void PlayBeHitAni()
     {
-        ChangeHpSliderValue();
-        ChangeMpSliderValue();
         _animator.SetTrigger(BE_HIT_TRIGGER_KEY);
     }
 

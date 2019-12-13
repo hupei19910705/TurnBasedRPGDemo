@@ -12,19 +12,20 @@ public class ItemView : MonoBehaviour, IPointerClickHandler, IPointerEnterHandle
     [SerializeField] private Image _selectImage = null;
     [SerializeField] private Image _meetImage = null;
 
-    public event Action ClickAction;
+    public event Action<int> ClickAction;
     public int Pos { get; private set; }
     private bool _isLockPointer = false;
 
-    public void SetData(Item item)
+    public void SetData(Item item, int pos = -1)
     {
         if (item == null)
         {
+            Pos = -1;
             gameObject.SetActive(false);
             return;
         }
-            
-        Pos = item.Pos;
+
+        Pos = pos;
         _image.sprite = Resources.Load<Sprite>(item.IconKey);
         _count.text = string.Format("x{0}", item.Count);
         _selectImage.enabled = false;
@@ -43,7 +44,7 @@ public class ItemView : MonoBehaviour, IPointerClickHandler, IPointerEnterHandle
             return;
 
         if (ClickAction != null)
-            ClickAction();
+            ClickAction(Pos);
         _selectImage.enabled = true;
     }
 

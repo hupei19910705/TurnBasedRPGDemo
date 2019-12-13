@@ -10,72 +10,70 @@ public enum ItemType
     Other
 }
 
+public enum ItemTargetType
+{
+    Self,
+    Opposite,
+    Both
+}
+
 public class Item : IUseData
 {
-    public ItemType Type;
-    public string ID;
-    public int Count;
-    public string Name;
-    public int EffectValue;
-    public int Pos;
-    public string IconKey;
-    public string Desc;
-    private string _inCompleteIconKey = string.Empty;
-
-    public int MaxCount = 99;
+    public string ID { get; private set; }
+    public string Name { get; private set; }
+    public ItemType Type { get; private set; }
+    public ItemTargetType TargetType { get; private set; }
+    private string _oriIconKey;
+    public string IconKey { get; private set; }
+    public string Desc { get; private set; }
+    public int MaxCount { get; private set; }
+    public int Count { get; private set; }
+    public EffectData _effectData;
+    public List<string> _buffs;
 
     public bool IsFull { get { return Count >= MaxCount; } }
-    public bool CanUseToSelf { get; private set; }
-    public bool CanUseToOpposite { get; private set; }
+    public bool CanUseToSelf { get { return TargetType == ItemTargetType.Both || TargetType == ItemTargetType.Self; } }
+    public bool CanUseToOpposite { get { return TargetType == ItemTargetType.Both || TargetType == ItemTargetType.Opposite; } }
 
-    public Item(ItemRow itemRow, int pos = -1, int count = -99)
+    public Item(ItemRow itemRow, int count = -99)
     {
         ID = itemRow.ID;
-        Type = itemRow.Type;
         Name = itemRow.Name;
-        EffectValue = itemRow.EffectValue;
-        IconKey = _GetIconKeyPrefixByItemType(Type) + itemRow.IconKey;
-        Count = count == -99 ? 1 : count;
-        Pos = pos;
-        Desc = _GetDescription();
-        _inCompleteIconKey = itemRow.IconKey;
-        _CheckUseLimit();
-    }
-
-    public Item(ItemType type,string id,int count,string name,int effectValue,int pos,string iconKey)
-    {
-        Type = type;
-        ID = id;
-        Count = count == -99 ? 1 : count;
-        Name = name;
-        EffectValue = effectValue;
-        Pos = pos;
-        IconKey = _GetIconKeyPrefixByItemType(Type) + iconKey;
-        Desc = _GetDescription();
-        _inCompleteIconKey = iconKey;
-        _CheckUseLimit();
-    }
-
-    private void _CheckUseLimit()
-    {
-        switch(Type)
-        {
-            case ItemType.RedPotion:
-            case ItemType.BluePotion:
-                CanUseToSelf = true;
-                CanUseToOpposite = false;
-                break;
-        }
-    }
-
-    public void SetItemCount(int count)
-    {
+        Type = itemRow.Type;
+        TargetType = itemRow.TargetType;
+        _oriIconKey = itemRow.IconKey;
+        IconKey = _GetIconKeyPrefixByItemType(Type) + _oriIconKey;
+        Desc = itemRow.Desc;
+        MaxCount = itemRow.MaxCount;
         Count = count;
+        _SetEffectData(itemRow.UseToDataId, itemRow.UseToDataValue);
+        _buffs = itemRow.UseToBuffIds;
     }
 
-    public string GetInCompleteIconKey()
+    public Item(string id, string name, ItemType type, ItemTargetType targetType, string iconKey,string desc,
+        int maxCount, int count, EffectData effectData,List<string> buffs)
     {
-        return _inCompleteIconKey;
+        ID = id;
+        Name = name;
+        Type = type;
+        TargetType = targetType;
+        _oriIconKey = iconKey;
+        IconKey = _GetIconKeyPrefixByItemType(Type) + _oriIconKey;
+        Desc = desc;
+        MaxCount = maxCount;
+        Count = count;
+        _effectData = effectData;
+        _buffs = buffs;
+    }
+
+    private void _SetEffectData(string id,float value)
+    {
+        var row = CharacterUtility.Instance.GetEffectDataRow(id);
+
+        if (row == null)
+            return;
+
+        _effectData = new EffectData(row, value);
     }
 
     private string _GetIconKeyPrefixByItemType(ItemType type)
@@ -89,26 +87,6 @@ public class Item : IUseData
                 return "Texture/Icons/Other/";
         }
         return "Texture/Icons/Other/";
-    }
-
-    private string _GetDescription()
-    {
-        var effectTarget = string.Empty;
-        switch(Type)
-        {
-            case ItemType.RedPotion:
-                effectTarget = "HP";
-                break;
-            case ItemType.BluePotion:
-                effectTarget = "MP";
-                break;
-            default:
-                return Name;
-        }
-        var effectValue = EffectValue.ToString();
-        if (EffectValue > 0)
-            effectValue = "+" + EffectValue.ToString();
-        return string.Format("{0}\n{1} {2}", Name, effectTarget, effectValue);
     }
 
     public static void ReplaceItem(Item item1,Item item2)
@@ -147,9 +125,34 @@ public class Item : IUseData
     public Item Copy(int changeCount = -1)
     {
         var count = changeCount == -1 ? Count : changeCount;
-        var item = new Item(Type, ID, count, Name, EffectValue,Pos, GetInCompleteIconKey());
-        item.MaxCount = MaxCount;
-        return item;
+        return new Item(ID, Name, Type, TargetType, _oriIconKey, Desc, MaxCount, count, _effectData, _buffs);
+    }
+
+    public EffectModel GetImmediatelyEffectModel(CharacterData from = null)
+    {
+        return _effectData.CreateEffectModel(from);
+    }
+
+    public List<Buff> GetBuffs(CharacterData from = null)
+    {
+        List<BuffRow> buffRows = GetBuffRows();
+
+        if (buffRows == null || buffRows.Count == 0)
+            return null;
+
+        List<Buff> result = new List<Buff>();
+        foreach (var row in buffRows)
+        {
+            var buff = new Buff(row, from);
+            result.Add(buff);
+        }
+
+        return result;
+    }
+
+    public List<BuffRow> GetBuffRows()
+    {
+        return CharacterUtility.Instance.GetBuffRows(_buffs);
     }
 }
 

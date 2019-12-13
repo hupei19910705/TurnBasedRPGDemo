@@ -74,6 +74,18 @@ public class CharacterUtility
         return result;
     }
 
+    public EffectDataRow GetEffectDataRow(string id)
+    {
+        if (string.IsNullOrEmpty(id))
+            return null;
+
+        var dataTable = _gameData.EffectDataTable;
+        if (dataTable.ContainsKey(id))
+            return dataTable[id];
+
+        return null;
+    }
+
     public List<BuffRow> GetBuffRows(List<string> ids)
     {
         if (ids == null || ids.Count == 0)

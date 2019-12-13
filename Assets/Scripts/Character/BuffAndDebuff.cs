@@ -84,7 +84,7 @@ public class Buff
 
     public List<EffectModel> BuffEffectThenReturnModels()
     {
-        if (_effectDatas == null || _effectDatas.Count == 0 || _fromCharacter == null)
+        if (_effectDatas == null || _effectDatas.Count == 0)
             return null;
 
         List<EffectModel> result = new List<EffectModel>();

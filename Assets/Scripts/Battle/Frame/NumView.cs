@@ -142,6 +142,7 @@ public class NumView : MonoBehaviour
         }
 
         Debug.LogError("111");
+        Debug.LogError("222");
 
         return Vector3.zero;
     }

@@ -99,18 +99,22 @@ public class BattlePresenter : IBattlePresenter
 
     private void _BuffsEffect()
     {
-        var heroes = _playerData.TeamHeroes.Values;
-        foreach(var hero in heroes)
+        foreach(var pair in _playerData.TeamHeroes)
         {
-            if (hero.IsAlive)
-                hero.BuffAndDebuffsEffect();
+            if(pair.Value.IsAlive)
+            {
+                var models = pair.Value.BuffAndDebuffsEffect();
+                _view.AddNumText(SelectTargetType.Hero, pair.Key, models);
+            }
         }
 
-        var enemies = _enemiesData.Values;
-        foreach(var enemy in enemies)
+        foreach (var pair in _enemiesData)
         {
-            if (enemy.IsAlive)
-                enemy.BuffAndDebuffsEffect();
+            if (pair.Value.IsAlive)
+            {
+                var models = pair.Value.BuffAndDebuffsEffect();
+                _view.AddNumText(SelectTargetType.Enemy, pair.Key, models);
+            }
         }
     }
     #region Init
@@ -184,7 +188,9 @@ public class BattlePresenter : IBattlePresenter
     private void _HeroBeHit(int attack,int heroIdx)
     {
         var hero = _playerData.TeamHeroes[heroIdx];
-        hero.BeHit(attack);
+        var model = Skill.GeneralAtkModel(attack);
+        var result = hero.ValueEffectByModel(model);
+        _view.AddNumText(SelectTargetType.Hero, heroIdx, new List<ResultModel> { result });
     }
 
     private void _UseItem(int pos,int toIdx, SelectTargetType targetType)
@@ -210,28 +216,33 @@ public class BattlePresenter : IBattlePresenter
         if (target == null)
             return;
 
-        target.ValueEffectByModel(model);
+        var result = target.ValueEffectByModel(model);
         target.AddBuffOrDebuffs(buffs);
 
         item.RemoveNum(1);
         _playerData.FreshBackpack(pos);
+
+        _view.AddNumText(targetType, toIdx, new List<ResultModel> { result });
     }
 
-    private void _UseSkill(Skill skill,CharacterData fromData, CharacterData toData,UseTarget targetType)
+    private List<ResultModel> _UseSkill(Skill skill,CharacterData fromData, CharacterData toData,UseTarget targetType)
     {
-        if(skill == null)
+        if (skill == null)
         {
             var model = Skill.GeneralAtkModel(fromData.PAttack);
-            toData.ValueEffectByModel(model);
-            return;
+            var result = toData.ValueEffectByModel(model);
+            return new List<ResultModel> { result };
         }
 
+        List<ResultModel> results = new List<ResultModel>();
         fromData.ChangeMp(-skill.MpCost);
         var models = skill.GetImmediatelyEffectModels(fromData, targetType);
         var buffs = skill.GetBuffs(fromData, targetType);
 
-        toData.ValueEffectByModels(models);
+        results = toData.ValueEffectByModels(models);
         toData.AddBuffOrDebuffs(buffs);
+
+        return results;
     }
     #endregion
 

@@ -111,7 +111,46 @@ public class Skill : IUseData
         foreach (var data in datas)
             result.Add(data.CreateEffectModel(from));
 
+        return _CombineEffectModels(result);
+    }
+
+    private List<EffectModel> _CombineEffectModels(List<EffectModel> models)
+    {
+        if (models == null || models.Count <= 1)
+            return models;
+
+        List<EffectModel> result = new List<EffectModel>();
+        while(models.Count >=1)
+        {
+            var combine = models[0];
+
+            if (models.Count == 1)
+            {
+                result.Add(combine);
+                models.RemoveAt(0);
+                continue;
+            }
+                
+            for(int i = models.Count -1;i>=1;i--)
+            {
+                var model = models[i];
+                if(_IsSameEffectModel(combine,model))
+                {
+                    combine = new EffectModel(combine.ValueType, combine.EffectWay, false, combine.ChangeValue + model.ChangeValue);
+                    models.RemoveAt(i);
+                }
+            }
+
+            result.Add(combine);
+            models.RemoveAt(0);
+        }
         return result;
+    }
+
+    private bool _IsSameEffectModel(EffectModel model1, EffectModel model2)
+    {
+        return model1.ValueType == model2.ValueType && model1.EffectWay == model2.EffectWay 
+            && model1.ChangeValue * model2.ChangeValue > 0 && model1.IsTargetPercent == model2.IsTargetPercent;
     }
 
     public List<Buff> GetBuffs(CharacterData from, UseTarget target)

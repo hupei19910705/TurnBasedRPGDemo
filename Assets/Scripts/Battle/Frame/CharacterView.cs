@@ -16,7 +16,7 @@ public class CharacterView : MonoBehaviour, IPointerDownHandler
     [SerializeField] protected Transform _bottomLocate = null;
     [SerializeField] protected Slider _hpSlider = null;
     [SerializeField] protected Slider _mpSlider = null;
-    [SerializeField] protected Transform _root = null;
+    [SerializeField] protected HealAndDamageNumManager _numManager = null;
 
     public Transform TopLocate { get { return _topLocate; } }
     public Transform BottomLocate { get { return _bottomLocate; } }
@@ -33,6 +33,7 @@ public class CharacterView : MonoBehaviour, IPointerDownHandler
     protected CharacterData _data;
     protected int _pos = -1;
     protected Vector3 _oriPosition;
+    protected List<ResultModel> _cacheModels = new List<ResultModel>();
     protected ParallelCoroutines _parallelCor;
 
     public event Action<int> SelectAction;
@@ -42,7 +43,8 @@ public class CharacterView : MonoBehaviour, IPointerDownHandler
         gameObject.SetActive(true);
         _data = data;
         _pos = pos;
-        _oriPosition = _root.position;
+        _oriPosition = transform.position;
+        _numManager.Init(_skillEffectPos);
         ChangeHpSliderValue();
         ChangeMpSliderValue();
         if(_parallelCor == null)
@@ -76,6 +78,20 @@ public class CharacterView : MonoBehaviour, IPointerDownHandler
         _mpSlider.value = value;
     }
 
+    public void AddNumText(List<ResultModel> models)
+    {
+        _cacheModels.AddRange(models);
+    }
+
+    public void ShowNumText()
+    {
+        if (_cacheModels == null || _cacheModels.Count == 0)
+            return;
+
+        _numManager.Show(_cacheModels);
+        _cacheModels.Clear();
+    }
+
     protected virtual void _CheckAlive()
     {
         if (!_data.IsAlive)
@@ -85,7 +101,6 @@ public class CharacterView : MonoBehaviour, IPointerDownHandler
     protected IEnumerator _DestroyView(float time)
     {
         yield return MyCoroutine.Sleep(time);
-        _root.gameObject.SetActive(false);
         gameObject.SetActive(false);
     }
     #endregion
@@ -122,18 +137,18 @@ public class CharacterView : MonoBehaviour, IPointerDownHandler
             yield return null;
 
         yield return _MoveToTarget(_oriPosition);
-        _root.localPosition = Vector3.zero;
+        transform.localPosition = Vector3.zero;
     }
 
     protected IEnumerator _MoveToTarget(Vector3 target)
     {
-        var speed = (target - _root.position).normalized * MOVING_SPEED;
-        while (Mathf.Abs((target - _root.position).x) > Mathf.Abs(speed.x))
+        var speed = (target - transform.position).normalized * MOVING_SPEED;
+        while (Mathf.Abs((target - transform.position).x) > Mathf.Abs(speed.x))
         {
-            _root.position += speed;
+            transform.position += speed;
             yield return null;
         }
-        _root.position = target;
+        transform.position = target;
     }
     #endregion
 

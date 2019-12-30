@@ -16,10 +16,11 @@ public interface IBattleView
     void PopupResultPage(bool win, Dictionary<string, HeroLevelExpData> levelExpDatas,List<Item> items);
     void SetFightEndFlag();
     void FreshInTheEndOfRound(int round = 1);
+    void AddNumText(SelectTargetType targetType, int index, List<ResultModel> models);
 
     event Action<int> HeroEndTurn;
     event Action<int, int, SelectTargetType> UseItem;
-    event Action<Skill, CharacterData, CharacterData, UseTarget> UseSkill;
+    event Func<Skill, CharacterData, CharacterData, UseTarget, List<ResultModel>> UseSkill;
     event Action CheckIsFightWin;
     event Action LeaveFight;
 }
@@ -72,7 +73,7 @@ public class BattleView : MonoBehaviour, IBattleView
     #region Events
     public event Action<int> HeroEndTurn;
     public event Action<int, int, SelectTargetType> UseItem;
-    public event Action<Skill, CharacterData, CharacterData,UseTarget> UseSkill;
+    public event Func<Skill, CharacterData, CharacterData,UseTarget, List<ResultModel>> UseSkill;
     public event Action LeaveFight;
     public event Action CheckIsFightWin;
     #endregion
@@ -274,12 +275,15 @@ public class BattleView : MonoBehaviour, IBattleView
         _SetTopTipText(TopTipType.HeroTurn);
     }
 
-    private void _FreshAllHeroViews()
+    private void _FreshAllHeroViews(bool showNumText = false)
     {
         foreach (var pair in _heroViews)
         {
-            pair.Value.ChangeHpSliderValue();
-            pair.Value.ChangeMpSliderValue();
+            var view = pair.Value;
+            view.ChangeHpSliderValue();
+            view.ChangeMpSliderValue();
+            if (showNumText)
+                view.ShowNumText();
         }
     }
     #endregion
@@ -505,6 +509,8 @@ public class BattleView : MonoBehaviour, IBattleView
         if (UseItem != null)
             UseItem(pos, toIdx, targetType);
 
+        var targetView = _GetCharacterView(targetType, toIdx);
+        targetView.ShowNumText();
         _FreshAllHeroViews();
         _FreshAllHeroElements();
         _FreshItemView(pos);
@@ -587,8 +593,11 @@ public class BattleView : MonoBehaviour, IBattleView
 
         var targetType = _heroTargetType == SelectTargetType.Hero ? UseTarget.SelfSide : UseTarget.OppositeSide;
 
+        List<ResultModel> resultModels = null;
         if (UseSkill != null)
-            UseSkill(skill, fromData, targetData, targetType);
+            resultModels = UseSkill(skill, fromData, targetData, targetType);
+
+        _AddNumText(targetView, resultModels);
 
         yield return _PlaySkillAni(skill, fromView, targetView);
 
@@ -628,6 +637,7 @@ public class BattleView : MonoBehaviour, IBattleView
         yield return _skillEffectManager.PlayImmediatelyEffectViews(skill, from.SkillEffectPos, target.SkillEffectPos);
 
         target.PlayBeHitAni();
+        target.ShowNumText();
         _FreshAllHeroViews();
         _FreshAllEnemyViews();
         _FreshAllHeroElements();
@@ -802,11 +812,51 @@ public class BattleView : MonoBehaviour, IBattleView
         arrow.gameObject.SetActive(isShow);
     }
 
+    private void _AddNumText(CharacterView targetView, List<ResultModel> models)
+    {
+        if (targetView == null || models == null || models.Count == 0)
+            return;
+
+        targetView.AddNumText(models);
+    }
+
+    private CharacterView _GetCharacterView(SelectTargetType targetType, int index)
+    {
+        if (index == -1)
+            return null;
+
+        CharacterView targetView = null;
+        switch (targetType)
+        {
+            case SelectTargetType.Hero:
+                targetView = _heroViews[index];
+                break;
+            case SelectTargetType.Enemy:
+                targetView = _enemyViews[index];
+                break;
+        }
+
+        return targetView;
+    }
+
+    public void AddNumText(SelectTargetType targetType, int index, List<ResultModel> models)
+    {
+        if (models == null || models.Count == 0)
+            return;
+
+        CharacterView targetView = _GetCharacterView(targetType, index);
+
+        if (targetView == null)
+            return;
+
+        targetView.AddNumText(models);
+    }
+
     public void FreshInTheEndOfRound(int round = 1)
     {
-        _FreshAllHeroViews();
+        _FreshAllHeroViews(true);
         _FreshAllHeroElements();
-        _FreshAllEnemyViews();
+        _FreshAllEnemyViews(true);
         _skillEffectManager.EndRound(round);
     }
     #endregion
@@ -826,13 +876,17 @@ public class BattleView : MonoBehaviour, IBattleView
         yield return _PlaySkillAni(null, enemyView, targetHeroView);
     }
 
-    private void _FreshAllEnemyViews()
+    private void _FreshAllEnemyViews(bool showNumText = false)
     {
         foreach (var pair in _enemyViews)
         {
-            pair.Value.ChangeHpSliderValue();
-            pair.Value.ChangeMpSliderValue();
+            var view = pair.Value;
+            view.ChangeHpSliderValue();
+            view.ChangeMpSliderValue();
+            if (showNumText)
+                view.ShowNumText();
         }
+
         _SetCurAliveEnemyIdx();
     }
     #endregion

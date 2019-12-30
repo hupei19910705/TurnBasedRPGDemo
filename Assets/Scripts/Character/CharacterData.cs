@@ -141,70 +141,95 @@ public class CharacterData
         _buffs.Clear();
     }
 
-    public void BuffAndDebuffsEffect()
+    public List<ResultModel> BuffAndDebuffsEffect()
     {
+        List<ResultModel> results = null;
         if (_buffs == null || _buffs.Count == 0)
-            return;
+            return results;
 
         List<EffectModel> models = new List<EffectModel>();
 
         foreach (var buff in _buffs.Values)
             models.AddRange(buff.BuffEffectThenReturnModels());
 
-        ValueEffectByModels(models);
+        results = ValueEffectByModels(models);
         _UpdateBuffStatus();
+        return results;
     }
 
-    public void ValueEffectByModels(List<EffectModel> models)
+    public List<ResultModel> ValueEffectByModels(List<EffectModel> models)
     {
+        List<ResultModel> results = null;
         if (models == null || models.Count == 0)
-            return;
+            return results;
 
+        results = new List<ResultModel>();
         foreach (var model in models)
-            ValueEffectByModel(model);
+        {
+            var result = ValueEffectByModel(model);
+            if (result.ChangeValue == 0)
+                continue;
+            results.Add(result);
+        }
+
+        return results;
     }
 
-    public void ValueEffectByModel(EffectModel model)
+    public ResultModel ValueEffectByModel(EffectModel model)
     {
+        ResultModel result = default;
+        result.EffectWay = model.EffectWay;
         float value = model.ChangeValue;
         switch (model.ValueType)
         {
             case CharacterValueType.HP:
                 if (model.IsTargetPercent)
                     value *= OriginHp;
-                _ChangeHp(Mathf.FloorToInt(value), model.EffectWay);
+                result.IsReduce = value < 0;
+                result.ChangeValue = _ChangeHp(Mathf.FloorToInt(value), model.EffectWay);
+                result.ValueType = ResultValueType.Hp;
                 break;
             case CharacterValueType.MaxHp:
                 if (model.IsTargetPercent)
                     value *= OriginHp;
-                _ChangeMaxHp(Mathf.FloorToInt(value), model.EffectWay);
+                result.IsReduce = value < 0;
+                result.ChangeValue = _ChangeMaxHp(Mathf.FloorToInt(value), model.EffectWay);
+                result.ValueType = ResultValueType.Hp;
                 break;
             case CharacterValueType.MP:
                 if (model.IsTargetPercent)
                     value *= OriginMp;
-                _ChangeMp(Mathf.FloorToInt(value));
+                result.IsReduce = value < 0;
+                result.ChangeValue = _ChangeMp(Mathf.FloorToInt(value));
+                result.ValueType = ResultValueType.Mp;
                 break;
             case CharacterValueType.PAttack:
                 if (model.IsTargetPercent)
                     value *= OriginPAtk;
+                result.IsReduce = value < 0;
                 _ChangePAtk(Mathf.FloorToInt(value));
                 break;
             case CharacterValueType.MAttack:
                 if (model.IsTargetPercent)
                     value *= OriginMAtk;
+                result.IsReduce = value < 0;
                 _ChangeMAtk(Mathf.FloorToInt(value));
                 break;
             case CharacterValueType.PDefence:
                 if (model.IsTargetPercent)
                     value *= OriginPDef;
+                result.IsReduce = value < 0;
                 _ChangePDef(Mathf.FloorToInt(value));
                 break;
             case CharacterValueType.MDefence:
                 if (model.IsTargetPercent)
                     value *= OriginMDef;
+                result.IsReduce = value < 0;
                 _ChangeMDef(Mathf.FloorToInt(value));
                 break;
         }
+
+        return result;
     }
 
     private void _UpdateBuffStatus()
@@ -245,20 +270,22 @@ public class CharacterData
         return value;
     }
 
-    private void _ChangeHp(int changeValue, ValueEffectWay effectWay = ValueEffectWay.None)
+    private int _ChangeHp(int changeValue, ValueEffectWay effectWay = ValueEffectWay.None)
     {
         if (!IsAlive)
-            return;
+            return 0;
 
         changeValue = _DerateByEffectWay(changeValue, effectWay);
+        int lastHp = CurrentHp;
         CurrentHp += changeValue;
         CurrentHp = Mathf.Clamp(CurrentHp, 0, MaxHp);
+        return CurrentHp - lastHp;
     }
 
-    private void _ChangeMaxHp(int changeValue, ValueEffectWay effectWay = ValueEffectWay.None)
+    private int _ChangeMaxHp(int changeValue, ValueEffectWay effectWay = ValueEffectWay.None)
     {
         if (!IsAlive)
-            return;
+            return 0;
 
         changeValue = _DerateByEffectWay(changeValue, effectWay);
 
@@ -266,17 +293,21 @@ public class CharacterData
         if (MaxHp < 1)
             MaxHp = 1;
 
+        int lastHp = CurrentHp;
         CurrentHp += changeValue;
         CurrentHp = Mathf.Clamp(CurrentHp, 0, MaxHp);
+        return CurrentHp - lastHp;
     }
 
-    private void _ChangeMp(int changeValue)
+    private int _ChangeMp(int changeValue)
     {
         if (!IsAlive)
-            return;
+            return 0;
 
+        int lastMp = CurrentMp;
         CurrentMp += changeValue;
         CurrentMp = Mathf.Clamp(CurrentMp, 0, MaxMp);
+        return CurrentMp - lastMp;
     }
 
     private void _ChangePAtk(int changeValue)
@@ -323,4 +354,19 @@ public struct EffectModel
         EffectWay = effectWay;
         ChangeValue = changeValue;
     }
+}
+
+public enum ResultValueType
+{
+    None,
+    Hp,
+    Mp
+}
+
+public struct ResultModel
+{
+    public ResultValueType ValueType;
+    public ValueEffectWay EffectWay;
+    public bool IsReduce;
+    public int ChangeValue;
 }

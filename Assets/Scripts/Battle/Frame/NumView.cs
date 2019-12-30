@@ -141,8 +141,6 @@ public class NumView : MonoBehaviour
                 return new Vector3(-1f * _scale.x, 1f * _scale.y, 0f).normalized;
         }
 
-        Debug.LogError("111");
-
         return Vector3.zero;
     }
 }

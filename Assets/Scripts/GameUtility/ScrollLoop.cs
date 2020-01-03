@@ -1,670 +1,450 @@
-﻿using System.Collections;
+﻿using System;
+using System.Collections;
 using System.Collections.Generic;
-using UnityEngine;
-using UnityEngine.UI;
-using UnityEngine.EventSystems;
-using System;
 using System.Linq;
-using Constraint = UnityEngine.UI.GridLayoutGroup.Constraint;
-using Axis = UnityEngine.UI.GridLayoutGroup.Axis;
+using UnityEngine;
+using UnityEngine.EventSystems;
+using UnityEngine.UI;
+using Utility;
+using Utility.GameUtility;
 
-namespace Utility.GameUtility
+public class ScrollLoop : MonoBehaviour, IBeginDragHandler, IDragHandler, IEndDragHandler
 {
-    public class ScrollLoop : MonoBehaviour, IBeginDragHandler, IDragHandler, IEndDragHandler
+    [SerializeField] private GeneralObjectPool _pool = null;
+    [SerializeField] private RectTransform _viewport = null;
+    [SerializeField] private RectTransform _content = null;
+
+    [Header("Grid Layout")]
+    [SerializeField] private RectOffset _padding = null;
+    [SerializeField] private Vector2 _spacing = default;
+
+    [Header("Move")]
+    [SerializeField] private float _dragSpeed = 0f;
+    [SerializeField] [Range(0, 1)] private float _maxSpeedSmooth = 0f;
+    [SerializeField] [Range(0, 1)] private float _minSpeedSmooth = 0f;
+    [SerializeField] private bool _sliding = false;
+    [SerializeField] [Range(0, 1)] private float _deceleritionRate = 0f;
+
+    private Bounds _viewBounds;
+    private Vector2 _cellSize;
+    private Vector2 _leftOffset;
+    private Vector2 _topOffset;
+    private Vector2 _curDragPos;
+
+    private int _totalCount;
+    private int _maxColumnCount;
+    private int _maxActiveColumnCount;
+    private int _maxActiveRowCount;
+    private bool _horizontalDragable;
+    private bool _isDraging;
+    private bool _isSliding;
+
+    private List<int> _topElementIdxes = new List<int>();
+    private List<int> _bottomElementIdxes = new List<int>();
+    private List<int> _leftElementIdxes = new List<int>();
+    private List<int> _rightElementIdxes = new List<int>();
+    private Dictionary<int, GameObject> _activeElements = new Dictionary<int, GameObject>();
+
+    private ParallelCoroutines _parallelCor = new ParallelCoroutines();
+
+    public event Action<int, GameObject> SetElement;
+
+    private void Start()
     {
-        private enum Direction
-        {
-            Top,
-            Bottom,
-            Left,
-            Right
-        }
-
-        [SerializeField] private GeneralObjectPool _objPool = null;
-        [SerializeField] private RectTransform _viewport = null;
-        [SerializeField] private RectTransform _content = null;
-        [Header("Move")]
-        [SerializeField] private bool _isHorizontal = true;
-        [SerializeField] private bool _isVertical = true;
-        [SerializeField] private bool _isElastic = true;
-        [SerializeField] private float _elasticity = 0.05f;
-        [SerializeField] private float _maxSlidingSpeed = 0f;
-        [SerializeField] private float _minSlidingSpeed = 0f;
-        [Header("Modify Grid Layout Group")]
-        [SerializeField] private int _widthCount = 0;
-
-        #region Event
-        public event Action<GameObject> InitElement;
-        #endregion
-
-        #region Status
-        private bool _isDragging = false;
-        #endregion
-
-        #region Local Data
-        private int _elementTotalCount = 0;
-        private Vector2Int _visibleCount;
-        private List<int> _topElements = new List<int>();
-        private List<int> _bottomElements = new List<int>();
-        private List<int> _leftElements = new List<int>();
-        private List<int> _rightElements = new List<int>();
-        private Dictionary<int, GameObject> _elements = new Dictionary<int, GameObject>();
-        private Vector2 _velocity = Vector2.zero;
-        private Vector2 _startDragPos;
-        private Vector2 _elementSize;
-        private GridLayoutGroup _layoutGroup;
-        private Bounds _viewBounds;
-        #endregion
-
-        #region Const
-        private const int VISIBLE_ELEMENT_ADD_NUM = 2;
-        #endregion
-
-        private void Start()
-        {
-            int count = 91;
-            Initialize(count);
-        }
-
-        private void Update()
-        {
-            if (!_isDragging)
-            {
-                if (_isElastic)
-                    _Elastic();
-                _CounterMove();
-                _Move(_velocity);
-                _CheckOnBorder();
-            }
-            _UpdateElements();
-        }
-
-        #region Init
-        public void Initialize(int totalCount)
-        {
-            if (totalCount < 0)
-                totalCount = 0;
-            _elementTotalCount = totalCount;
-            _elementSize = _objPool.GetPrefabBounds().size;
-            _viewBounds = _GetBoundsInWorldSpace(_viewport);
-            _layoutGroup = _content.GetComponent<GridLayoutGroup>();
-
-            _visibleCount.x = Mathf.FloorToInt((_viewBounds.size.x / (_elementSize.x + _layoutGroup.spacing.x)) + (_isHorizontal ? VISIBLE_ELEMENT_ADD_NUM : 0));
-            _visibleCount.y = Mathf.FloorToInt((_viewBounds.size.y / (_elementSize.y + _layoutGroup.spacing.y)) + (_isVertical ? VISIBLE_ELEMENT_ADD_NUM : 0));
-
-            _InitLayoutGroup();
-            _InitElements();
-        }
-
-        private void _InitLayoutGroup()
-        {
-            _layoutGroup.cellSize = _elementSize;
-            _layoutGroup.constraint = Constraint.FixedColumnCount;
-            _widthCount = _isHorizontal ? _widthCount : Mathf.Min(_widthCount, _visibleCount.x);
-            _layoutGroup.constraintCount = _visibleCount.x;
-        }
-
-        private void _InitElements()
-        {
-            var visibleCount = _visibleCount.x * _visibleCount.y;
-            visibleCount = visibleCount < _elementTotalCount ? visibleCount : _elementTotalCount;
-            _objPool.InitPool(visibleCount);
-
-            var visibleList = new List<int>();
-            for (int i = 0; i < _elementTotalCount; i++)
-            {
-                if (i % _widthCount < _visibleCount.x && i / _widthCount < _visibleCount.y)
-                    visibleList.Add(i);
-            }
-            visibleList.Sort();
-            _InstantiateElements(visibleList);
-            _FreshBorderElements();
-        }
-        #endregion
-
-        #region Elements Func
-        private void _InstantiateElements(List<int> elementIndexes,Direction dir = Direction.Bottom)
-        {
-            var newList = new List<int>();
-            for (int i = 0; i < elementIndexes.Count; i++)
-            {
-                if (elementIndexes[i] < 0 || elementIndexes[i] >= _elementTotalCount)
-                    continue;
-
-                if (!_elements.ContainsKey(elementIndexes[i]))
-                    _InstantiateElement(elementIndexes[i]);
-
-                newList.Add(elementIndexes[i]);
-            }
-            _SetElementsSiblings(newList, dir);
-        }
-
-        private void _SetElementsSiblings(List<int> elementIndexes, Direction dir = Direction.Bottom)
-        {
-            switch (dir)
-            {
-                case Direction.Top:
-                    for (int i = elementIndexes.Count - 1; i >= 0; i--)
-                        _elements[elementIndexes[i]].transform.SetAsFirstSibling();
-                    break;
-                case Direction.Bottom:
-                    break;
-                case Direction.Left:
-                    for (int i = 0; i < elementIndexes.Count; i++)
-                        _elements[elementIndexes[i]].transform.SetSiblingIndex(_topElements.Count * i);
-                    break;
-                case Direction.Right:
-                    var width = _topElements.Count;
-                    for (int i = 0; i < elementIndexes.Count; i++)
-                        _elements[elementIndexes[i]].transform.SetSiblingIndex(width * i + width);
-                    break;
-            }
-        }
-
-        private void _InstantiateElement(int index)
-        {
-            var obj = _objPool.GetInstance();
-            obj.transform.SetParent(_content, false);
-            if (InitElement != null)
-                InitElement(obj);
-            _elements.Add(index, obj);
-
-            obj.GetComponentInChildren<Text>().text = index.ToString();
-        }
-
-        private void _ReturnElements(List<int> elementIndexes)
-        {
-            foreach (var idx in elementIndexes)
-            {
-                _objPool.ReturnInstance(_elements[idx]);
-                _elements.Remove(idx);
-            }
-            
-        }
-
-        private void _FreshBorderElements()
-        {
-            _topElements.Clear();
-            _bottomElements.Clear();
-            _leftElements.Clear();
-            _rightElements.Clear();
-
-            var list = _elements.Keys.OrderBy(idx => idx).ToList();
-            var first = list.First();
-            var last = list.Last();
-
-            int topColumn = first / _widthCount;
-            int bottomColumn = last / _widthCount;
-            int leftRow = first % _widthCount;
-
-            foreach (var idx in list)
-            {
-                if (idx / _widthCount == topColumn)
-                    _topElements.Add(idx);
-
-                if (idx / _widthCount == bottomColumn)
-                    _bottomElements.Add(idx);
-
-                if (idx % _widthCount == leftRow)
-                    _leftElements.Add(idx);
-            }
-
-            _topElements.Sort();
-            _bottomElements.Sort();
-            _leftElements.Sort();
-
-            int rightRow = _topElements.Last() % _widthCount;
-            _rightElements = list.FindAll(idx => idx % _widthCount == rightRow);
-            _rightElements.Sort();
-        }
-
-        private bool _SideElementsLoaded(Direction dir)
-        {
-            switch (dir)
-            {
-                case Direction.Top:
-                    return _topElements.First() / _widthCount == 0;
-                case Direction.Bottom:
-                    var first = _bottomElements.First();
-                    var lastColumn = (_elementTotalCount - 1) / _widthCount;
-
-                    if (first / _widthCount == lastColumn)
-                        return true;
-
-                    if (first + _widthCount > _elementTotalCount - 1)
-                        return first / _widthCount == lastColumn - 1;
-
-                    return false;
-                case Direction.Left:
-                    return _leftElements.First() % _widthCount == 0;
-                case Direction.Right:
-                    return _rightElements.First() % _widthCount == _widthCount - 1;
-            }
-            return false;
-        }
-
-        private void _UpdateElements()
-        {
-            _UpdateTopAndBottomElements();
-            _UpdateLeftAndRightElements();
-        }
-
-        private void _UpdateTopAndBottomElements()
-        {
-            if (!_isVertical)
-                return;
-
-            if(_velocity.y > 0f)
-                _UpdateMoveToTopElements();
-            else
-                _UpdateMoveToBottomElements();
-        }
-
-        private void _UpdateLeftAndRightElements()
-        {
-            if (!_isHorizontal)
-                return;
-
-            if(_velocity.x < 0f)
-                _UpdateMoveToLeftElements();
-            else
-                _UpdateMoveToRightElements();
-        }
-
-        private void _UpdateMoveToTopElements()
-        {
-            var offset = _GetBorderOffset();
-            var space = _layoutGroup.spacing.y + _elementSize.y;
-            var changePos = Vector2.zero;
-            var change = false;
-
-            if (_leftElements.Count > _visibleCount.y && offset.top > space * 2)
-            {
-                change = true;
-                _ReturnElements(_topElements);
-                changePos += new Vector2(0f, -space);
-            }
-
-            if (offset.bottom < space)
-            {
-                var newList = new List<int>();
-                _bottomElements.ForEach(idx =>
-                {
-                    var newIdx = idx + _widthCount;
-                    if (newIdx >= 0 && newIdx < _elementTotalCount && ((idx % _widthCount) == (newIdx % _widthCount)))
-                        newList.Add(newIdx);
-                });
-
-                if (newList.Count > 0)
-                {
-                    change = true;
-                    newList.Sort();
-                    _InstantiateElements(newList, Direction.Bottom);
-                }
-            }
-
-            if (change)
-            {
-                _content.anchoredPosition += changePos;
-                _FreshBorderElements();
-            }
-        }
-
-        private void _UpdateMoveToBottomElements()
-        {
-            var offset = _GetBorderOffset();
-            var space = _layoutGroup.spacing.y + _elementSize.y;
-            var changePos = Vector2.zero;
-            var change = false;
-
-            if (_leftElements.Count > _visibleCount.y && offset.bottom > space * 2)
-            {
-                change = true;
-                _ReturnElements(_bottomElements);
-                if (!_SideElementsLoaded(Direction.Top))
-                    changePos += new Vector2(0f, space);
-            }
-
-            if (offset.top < space)
-            {
-                var newList = new List<int>();
-                _topElements.ForEach(idx =>
-                {
-                    var newIdx = idx - _widthCount;
-                    if (newIdx >= 0 && newIdx < _elementTotalCount && ((idx % _widthCount) == (newIdx % _widthCount)))
-                        newList.Add(newIdx);
-                });
-
-                if (newList.Count > 0)
-                {
-                    change = true;
-
-                    var diff = _visibleCount.x - _topElements.Count;
-                    while (diff > 0)
-                    {
-                        var last = newList.Last();
-                        if (last + 1 < _elementTotalCount)
-                        {
-                            newList.Add(last + 1);
-                            diff--;
-                        }
-                        else
-                            break;
-                    }
-
-                    newList.Sort();
-                    _InstantiateElements(newList, Direction.Top);
-                    if (_SideElementsLoaded(Direction.Bottom))
-                        changePos += new Vector2(0f, space);
-                }
-            }
-
-            if (change)
-            {
-                _content.anchoredPosition += changePos;
-                _FreshBorderElements();
-            }
-        }
-
-        private void _UpdateMoveToLeftElements()
-        {
-            var offset = _GetBorderOffset();
-            var space = _layoutGroup.spacing.x + _elementSize.x;
-            var changePos = Vector2.zero;
-            var change = false;
-
-            if(_topElements.Count > _visibleCount.x && offset.left > space * 2)
-            {
-                change = true;
-                _ReturnElements(_leftElements);
-                if (!_SideElementsLoaded(Direction.Right))
-                    changePos += new Vector2(space, 0f);
-            }
-
-            if(offset.right < space)
-            {
-                var newList = new List<int>();
-                _rightElements.ForEach(idx =>
-                {
-                    var newIdx = idx + 1;
-                    if (newIdx >= 0 && newIdx < _elementTotalCount && ((idx / _widthCount) == (newIdx / _widthCount)))
-                        newList.Add(newIdx);
-                });
-
-                if (newList.Count > 0)
-                {
-                    change = true;
-                    newList.Sort();
-                    _InstantiateElements(newList, Direction.Right);
-                    if(_SideElementsLoaded(Direction.Left))
-                        changePos += new Vector2(space, 0f);
-                }
-            }
-
-            if(change)
-            {
-                _content.anchoredPosition += changePos;
-                _FreshBorderElements();
-            }
-        }
-
-        private void _UpdateMoveToRightElements()
-        {
-            var offset = _GetBorderOffset();
-            var space = _layoutGroup.spacing.x + _elementSize.x;
-            var changePos = Vector2.zero;
-            var change = false;
-
-            if (_topElements.Count > _visibleCount.x && offset.right > space * 2)
-            {
-                change = true;
-                _ReturnElements(_rightElements);
-                if (!_SideElementsLoaded(Direction.Right))
-                    changePos += new Vector2(-space, 0f);
-            }
-
-            if(offset.left < space)
-            {
-                var newList = new List<int>();
-                _leftElements.ForEach(idx =>
-                {
-                    var newIdx = idx - 1;
-                    if (newIdx >= 0 && newIdx < _elementTotalCount && ((idx / _widthCount) == (newIdx / _widthCount)))
-                        newList.Add(newIdx);
-                });
-                
-                if(newList.Count> 0)
-                {
-                    change = true;
-
-                    var diff = _visibleCount.y - _leftElements.Count;
-                    while (diff > 0)
-                    {
-                        var last = newList.Last();
-                        if (last + _widthCount < _elementTotalCount)
-                        {
-                            newList.Add(last + 1);
-                            diff--;
-                        }
-                        else
-                            break;
-                    }
-
-                    newList.Sort();
-                    _InstantiateElements(newList, Direction.Left);
-                    if(_SideElementsLoaded(Direction.Right))
-                    changePos += new Vector2(-space, 0f);
-                }
-            }
-
-            if (change)
-            {
-                _content.anchoredPosition += changePos;
-                _FreshBorderElements();
-            }
-        }
-        #endregion
-
-        #region Drag
-        public void OnBeginDrag(PointerEventData eventData)
-        {
-            if (_isDragging || !_viewBounds.Contains(eventData.position))
-                return;
-
-            _isDragging = true;
-            _startDragPos = eventData.position;
-            _velocity = Vector2.zero;
-        }
-
-        public void OnDrag(PointerEventData eventData)
-        {
-            if (!_isDragging)
-            {
-                OnEndDrag(eventData);
-                return;
-            }
-            var posDelta = _TranslatePosDeltaToSpeed(eventData.position - _startDragPos, false);
-
-            if (!_isElastic)
-            {
-                if ((posDelta.y < 0f && _SideElementsLoaded(Direction.Top)) || (posDelta.y > 0f && _SideElementsLoaded(Direction.Bottom)))
-                    posDelta.y = 0f;
-
-                if ((posDelta.x > 0f && _SideElementsLoaded(Direction.Right)) || (posDelta.x < 0f && _SideElementsLoaded(Direction.Left)))
-                    posDelta.x = 0f;
-            }
-
-            _startDragPos = eventData.position;
-            _Move(posDelta);
-            _velocity = posDelta;
-        }
-
-        public void OnEndDrag(PointerEventData eventData)
-        {
-            _isDragging = false;
-            _velocity = _TranslatePosDeltaToSpeed(eventData.position - _startDragPos);
-            _startDragPos = eventData.position;
-        }
-        #endregion
-
-        #region Move
-        private void _Move(Vector2 posDelta)
-        {
-            if (!_isHorizontal)
-                posDelta.x = 0f;
-            if (!_isVertical)
-                posDelta.y = 0f;
-
-            _content.anchoredPosition += posDelta;
-        }
-
-        private void _Elastic()
-        {
-            if (Mathf.Abs(_velocity.x) < _minSlidingSpeed)
-                _velocity.x = 0f;
-
-            if (Mathf.Abs(_velocity.y) < _minSlidingSpeed)
-                _velocity.y = 0f;
-
-            _velocity *= (1 - _elasticity);
-        }
-
-        private void _CounterMove()
-        {
-            var counterPos = _GetCounterPosDelta();
-            if (counterPos.sqrMagnitude < 1f)
-                return;
-
-            Vector2 posDelta = Vector2.zero;
-
-            if (_velocity.x * counterPos.x > 0f )
-                posDelta.x = Mathf.Abs(_velocity.x) > Mathf.Abs(counterPos.x) ? _velocity.x : counterPos.x;
-            else
-                posDelta.x = counterPos.x;
-
-            if (_velocity.y * counterPos.y > 0f)
-                posDelta.y = Mathf.Abs(_velocity.y) > Mathf.Abs(counterPos.y) ? _velocity.y : counterPos.y;
-            else
-                posDelta.y = counterPos.y;
-
-            _velocity = _TranslatePosDeltaToSpeed(posDelta, false);
-
-            if (Mathf.Abs(_velocity.x) < _minSlidingSpeed)
-                _velocity.x = 0f;
-            if (Mathf.Abs(_velocity.y) < _minSlidingSpeed)
-                _velocity.y = 0f;
-        }
-        #endregion
-
-        #region Utility
-        private Bounds _GetBoundsInWorldSpace(RectTransform transform)
-        {
-            var center = transform.localToWorldMatrix.MultiplyPoint3x4(transform.rect.center);
-            var min = transform.localToWorldMatrix.MultiplyPoint3x4(transform.rect.min);
-            var max = transform.localToWorldMatrix.MultiplyPoint3x4(transform.rect.max);
-            var size = new Vector3(max.x - min.x, max.y - min.y, 0f);
-            return new Bounds(center, size);
-        }
-
-        private Vector2 _GetCounterPosDelta()
-        {
-            var offset = _GetBorderOffset();
-            Vector2 counterPosDelta = Vector2.zero;
-            if (_SideElementsLoaded(Direction.Top) && offset.top < 0)
-                counterPosDelta.y = Mathf.Abs(offset.top);
-            else if (_SideElementsLoaded(Direction.Bottom) && offset.bottom < 0)
-                counterPosDelta.y = offset.bottom;
-
-            if (_SideElementsLoaded(Direction.Left) && offset.left < 0)
-                counterPosDelta.x = offset.left;
-            else if (_SideElementsLoaded(Direction.Right) && offset.right < 0)
-                counterPosDelta.x = Mathf.Abs(offset.right);
-
-            return counterPosDelta;
-        }
-
-        private bool _OnTheBorder(Direction dir)
-        {
-            var offset = _GetBorderOffset();
-            if (!_SideElementsLoaded(dir))
-                return false;
-            switch (dir)
-            {
-                case Direction.Top:
-                    return Mathf.Abs(offset.top) < _maxSlidingSpeed;
-                case Direction.Bottom:
-                    return Mathf.Abs(offset.bottom) < _maxSlidingSpeed;
-                case Direction.Left:
-                    return Mathf.Abs(offset.left) < _maxSlidingSpeed;
-                case Direction.Right:
-                    return Mathf.Abs(offset.right) < _maxSlidingSpeed;
-            }
-            return false;
-        }
-
-        private RectOffset _GetBorderOffset()
-        {
-            LayoutRebuilder.ForceRebuildLayoutImmediate(_content);
-            var contentBounds = _GetBoundsInWorldSpace(_content);
-            return new RectOffset(
-                Mathf.FloorToInt(_viewBounds.min.x - contentBounds.min.x),
-                Mathf.FloorToInt(contentBounds.max.x - _viewBounds.max.x),
-                Mathf.FloorToInt(contentBounds.max.y - _viewBounds.max.y),
-                Mathf.FloorToInt(_viewBounds.min.y - contentBounds.min.y)
-                );
-        }
-
-        private Vector2 _TranslatePosDeltaToSpeed(Vector2 posDelta,bool useMinSpeed = true)
-        {
-            var minSpeed = useMinSpeed ? _minSlidingSpeed : 0f;
-
-            if (Mathf.Abs((float)posDelta.x) > _maxSlidingSpeed)
-                posDelta.x = posDelta.x >= 0 ? _maxSlidingSpeed : -_maxSlidingSpeed;
-            else if(Mathf.Abs((float)posDelta.x) < minSpeed)
-                posDelta.x = posDelta.x >= 0 ? minSpeed : -minSpeed;
-
-            if (Mathf.Abs((float)posDelta.y) > _maxSlidingSpeed)
-                posDelta.y = posDelta.y >= 0 ? _maxSlidingSpeed : -_maxSlidingSpeed;
-            else if (Mathf.Abs((float)posDelta.y) < minSpeed)
-                posDelta.y = posDelta.y >= 0 ? minSpeed : -minSpeed;
-
-            return posDelta;
-        }
-
-        private void _CheckOnBorder()
-        {
-            var offset = _GetBorderOffset();
-            var movePos = Vector2.zero;
-            if (_isVertical)
-            {
-                if(_SideElementsLoaded(Direction.Top) && Mathf.Abs(offset.top) > 1f && Mathf.Abs(offset.top) < _maxSlidingSpeed)
-                {
-                    _velocity.y = 0f;
-                    movePos.y = -offset.top;
-                }
-                else if(_SideElementsLoaded(Direction.Bottom) && Mathf.Abs(offset.bottom) > 1f && Mathf.Abs(offset.bottom) < _maxSlidingSpeed)
-                {
-                    _velocity.y = 0f;
-                    movePos.y = offset.bottom;
-                }
-            }
-
-            if (_isHorizontal)
-            {
-                if (_SideElementsLoaded(Direction.Left) && Mathf.Abs(offset.left) > 1f && Mathf.Abs(offset.left) < _maxSlidingSpeed)
-                {
-                    _velocity.x = 0f;
-                    movePos.x = offset.left;
-                }
-                else if (_SideElementsLoaded(Direction.Right) && Mathf.Abs(offset.right) > 1f && Mathf.Abs(offset.right) < _maxSlidingSpeed)
-                {
-                    _velocity.x = 0f;
-                    movePos.x = -offset.right;
-                }
-            }
-
-            _Move(movePos);
-        }
-        #endregion
+        Init(100, 10);
     }
+
+    private void Update()
+    {
+        _CheckBorderElements();
+    }
+
+    private void _SetTestElementData(int index, GameObject instance)
+    {
+        instance.GetComponentInChildren<Text>().text = index.ToString();
+    }
+
+    #region Init
+    private void Init(int count, int column = -1)
+    {
+        _totalCount = count;
+
+        _pool.InitPool();
+        _viewBounds = _GetBoundsInWorldSpace(_viewport);
+        _cellSize = _pool.GetPrefabBounds().size;
+        _leftOffset = new Vector2(_spacing.x, _spacing.x * 2 + _cellSize.x);
+        _topOffset = new Vector2(_spacing.y, _spacing.y * 2 + _cellSize.y);
+
+        var basicColumnCount = Mathf.FloorToInt((_viewport.sizeDelta.x + _spacing.x - _padding.left - _padding.right) / (_cellSize.x + _spacing.x));
+        if (column == -1)
+        {
+            _maxColumnCount = _maxActiveColumnCount = basicColumnCount;
+            _horizontalDragable = false;
+        }
+        else
+        {
+            _maxActiveColumnCount = basicColumnCount + 2;
+            _maxColumnCount = Mathf.Max(column, _maxActiveColumnCount);
+            _horizontalDragable = true;
+        }
+
+        var basicRowCount = Mathf.FloorToInt((_viewport.sizeDelta.y + _spacing.y - _padding.top - _padding.bottom) / (_cellSize.y + _spacing.y));
+        _maxActiveRowCount = basicRowCount + 2;
+
+        _InitGridLayoutGroup();
+        _InitElements();
+        _UpdateBorderElements();
+        StartCoroutine(_parallelCor.Execute());
+    }
+
+    private void _InitGridLayoutGroup()
+    {
+        var layoutGroup = _content.GetComponent<GridLayoutGroup>();
+        layoutGroup.padding = _padding;
+        layoutGroup.cellSize = _cellSize;
+        layoutGroup.spacing = _spacing;
+        layoutGroup.constraintCount = _maxActiveColumnCount;
+    }
+
+    private void _InitElements()
+    {
+        for (int row = 0; row < _maxActiveRowCount; row++)
+        {
+            for (int col = 0; col < _maxActiveColumnCount; col++)
+            {
+                int index = row * _maxColumnCount + col;
+                if (index >= _totalCount)
+                    return;
+                AddElement(index);
+            }
+        }
+    }
+    #endregion
+
+    #region Pointer Event
+    public void OnBeginDrag(PointerEventData eventData)
+    {
+        if (_isDraging || !_viewBounds.Contains(eventData.position))
+            return;
+
+        _isDraging = true;
+        _isSliding = false;
+        _curDragPos = eventData.position;
+    }
+
+    public void OnDrag(PointerEventData eventData)
+    {
+        if (!_isDraging)
+            return;
+
+        Vector3 deltaPos = eventData.position - _curDragPos;
+        _curDragPos = eventData.position;
+        _Move(deltaPos * _dragSpeed);
+    }
+
+    public void OnEndDrag(PointerEventData eventData)
+    {
+        if (!_isDraging)
+            return;
+
+        _isDraging = false;
+        Vector3 deltaPos = eventData.position - _curDragPos;
+        _curDragPos = eventData.position;
+        _Sliding(deltaPos * _dragSpeed);
+    }
+    #endregion
+
+    #region Move
+    private void _Move(Vector3 delta)
+    {
+        delta = _CheckSpeed(delta);
+        var minSpeed = _cellSize * _minSpeedSmooth;
+        if (Mathf.Abs(delta.x) < minSpeed.x && Mathf.Abs(delta.y) < minSpeed.y)
+            return;
+
+        _content.position += delta;
+    }
+
+    private void _Sliding(Vector3 delta)
+    {
+        if (!_sliding)
+            return;
+
+        _parallelCor.Add(_OnSliding(delta));
+    }
+
+    private IEnumerator _OnSliding(Vector3 speed)
+    {
+        var minSpeed = _cellSize * _minSpeedSmooth;
+        if (Mathf.Abs(speed.x) < minSpeed.x && Mathf.Abs(speed.y) < minSpeed.y)
+            yield break;
+
+        _isSliding = true;
+        speed = _CheckSpeed(speed);
+
+        while (_isSliding && speed.sqrMagnitude > 1f)
+        {
+            _content.position += speed;
+            speed *= (1 - _deceleritionRate);
+
+            var offset = _GetBorderOffset();
+
+            if (Mathf.Abs(speed.x) < minSpeed.x || offset.left < 0 || (offset.left > 0 && offset.right < 0))
+                speed.x = 0;
+            if (Mathf.Abs(speed.y) < minSpeed.y || offset.top < 0 || (offset.top > 0 && offset.bottom < 0))
+                speed.y = 0;
+
+            yield return null;
+        }
+        _isSliding = false;
+    }
+    #endregion
+
+    #region Elements
+    public void AddElement(int index)
+    {
+        if (_activeElements.ContainsKey(index) || index >= _totalCount)
+            return;
+
+        var instance = _pool.GetInstance();
+        var trans = instance.transform;
+        trans.SetParent(_content);
+        trans.SetSiblingIndex(_GetSerialNumInActiveElements(index));
+
+        if (SetElement != null)
+            SetElement(index, instance);
+        _SetTestElementData(index, instance);
+        _activeElements.Add(index, instance);
+    }
+
+    public void RemoveElement(int index)
+    {
+        if (!_activeElements.ContainsKey(index) || index >= _totalCount)
+            return;
+
+        var instance = _activeElements[index];
+        _pool.ReturnInstance(instance);
+        _activeElements.Remove(index);
+    }
+
+    private void _EraseLeftAndAddRight()
+    {
+        var rightStart = _rightElementIdxes.First();
+        if (_IsSameColumn(rightStart, _maxColumnCount - 1))
+            return;
+
+        foreach (var index in _leftElementIdxes)
+            RemoveElement(index);
+
+        foreach (var index in _rightElementIdxes)
+        {
+            var newIdx = index + 1;
+            AddElement(newIdx);
+        }
+
+        _content.position += new Vector3(_cellSize.x + _spacing.x, 0f, 0f);
+        _UpdateBorderElements();
+    }
+
+    private void _EraseRightAndAddLeft()
+    {
+        var leftStart = _leftElementIdxes.First();
+        if (_IsSameColumn(leftStart, 0))
+            return;
+
+        foreach (var index in _rightElementIdxes)
+            RemoveElement(index);
+
+        for (int i = 0; i < _maxActiveRowCount; i++)
+        {
+            var newIdx = leftStart - 1 + _maxColumnCount * i;
+            if (newIdx >= _totalCount)
+                continue;
+            AddElement(newIdx);
+        }
+
+        _content.position -= new Vector3(_cellSize.x + _spacing.x, 0f, 0f);
+        _UpdateBorderElements();
+    }
+
+    private void _EraseTopAndAddBottom()
+    {
+        var bottomStart = _bottomElementIdxes.First();
+        if (_IsSameRow(bottomStart, _totalCount - 1))
+            return;
+
+        foreach (var index in _topElementIdxes)
+            RemoveElement(index);
+
+        foreach (var index in _bottomElementIdxes)
+        {
+            var newIdx = index + _maxColumnCount;
+            if (newIdx >= _totalCount)
+                continue;
+            AddElement(newIdx);
+        }
+
+        _content.position -= new Vector3(0f, _cellSize.y + _spacing.y, 0f);
+        _UpdateBorderElements();
+    }
+
+    private void _EraseBottomAndAddTop()
+    {
+        var topStart = _topElementIdxes.First();
+        if (_IsSameRow(topStart, 0))
+            return;
+
+        foreach (var index in _bottomElementIdxes)
+            RemoveElement(index);
+
+        foreach (var index in _topElementIdxes)
+        {
+            var newIdx = index - _maxColumnCount;
+            if (newIdx < 0)
+                continue;
+            AddElement(newIdx);
+        }
+
+        _content.position += new Vector3(0f, _cellSize.y + _spacing.y, 0f);
+        _UpdateBorderElements();
+    }
+
+    private void _CheckBorderElements()
+    {
+        var offset = _GetBorderOffset();
+        Vector3 posDelta = Vector3.zero;
+        if (offset.top <= 0)
+            posDelta.y = -offset.top;
+        else
+        {
+            if (offset.top > _topOffset.y)
+                _EraseTopAndAddBottom();
+            else if (offset.top < _topOffset.x)
+                _EraseBottomAndAddTop();
+
+            if (offset.bottom < 0)
+                posDelta.y = offset.bottom;
+        }
+
+        if (offset.left <= 0)
+            posDelta.x = offset.left;
+        else
+        {
+            if (offset.left > _leftOffset.y)
+                _EraseLeftAndAddRight();
+            else if (offset.left < _leftOffset.x)
+                _EraseRightAndAddLeft();
+
+            if (offset.right < 0)
+                posDelta.x = -offset.right;
+        }
+
+        _content.position += posDelta;
+    }
+    #endregion
+
+    #region Utility
+    private bool _IsSameRow(int first, int second)
+    {
+        return first / _maxColumnCount == second / _maxColumnCount;
+    }
+
+    private bool _IsSameColumn(int first, int second)
+    {
+        return first % _maxColumnCount == second % _maxColumnCount;
+    }
+
+    private void _UpdateBorderElements()
+    {
+        _topElementIdxes.Clear();
+        _bottomElementIdxes.Clear();
+        _leftElementIdxes.Clear();
+        _rightElementIdxes.Clear();
+
+        if (_activeElements.Count == 0)
+            return;
+
+        var indexList = _activeElements.Keys.ToList();
+        indexList.Sort();
+        int start = indexList[0];
+        foreach (var index in indexList)
+        {
+            if (_IsSameRow(start, index))
+                _topElementIdxes.Add(index);
+
+            if (_IsSameColumn(start, index))
+                _leftElementIdxes.Add(index);
+        }
+
+        int bottomStart = _leftElementIdxes.Last();
+        int rightStart = _topElementIdxes.Last();
+        foreach (var index in indexList)
+        {
+            if (_IsSameRow(bottomStart, index))
+                _bottomElementIdxes.Add(index);
+
+            if (_IsSameColumn(rightStart, index))
+                _rightElementIdxes.Add(index);
+        }
+    }
+
+    private Bounds _GetBoundsInWorldSpace(RectTransform trans)
+    {
+        var center = trans.localToWorldMatrix.MultiplyPoint3x4(trans.rect.center);
+        var min = trans.localToWorldMatrix.MultiplyPoint3x4(trans.rect.min);
+        var max = trans.localToWorldMatrix.MultiplyPoint3x4(trans.rect.max);
+        var size = new Vector3(max.x - min.x, max.y - min.y, 0f);
+        return new Bounds(center, size);
+    }
+
+    private int _GetMaxRowCount()
+    {
+        var remainer = _totalCount % _maxColumnCount;
+        return _totalCount / _maxColumnCount + remainer > 0 ? 1 : 0;
+    }
+
+    private int _GetSerialNumInActiveElements(int index)
+    {
+        if (_activeElements.Count == 0)
+            return -1;
+
+        var indexList = _activeElements.Keys.ToList();
+        indexList.Sort();
+        for (int i = 0; i < indexList.Count; i++)
+        {
+            if (index < indexList[i])
+                return i;
+        }
+
+        return -1;
+    }
+
+    private RectOffset _GetBorderOffset()
+    {
+        var contentBounds = _GetBoundsInWorldSpace(_content);
+        var top = Mathf.FloorToInt(contentBounds.max.y - _viewBounds.max.y);
+        var bottom = Mathf.FloorToInt(_viewBounds.min.y - contentBounds.min.y);
+        var left = Mathf.FloorToInt(_viewBounds.min.x - contentBounds.min.x);
+        var right = Mathf.FloorToInt(contentBounds.max.x - _viewBounds.max.x);
+
+        return new RectOffset(left, right, top, bottom);
+    }
+
+    private Vector3 _CheckSpeed(Vector3 speed)
+    {
+        var max = _cellSize * _maxSpeedSmooth;
+        var min = _cellSize * _minSpeedSmooth;
+
+        var x = Mathf.Clamp(Mathf.Abs(speed.x), min.x, max.x);
+        var y = Mathf.Clamp(Mathf.Abs(speed.y), min.x, max.x);
+
+        speed.x = speed.x > 0 ? x : -x;
+        speed.y = speed.y > 0 ? y : -y;
+
+        if (!_horizontalDragable)
+            speed.x = 0;
+
+        return speed;
+    }
+    #endregion
 }

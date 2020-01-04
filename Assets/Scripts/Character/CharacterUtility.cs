@@ -101,4 +101,22 @@ public class CharacterUtility
 
         return result;
     }
+
+    public Dictionary<string, Skill> GetSkillsByID(List<string> skillIds)
+    {
+        Dictionary<string, Skill> result = new Dictionary<string, Skill>();
+        for (int i = 0; i < skillIds.Count; i++)
+        {
+            var skill = GetSkillByID(skillIds[i]);
+            if (skill != null)
+                result.Add(skill.ID, skill);
+        }
+        return result;
+    }
+
+    public Skill GetSkillByID(string id)
+    {
+        var skillRow = _gameData.SkillTable[id];
+        return new Skill(skillRow);
+    }
 }

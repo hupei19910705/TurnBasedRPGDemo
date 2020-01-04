@@ -61,9 +61,8 @@ public class BattleView : MonoBehaviour, IBattleView
 
     [Header("Other")]
     [SerializeField] private Transform _defaultArrowRoot = null;
-    [SerializeField] private ScrollRect _ItemsOrSkillsScroll = null;
-    [SerializeField] private GeneralObjectPool _itemPool = null;
-    [SerializeField] private GeneralObjectPool _skillPool = null;
+    [SerializeField] private ScrollLoop _itemScroll = null;
+    [SerializeField] private ScrollLoop _skillScroll = null;
     [SerializeField] private Transform _skillEffectRoot = null;
     [SerializeField] private Text _topText = null;
 
@@ -82,7 +81,6 @@ public class BattleView : MonoBehaviour, IBattleView
     private PlayerData _playerData = null;
     private Dictionary<int, HeroView> _heroViews = new Dictionary<int, HeroView>();
     private Dictionary<int, HeroElement> _heroElements = new Dictionary<int, HeroElement>();
-    private Dictionary<string, SkillRow> _skillTable = null;
 
     private Dictionary<int, EnemyData> _enemiesData = null;
     private Dictionary<int, EnemyView> _enemyViews = new Dictionary<int, EnemyView>();
@@ -142,8 +140,6 @@ public class BattleView : MonoBehaviour, IBattleView
         _playerData = playerData;
         _enemiesData = enemiesData;
 
-        _ItemsOrSkillsScroll.gameObject.SetActive(false);
-
         _Init();
         _SetCurAliveEnemyIdx();
         _SetTopTipText(TopTipType.HeroTurn);
@@ -163,7 +159,6 @@ public class BattleView : MonoBehaviour, IBattleView
     public void Initialize(GameData gameData, IInfoView infoView)
     {
         _gameData = gameData;
-        _skillTable = _gameData.SkillTable;
         _infoView = infoView;
     }
 
@@ -172,8 +167,11 @@ public class BattleView : MonoBehaviour, IBattleView
         _heroMemberPool.InitPool();
         _heroMemberElementPool.InitPool();
         _enemyMemberPool.InitPool();
-        _itemPool.InitPool(10);
-        _skillPool.InitPool(10);
+
+        _itemScroll.gameObject.SetActive(false);
+        _itemScroll.Init(5);
+        _skillScroll.gameObject.SetActive(false);
+        _skillScroll.Init(-1);
 
         _heroSelectionView.Init();
         _skillEffectManager = new SkillEffectManager(_skillEffectRoot, _gameData.EffectTable);
@@ -256,7 +254,8 @@ public class BattleView : MonoBehaviour, IBattleView
         _infoView.EndShow();
         _heroSelectionView.Show(isShow);
 
-        _ItemsOrSkillsScroll.gameObject.SetActive(false);
+        _itemScroll.gameObject.SetActive(false);
+        _skillScroll.gameObject.SetActive(false);
         Transform arrowRoot = null;
 
         if (isShow)
@@ -294,69 +293,71 @@ public class BattleView : MonoBehaviour, IBattleView
         _UseSkill(null);
     }
 
+    private void _SetSkillElement(GameObject instance, Skill skill)
+    {
+        var curHero = _playerData.TeamHeroes[_curHeroIdx];
+        var view = instance.GetComponent<SkillView>();
+        view.SetData(skill, curHero.CurrentMp >= skill.MpCost);
+        view.ClickAction -= () => _ClickSkillView(skill);
+        view.ClickAction += () => _ClickSkillView(skill);
+        _skillViews.Add(view);
+    }
+
     private void _ListSkills(bool isShow)
     {
-        _ClearItemAndSkillObjs();
+        List<Skill> skills = new List<Skill>();
+        if(_curHeroIdx != -1)
+            skills = CharacterUtility.Instance.GetSkillsByID(_playerData.TeamHeroes[_curHeroIdx].SkillList).Values.
+                OrderBy(skill => int.Parse(skill.ID)).ToList();
 
         if (isShow)
         {
             _SetTopTipText(TopTipType.SelectSkill);
-            _ItemsOrSkillsScroll.gameObject.SetActive(true);
+            _skillScroll.gameObject.SetActive(true);
 
-            var skills = _GetSkillsByID(_playerData.TeamHeroes[_curHeroIdx].SkillList).Values.OrderBy(skill => int.Parse(skill.ID)).ToList();
             if (skills == null || skills.Count == 0)
                 return;
 
-            var curHero = _playerData.TeamHeroes[_curHeroIdx];
-            for (int i = 0; i < skills.Count; i++)
-            {
-                var skill = skills[i];
-
-                var instance = _skillPool.GetInstance();
-                instance.transform.SetParent(_ItemsOrSkillsScroll.content);
-                var view = instance.GetComponent<SkillView>();
-                view.SetData(skill, curHero.CurrentMp >= skill.MpCost);
-                view.ClickAction -= () => _ClickSkillView(skill);
-                view.ClickAction += () => _ClickSkillView(skill);
-                _skillViews.Add(view);
-            }
+            _skillScroll.SetElement += (index, obj) => _SetSkillElement(obj, skills[index]);
+            _skillScroll.InitElements(skills.Count);
         }
         else
         {
             _SetTopTipText(TopTipType.SelectHeroOperation);
-            _ItemsOrSkillsScroll.gameObject.SetActive(false);
+            _skillScroll.SetElement -= (index, obj) => _SetSkillElement(obj, skills[index]);
+            _skillScroll.gameObject.SetActive(false);
+        }
+    }
+
+    private void _SetItemElement(int index,GameObject instance)
+    {
+        var item = _playerData.BackPack[index];
+
+        var view = instance.GetComponent<ItemView>();
+        view.SetData(item, index);
+        view.ClickAction -= _ClickItemView;
+        if (item != null)
+        {
+            view.ClickAction += _ClickItemView;
+            _itemViews.Add(view);
         }
     }
 
     private void _ListItems(bool isShow)
     {
-        _ClearItemAndSkillObjs();
-
         if (isShow)
         {
             _SetTopTipText(TopTipType.SelectItem);
-            _ItemsOrSkillsScroll.gameObject.SetActive(true);
+            _itemScroll.gameObject.SetActive(true);
 
-            var pack = _playerData.BackPack;
-            for (int i= 0;i< pack.Length;i++)
-            {
-                var item = pack[i];
-                if (item == null)
-                    continue;
-
-                var instance = _itemPool.GetInstance();
-                instance.transform.SetParent(_ItemsOrSkillsScroll.content);
-                var view = instance.GetComponent<ItemView>();
-                view.SetData(item, i);
-                view.ClickAction -= _ClickItemView;
-                view.ClickAction += _ClickItemView;
-                _itemViews.Add(view);
-            }
+            _itemScroll.SetElement += _SetItemElement;
+            _itemScroll.InitElements(_playerData.BackPack.Length);
         }
         else
         {
             _SetTopTipText(TopTipType.SelectHeroOperation);
-            _ItemsOrSkillsScroll.gameObject.SetActive(false);
+            _itemScroll.SetElement -= _SetItemElement;
+            _itemScroll.gameObject.SetActive(false);
         }
     }
 
@@ -381,17 +382,6 @@ public class BattleView : MonoBehaviour, IBattleView
     #endregion
 
     #region ItemAndSkillList
-    private void _ClearItemAndSkillObjs()
-    {
-        for (int i = 0; i < _skillViews.Count; i++)
-            _skillPool.ReturnInstance(_skillViews[i].gameObject);
-        _skillViews.Clear();
-
-        for (int i = 0; i < _itemViews.Count; i++)
-            _itemPool.ReturnInstance(_itemViews[i].gameObject);
-        _itemViews.Clear();
-    }
-
     private void _FreshItemView(int pos)
     {
         var itemView = _GetItemView(pos);
@@ -405,7 +395,7 @@ public class BattleView : MonoBehaviour, IBattleView
     private void _FreshAllSkillView(int heroIdx)
     {
         var hero = _playerData.TeamHeroes[heroIdx];
-        var skills = _GetSkillsByID(hero.SkillList);
+        var skills = CharacterUtility.Instance.GetSkillsByID(hero.SkillList);
         foreach (var view in _skillViews)
             view.SetSkillViewUseAble(skills[view.ID].MpCost <= hero.CurrentMp);
     }
@@ -429,24 +419,6 @@ public class BattleView : MonoBehaviour, IBattleView
         _curSelectSkillId = string.Empty;
         _curUseData = null;
     }
-
-    private Dictionary<string,Skill> _GetSkillsByID(List<string> skillIds)
-    {
-        Dictionary<string, Skill> result = new Dictionary<string, Skill>();
-        for(int i = 0;i<skillIds.Count;i++)
-        {
-            var skill = _GetSkillByID(skillIds[i]);
-            if (skill != null)
-                result.Add(skill.ID, skill);
-        }
-        return result;
-    }
-
-    private Skill _GetSkillByID(string id)
-    {
-        var skillRow = _skillTable[id];
-        return new Skill(skillRow);
-    }
     #endregion
 
     #region UseItemAndSkill
@@ -454,7 +426,7 @@ public class BattleView : MonoBehaviour, IBattleView
     {
         if (!string.IsNullOrEmpty(_curSelectSkillId))
         {
-            var skill = _GetSkillByID(_curSelectSkillId);
+            var skill = CharacterUtility.Instance.GetSkillByID(_curSelectSkillId);
             _UseSkill(skill);
         }
         else if (_curSelectItemIdx != -1)
@@ -469,12 +441,13 @@ public class BattleView : MonoBehaviour, IBattleView
         if (pos == -1)
             return;
 
+        _curSelectItemIdx = pos;
+
         var item = _playerData.BackPack[pos];
         if (item == null)
             return;
 
         _curUseData = item;
-        _curSelectItemIdx = pos;
 
         _infoView.HideArrowAndSelectImage -= _HideHeroTargetArrowAndItemSelectImage;
         _infoView.OnUseAction -= _UseSelectItemOrSkill;

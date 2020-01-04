@@ -1,11 +1,9 @@
 ﻿using System;
-using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
 using UnityEngine;
 using UnityEngine.EventSystems;
 using UnityEngine.UI;
-using Utility;
 using Utility.GameUtility;
 
 public class ScrollLoop : MonoBehaviour, IBeginDragHandler, IDragHandler, IEndDragHandler
@@ -30,6 +28,9 @@ public class ScrollLoop : MonoBehaviour, IBeginDragHandler, IDragHandler, IEndDr
     private Vector2 _leftOffset;
     private Vector2 _topOffset;
     private Vector2 _curDragPos;
+    private Vector3 _slidingSpeed;
+    private Vector2 _maxSpeed;
+    private Vector2 _minSpeed;
 
     private int _totalCount;
     private int _maxColumnCount;
@@ -45,18 +46,26 @@ public class ScrollLoop : MonoBehaviour, IBeginDragHandler, IDragHandler, IEndDr
     private List<int> _rightElementIdxes = new List<int>();
     private Dictionary<int, GameObject> _activeElements = new Dictionary<int, GameObject>();
 
-    private ParallelCoroutines _parallelCor = new ParallelCoroutines();
-
     public event Action<int, GameObject> SetElement;
+
+    private enum SlidingStatus
+    {
+        None,
+        HorizontalStop,
+        VerticalStop,
+        AllStop
+    }
 
     private void Start()
     {
-        Init(100, 10);
+        //Init(100, 10);
     }
 
     private void Update()
     {
-        _CheckBorderElements();
+        var slidingStatus = _CheckBorderElements();
+        if (_isSliding)
+            _OnSliding(slidingStatus);
     }
 
     private void _SetTestElementData(int index, GameObject instance)
@@ -65,18 +74,19 @@ public class ScrollLoop : MonoBehaviour, IBeginDragHandler, IDragHandler, IEndDr
     }
 
     #region Init
-    private void Init(int count, int column = -1)
+    public void Init(int column = -1)
     {
-        _totalCount = count;
-
+        _totalCount = 0;
         _pool.InitPool();
         _viewBounds = _GetBoundsInWorldSpace(_viewport);
         _cellSize = _pool.GetPrefabBounds().size;
         _leftOffset = new Vector2(_spacing.x, _spacing.x * 2 + _cellSize.x);
         _topOffset = new Vector2(_spacing.y, _spacing.y * 2 + _cellSize.y);
+        _maxSpeed = _cellSize * _maxSpeedSmooth;
+        _minSpeed = _cellSize * _minSpeedSmooth;
 
         var basicColumnCount = Mathf.FloorToInt((_viewport.sizeDelta.x + _spacing.x - _padding.left - _padding.right) / (_cellSize.x + _spacing.x));
-        if (column == -1)
+        if (column == -1 || column <= basicColumnCount)
         {
             _maxColumnCount = _maxActiveColumnCount = basicColumnCount;
             _horizontalDragable = false;
@@ -92,9 +102,15 @@ public class ScrollLoop : MonoBehaviour, IBeginDragHandler, IDragHandler, IEndDr
         _maxActiveRowCount = basicRowCount + 2;
 
         _InitGridLayoutGroup();
+        _ClearAllElements();
+    }
+
+    public void InitElements(int count)
+    {
+        _totalCount = count;
+        _ClearAllElements();
         _InitElements();
         _UpdateBorderElements();
-        StartCoroutine(_parallelCor.Execute());
     }
 
     private void _InitGridLayoutGroup()
@@ -157,9 +173,11 @@ public class ScrollLoop : MonoBehaviour, IBeginDragHandler, IDragHandler, IEndDr
     #region Move
     private void _Move(Vector3 delta)
     {
+        _maxSpeed = _cellSize * _maxSpeedSmooth;
+        _minSpeed = _cellSize * _minSpeedSmooth;
         delta = _CheckSpeed(delta);
-        var minSpeed = _cellSize * _minSpeedSmooth;
-        if (Mathf.Abs(delta.x) < minSpeed.x && Mathf.Abs(delta.y) < minSpeed.y)
+        
+        if (Mathf.Abs(delta.x) < _minSpeed.x && Mathf.Abs(delta.y) < _minSpeed.y)
             return;
 
         _content.position += delta;
@@ -170,33 +188,32 @@ public class ScrollLoop : MonoBehaviour, IBeginDragHandler, IDragHandler, IEndDr
         if (!_sliding)
             return;
 
-        _parallelCor.Add(_OnSliding(delta));
+        if (Mathf.Abs(delta.x) < _minSpeed.x && Mathf.Abs(delta.y) < _minSpeed.y)
+            return;
+
+        _slidingSpeed = _CheckSpeed(delta);
+        _isSliding = true;
     }
 
-    private IEnumerator _OnSliding(Vector3 speed)
+    private void _OnSliding(SlidingStatus slidingStatus)
     {
-        var minSpeed = _cellSize * _minSpeedSmooth;
-        if (Mathf.Abs(speed.x) < minSpeed.x && Mathf.Abs(speed.y) < minSpeed.y)
-            yield break;
+        bool xStop = Mathf.Abs(_slidingSpeed.x) < _minSpeed.x || 
+            slidingStatus == SlidingStatus.AllStop || 
+            slidingStatus == SlidingStatus.HorizontalStop;
 
-        _isSliding = true;
-        speed = _CheckSpeed(speed);
+        bool yStop = Mathf.Abs(_slidingSpeed.y) < _minSpeed.y || 
+            slidingStatus == SlidingStatus.AllStop || 
+            slidingStatus == SlidingStatus.VerticalStop;
 
-        while (_isSliding && speed.sqrMagnitude > 1f)
-        {
-            _content.position += speed;
-            speed *= (1 - _deceleritionRate);
+        if (xStop)
+            _slidingSpeed.x = 0;
 
-            var offset = _GetBorderOffset();
+        if (yStop)
+            _slidingSpeed.y = 0;
 
-            if (Mathf.Abs(speed.x) < minSpeed.x || offset.left < 0 || (offset.left > 0 && offset.right < 0))
-                speed.x = 0;
-            if (Mathf.Abs(speed.y) < minSpeed.y || offset.top < 0 || (offset.top > 0 && offset.bottom < 0))
-                speed.y = 0;
-
-            yield return null;
-        }
-        _isSliding = false;
+        _isSliding = !xStop || !yStop;
+        _content.position += _slidingSpeed;
+        _slidingSpeed *= (1 - _deceleritionRate);
     }
     #endregion
 
@@ -213,7 +230,7 @@ public class ScrollLoop : MonoBehaviour, IBeginDragHandler, IDragHandler, IEndDr
 
         if (SetElement != null)
             SetElement(index, instance);
-        _SetTestElementData(index, instance);
+        //_SetTestElementData(index, instance);
         _activeElements.Add(index, instance);
     }
 
@@ -227,8 +244,22 @@ public class ScrollLoop : MonoBehaviour, IBeginDragHandler, IDragHandler, IEndDr
         _activeElements.Remove(index);
     }
 
+    private void _ClearAllElements()
+    {
+        _topElementIdxes.Clear();
+        _bottomElementIdxes.Clear();
+        _leftElementIdxes.Clear();
+        _rightElementIdxes.Clear();
+        foreach (var obj in _activeElements.Values)
+            _pool.ReturnInstance(obj);
+        _activeElements.Clear();
+    }
+
     private void _EraseLeftAndAddRight()
     {
+        if (_rightElementIdxes.Count == 0)
+            return;
+
         var rightStart = _rightElementIdxes.First();
         if (_IsSameColumn(rightStart, _maxColumnCount - 1))
             return;
@@ -248,6 +279,9 @@ public class ScrollLoop : MonoBehaviour, IBeginDragHandler, IDragHandler, IEndDr
 
     private void _EraseRightAndAddLeft()
     {
+        if (_leftElementIdxes.Count == 0)
+            return;
+
         var leftStart = _leftElementIdxes.First();
         if (_IsSameColumn(leftStart, 0))
             return;
@@ -269,8 +303,11 @@ public class ScrollLoop : MonoBehaviour, IBeginDragHandler, IDragHandler, IEndDr
 
     private void _EraseTopAndAddBottom()
     {
+        if (_bottomElementIdxes.Count == 0)
+            return;
+
         var bottomStart = _bottomElementIdxes.First();
-        if (_IsSameRow(bottomStart, _totalCount - 1))
+        if (bottomStart + _maxColumnCount >= _totalCount)
             return;
 
         foreach (var index in _topElementIdxes)
@@ -290,6 +327,9 @@ public class ScrollLoop : MonoBehaviour, IBeginDragHandler, IDragHandler, IEndDr
 
     private void _EraseBottomAndAddTop()
     {
+        if (_topElementIdxes.Count == 0)
+            return;
+
         var topStart = _topElementIdxes.First();
         if (_IsSameRow(topStart, 0))
             return;
@@ -309,12 +349,21 @@ public class ScrollLoop : MonoBehaviour, IBeginDragHandler, IDragHandler, IEndDr
         _UpdateBorderElements();
     }
 
-    private void _CheckBorderElements()
+    private SlidingStatus _CheckBorderElements()
     {
         var offset = _GetBorderOffset();
         Vector3 posDelta = Vector3.zero;
+        bool verticalStop = false;
+        bool horizontalStop = false;
+
         if (offset.top <= 0)
-            posDelta.y = -offset.top;
+        {
+            if(_topElementIdxes.Count > 0 && _IsSameRow(_topElementIdxes[0],0))
+            {
+                posDelta.y = -offset.top;
+                verticalStop = true;
+            }
+        }
         else
         {
             if (offset.top > _topOffset.y)
@@ -322,12 +371,23 @@ public class ScrollLoop : MonoBehaviour, IBeginDragHandler, IDragHandler, IEndDr
             else if (offset.top < _topOffset.x)
                 _EraseBottomAndAddTop();
 
-            if (offset.bottom < 0)
+            offset = _GetBorderOffset();
+            if (offset.bottom < 0 && _bottomElementIdxes.Count > 0 && _bottomElementIdxes[0] + _maxColumnCount >= _totalCount)
+            {
                 posDelta.y = offset.bottom;
+                verticalStop = true;
+            }
         }
 
+
         if (offset.left <= 0)
-            posDelta.x = offset.left;
+        {
+            if (_leftElementIdxes.Count > 0 && _IsSameColumn(_leftElementIdxes[0], 0))
+            {
+                posDelta.x = offset.left;
+                horizontalStop = true;
+            }
+        }
         else
         {
             if (offset.left > _leftOffset.y)
@@ -335,11 +395,23 @@ public class ScrollLoop : MonoBehaviour, IBeginDragHandler, IDragHandler, IEndDr
             else if (offset.left < _leftOffset.x)
                 _EraseRightAndAddLeft();
 
-            if (offset.right < 0)
+            offset = _GetBorderOffset();
+            if (offset.right < 0 && _rightElementIdxes.Count > 0 && _IsSameColumn(_rightElementIdxes[0], _maxColumnCount - 1))
+            {
                 posDelta.x = -offset.right;
+                horizontalStop = true;
+            }
         }
 
         _content.position += posDelta;
+        if (horizontalStop && verticalStop)
+            return SlidingStatus.AllStop;
+        else if (horizontalStop)
+            return SlidingStatus.HorizontalStop;
+        else if (verticalStop)
+            return SlidingStatus.VerticalStop;
+        else
+            return SlidingStatus.None;
     }
     #endregion
 
@@ -397,12 +469,6 @@ public class ScrollLoop : MonoBehaviour, IBeginDragHandler, IDragHandler, IEndDr
         return new Bounds(center, size);
     }
 
-    private int _GetMaxRowCount()
-    {
-        var remainer = _totalCount % _maxColumnCount;
-        return _totalCount / _maxColumnCount + remainer > 0 ? 1 : 0;
-    }
-
     private int _GetSerialNumInActiveElements(int index)
     {
         if (_activeElements.Count == 0)
@@ -432,11 +498,8 @@ public class ScrollLoop : MonoBehaviour, IBeginDragHandler, IDragHandler, IEndDr
 
     private Vector3 _CheckSpeed(Vector3 speed)
     {
-        var max = _cellSize * _maxSpeedSmooth;
-        var min = _cellSize * _minSpeedSmooth;
-
-        var x = Mathf.Clamp(Mathf.Abs(speed.x), min.x, max.x);
-        var y = Mathf.Clamp(Mathf.Abs(speed.y), min.x, max.x);
+        var x = Mathf.Clamp(Mathf.Abs(speed.x), _minSpeed.x, _maxSpeed.x);
+        var y = Mathf.Clamp(Mathf.Abs(speed.y), _minSpeed.x, _maxSpeed.x);
 
         speed.x = speed.x > 0 ? x : -x;
         speed.y = speed.y > 0 ? y : -y;

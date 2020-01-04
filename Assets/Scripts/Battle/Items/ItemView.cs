@@ -20,14 +20,19 @@ public class ItemView : MonoBehaviour, IPointerClickHandler, IPointerEnterHandle
     {
         if (item == null)
         {
-            Pos = -1;
-            gameObject.SetActive(false);
-            return;
+            _image.gameObject.SetActive(false);
+            _count.gameObject.SetActive(false);
+            _image.sprite = null;
+        }
+        else
+        {
+            _image.gameObject.SetActive(true);
+            _count.gameObject.SetActive(true);
+            _image.sprite = Resources.Load<Sprite>(item.IconKey);
+            _count.text = string.Format("x{0}", item.Count);
         }
 
         Pos = pos;
-        _image.sprite = Resources.Load<Sprite>(item.IconKey);
-        _count.text = string.Format("x{0}", item.Count);
         _selectImage.enabled = false;
         _meetImage.enabled = false;
         _isLockPointer = false;
@@ -44,8 +49,10 @@ public class ItemView : MonoBehaviour, IPointerClickHandler, IPointerEnterHandle
             return;
 
         if (ClickAction != null)
+        {
             ClickAction(Pos);
-        _selectImage.enabled = true;
+            _selectImage.enabled = true;
+        }
     }
 
     public void OnPointerEnter(PointerEventData eventData)

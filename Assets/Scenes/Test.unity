@@ -566,6 +566,26 @@ PrefabInstance:
       propertyPath: m_Pivot.y
       value: 0.5
       objectReference: {fileID: 0}
+    - target: {fileID: 330761564320162003, guid: 6fa81dbea6c9c374ca2681c594ed2361,
+        type: 3}
+      propertyPath: _maxSpeedSmooth
+      value: 0.4
+      objectReference: {fileID: 0}
+    - target: {fileID: 330761564320162003, guid: 6fa81dbea6c9c374ca2681c594ed2361,
+        type: 3}
+      propertyPath: _deceleritionRate
+      value: 0.02
+      objectReference: {fileID: 0}
+    - target: {fileID: 330761564320162003, guid: 6fa81dbea6c9c374ca2681c594ed2361,
+        type: 3}
+      propertyPath: _elastic
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 330761564320162003, guid: 6fa81dbea6c9c374ca2681c594ed2361,
+        type: 3}
+      propertyPath: _elasticity
+      value: 0.1
+      objectReference: {fileID: 0}
     - target: {fileID: 330761564271035109, guid: 6fa81dbea6c9c374ca2681c594ed2361,
         type: 3}
       propertyPath: m_SizeDelta.x

@@ -185,10 +185,12 @@ MonoBehaviour:
     m_Bottom: 20
   _spacing: {x: 50, y: 50}
   _dragSpeed: 1
-  _maxSpeedSmooth: 0.25
+  _maxSpeedSmooth: 0.4
   _minSpeedSmooth: 0.05
   _sliding: 1
-  _deceleritionRate: 0.05
+  _deceleritionRate: 0.02
+  _elastic: 1
+  _elasticity: 0.1
 --- !u!1 &330761564661253702
 GameObject:
   m_ObjectHideFlags: 0

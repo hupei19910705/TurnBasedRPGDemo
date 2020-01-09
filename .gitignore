@@ -1,0 +1,12 @@
+/[Ll]ibrary/
+/[Tt]emp/
+/[Oo]bj/
+/[Bb]uild/
+/[Bb]uilds/
+/[Pp]ackages/
+/Assets/AssetStoreTools*
+/Assets/StreamingAssets/AssetBundles
+/Assets/StreamingAssets/AssetBundles.meta
+/tmp
+.hgtags
+.vs/

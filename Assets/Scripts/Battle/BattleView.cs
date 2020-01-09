@@ -87,6 +87,7 @@ public class BattleView : MonoBehaviour, IBattleView
 
     private List<ItemView> _itemViews = new List<ItemView>();
     private List<SkillView> _skillViews = new List<SkillView>();
+    private List<Skill> _curSkills = new List<Skill>();
 
     private IInfoView _infoView = null;
     private SkillEffectManager _skillEffectManager = null;
@@ -293,8 +294,12 @@ public class BattleView : MonoBehaviour, IBattleView
         _UseSkill(null);
     }
 
-    private void _SetSkillElement(GameObject instance, Skill skill)
+    private void _SetSkillElement(int index,GameObject instance)
     {
+        if (index == -1 || index >= _curSkills.Count)
+            return;
+
+        var skill = _curSkills[index];
         var curHero = _playerData.TeamHeroes[_curHeroIdx];
         var view = instance.GetComponent<SkillView>();
         view.SetData(skill, curHero.CurrentMp >= skill.MpCost);
@@ -305,26 +310,26 @@ public class BattleView : MonoBehaviour, IBattleView
 
     private void _ListSkills(bool isShow)
     {
-        List<Skill> skills = new List<Skill>();
-        if(_curHeroIdx != -1)
-            skills = CharacterUtility.Instance.GetSkillsByID(_playerData.TeamHeroes[_curHeroIdx].SkillList).Values.
-                OrderBy(skill => int.Parse(skill.ID)).ToList();
+        _curSkills.Clear();
 
         if (isShow)
         {
             _SetTopTipText(TopTipType.SelectSkill);
             _skillScroll.gameObject.SetActive(true);
+            if (_curHeroIdx != -1)
+                _curSkills = CharacterUtility.Instance.GetSkillsByID(_playerData.TeamHeroes[_curHeroIdx].SkillList).Values.
+                    OrderBy(skill => int.Parse(skill.ID)).ToList();
 
-            if (skills == null || skills.Count == 0)
+            if (_curSkills == null || _curSkills.Count == 0)
                 return;
 
-            _skillScroll.SetElement += (index, obj) => _SetSkillElement(obj, skills[index]);
-            _skillScroll.InitElements(skills.Count);
+            _skillScroll.SetElement += _SetSkillElement;
+            _skillScroll.InitElements(_curSkills.Count);
         }
         else
         {
             _SetTopTipText(TopTipType.SelectHeroOperation);
-            _skillScroll.SetElement -= (index, obj) => _SetSkillElement(obj, skills[index]);
+            _skillScroll.SetElement -= _SetSkillElement;
             _skillScroll.gameObject.SetActive(false);
         }
     }

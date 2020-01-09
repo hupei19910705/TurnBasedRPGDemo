@@ -187,7 +187,7 @@ MonoBehaviour:
   _dragSpeed: 1
   _maxSpeedSmooth: 0.4
   _minSpeedSmooth: 0.05
-  _sliding: 1
+  _freeSliding: 1
   _deceleritionRate: 0.02
   _elastic: 1
   _elasticity: 0.1

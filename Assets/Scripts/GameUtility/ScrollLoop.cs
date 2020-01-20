@@ -740,7 +740,7 @@ public class ScrollLoop : MonoBehaviour, IBeginDragHandler, IDragHandler, IEndDr
     private Vector3 _CheckSpeed(Vector3 speed)
     {
         var x = Mathf.Clamp(Mathf.Abs(speed.x), _minSpeed.x, _maxSpeed.x);
-        var y = Mathf.Clamp(Mathf.Abs(speed.y), _minSpeed.x, _maxSpeed.x);
+        var y = Mathf.Clamp(Mathf.Abs(speed.y), _minSpeed.y, _maxSpeed.y);
 
         speed.x = speed.x > 0 ? x : -x;
         speed.y = speed.y > 0 ? y : -y;

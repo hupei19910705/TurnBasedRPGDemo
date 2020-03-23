@@ -13,7 +13,7 @@ public class Main : MonoBehaviour
     private GameData _gameData;
     private GameRecord _curRecord;
 
-    private const string GAMEDATA_EXCEL_FILE_PATH = "/Data/GameData.xlsx";
+    private const string GAMEDATA_EXCEL_FILE_PATH = "/StreamingAssets/GameData.xlsx";
 
     private void Start()
     {

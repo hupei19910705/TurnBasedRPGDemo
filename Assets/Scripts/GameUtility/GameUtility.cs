@@ -17,7 +17,7 @@ public class GameUtility
         }
     }
 
-    private const string GAMERECORD_JSON_FILE_PATH = "/Data/GameRecord.json";
+    private const string GAMERECORD_JSON_FILE_PATH = "/GameRecord.json";
     private static Random _random = new Random();
     private GameRecords _gameRecords;
     private int _curRecordId = -1;

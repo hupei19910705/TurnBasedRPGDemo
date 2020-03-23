@@ -26,7 +26,7 @@ public class AssetModel
 
     public T LoadJsonFileToObject<T>(string path)
     {
-        var filePath = _rootPath + path;
+        var filePath = Application.persistentDataPath + path;
         if (!File.Exists(filePath))
             return default;
 
@@ -39,8 +39,7 @@ public class AssetModel
 
     public void SaveObjecToJsonFile<T>(T obj,string path)
     {
-        var targetPath = _rootPath + path;
-
+        var targetPath = Application.persistentDataPath + path;
         var js = JsonConvert.SerializeObject(obj);
         StreamWriter sw = new StreamWriter(targetPath);
         sw.Write(js);

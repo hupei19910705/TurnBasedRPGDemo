@@ -6,13 +6,13 @@ using UnityEngine;
 public class PlayerData
 {
     public Dictionary<string, HeroData> Heroes = new Dictionary<string, HeroData>();
-    public Dictionary<int, HeroData> TeamHeroes = new Dictionary<int, HeroData>();
+    public Dictionary<string, HeroData> TeamHeroes = new Dictionary<string, HeroData>();
 
     public Item[] BackPack { get; private set; }
     private int _backPackSize;
     private GameRecord _gameRecord;
 
-    public PlayerData(Dictionary<string, HeroData> heroes, Dictionary<int, string> teamHeroes , Dictionary<int, Item> items,int backPackSize)
+    public PlayerData(Dictionary<string, HeroData> heroes, Dictionary<string, string> teamHeroes , Dictionary<string, Item> items,int backPackSize)
     {
         _gameRecord = GameUtility.Instance.GetCurGameRecord();
         Heroes = heroes;
@@ -31,13 +31,13 @@ public class PlayerData
         _SaveBackPackRecord();
     }
 
-    public void AddItems(Dictionary<int, Item> items)
+    public void AddItems(Dictionary<string, Item> items)
     {
         if (BackPack == null)
             BackPack = new Item[_backPackSize];
 
         foreach (var pair in items)
-            _AddItem(pair.Key, pair.Value);
+            _AddItem(int.Parse(pair.Key), pair.Value);
 
         _SaveBackPackRecord();
     }
@@ -172,6 +172,6 @@ public class PlayerData
     {
         _gameRecord.TeamRecord.Clear();
         foreach (var pair in TeamHeroes)
-            _gameRecord.SetTeamHero(pair.Key, pair.Value.UID);
+            _gameRecord.SetTeamHero(int.Parse(pair.Key), pair.Value.UID);
     }
 }

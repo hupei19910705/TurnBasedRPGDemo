@@ -115,7 +115,7 @@ public class SplashScreenPanel : MonoBehaviour
         elementView.SetData(record, _toggleGroup);
         elementView.OnSelectRecordElement -= _SelectRecordElement;
         elementView.OnSelectRecordElement += _SelectRecordElement;
-        _recordViews.Add(record.RecordID, elementView);
+        _recordViews.Add(int.Parse(record.RecordID), elementView);
     }
 
     private void _AddRecord(string name = "")
@@ -125,7 +125,7 @@ public class SplashScreenPanel : MonoBehaviour
             GameRecord record = new GameRecord(name);
             _gameRecords.Records.Add(record.RecordID, record);
             _AddRecordElement(record);
-            _recordViews[record.RecordID].ChangeToggleStatus(true);
+            _recordViews[int.Parse(record.RecordID)].ChangeToggleStatus(true);
             _UpdateAddElementBtn();
             GameUtility.Instance.Save();
         }
@@ -154,7 +154,7 @@ public class SplashScreenPanel : MonoBehaviour
         if (select)
         {
             _selectRecordId = recordId;
-            _recordDisplayView.Show(_gameRecords.Records[recordId]);
+            _recordDisplayView.Show(_gameRecords.Records[recordId.ToString()]);
         }
         else if (_selectRecordId == recordId)
         {
@@ -165,10 +165,10 @@ public class SplashScreenPanel : MonoBehaviour
 
     private void _ChangeRecordName(int id,string name)
     {
-        if (!_gameRecords.Records.ContainsKey(id) || string.IsNullOrEmpty(name))
+        if (!_gameRecords.Records.ContainsKey(id.ToString()) || string.IsNullOrEmpty(name))
             return;
 
-        var record = _gameRecords.Records[id];
+        var record = _gameRecords.Records[id.ToString()];
         record.RecordName = name;
         _recordViews[id].SetData(record, _toggleGroup);
         _recordViews[id].ChangeToggleStatus(true);

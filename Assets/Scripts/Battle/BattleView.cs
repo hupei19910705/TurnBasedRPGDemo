@@ -203,10 +203,11 @@ public class BattleView : MonoBehaviour, IBattleView
         for (int i = 0; i < 6; i++)
         {
             var heroes = _playerData.TeamHeroes;
-            if (heroes.ContainsKey(i) && heroes[i] != null)
+            var key = i.ToString();
+            if (heroes.ContainsKey(key) && heroes[key] != null)
             {
-                _SetHeroView(i, heroes[i]);
-                _SetHeroElement(i, heroes[i]);
+                _SetHeroView(i, heroes[key]);
+                _SetHeroElement(i, heroes[key]);
             }
         }
     }
@@ -270,7 +271,7 @@ public class BattleView : MonoBehaviour, IBattleView
     public void ActiveHeroElement()
     {
         foreach (var pair in _playerData.TeamHeroes)
-            _heroElements[pair.Key].LockToggle(!pair.Value.IsAlive);
+            _heroElements[int.Parse(pair.Key)].LockToggle(!pair.Value.IsAlive);
         _SetCurAliveEnemyIdx();
         _SetTopTipText(TopTipType.HeroTurn);
     }
@@ -300,7 +301,7 @@ public class BattleView : MonoBehaviour, IBattleView
             return;
 
         var skill = _curSkills[index];
-        var curHero = _playerData.TeamHeroes[_curHeroIdx];
+        var curHero = _playerData.TeamHeroes[_curHeroIdx.ToString()];
         var view = instance.GetComponent<SkillView>();
         view.SetData(skill, curHero.CurrentMp >= skill.MpCost);
         view.ClickAction -= () => _ClickSkillView(skill);
@@ -314,10 +315,11 @@ public class BattleView : MonoBehaviour, IBattleView
 
         if (isShow)
         {
+            _skillViews.Clear();
             _SetTopTipText(TopTipType.SelectSkill);
             _skillScroll.gameObject.SetActive(true);
             if (_curHeroIdx != -1)
-                _curSkills = CharacterUtility.Instance.GetSkillsByID(_playerData.TeamHeroes[_curHeroIdx].SkillList).Values.
+                _curSkills = CharacterUtility.Instance.GetSkillsByID(_playerData.TeamHeroes[_curHeroIdx.ToString()].SkillList).Values.
                     OrderBy(skill => int.Parse(skill.ID)).ToList();
 
             if (_curSkills == null || _curSkills.Count == 0)
@@ -328,6 +330,7 @@ public class BattleView : MonoBehaviour, IBattleView
         }
         else
         {
+            _skillViews.Clear();
             _SetTopTipText(TopTipType.SelectHeroOperation);
             _skillScroll.SetElement -= _SetSkillElement;
             _skillScroll.gameObject.SetActive(false);
@@ -352,6 +355,7 @@ public class BattleView : MonoBehaviour, IBattleView
     {
         if (isShow)
         {
+            _itemViews.Clear();
             _SetTopTipText(TopTipType.SelectItem);
             _itemScroll.gameObject.SetActive(true);
 
@@ -360,6 +364,7 @@ public class BattleView : MonoBehaviour, IBattleView
         }
         else
         {
+            _itemViews.Clear();
             _SetTopTipText(TopTipType.SelectHeroOperation);
             _itemScroll.SetElement -= _SetItemElement;
             _itemScroll.gameObject.SetActive(false);
@@ -371,7 +376,8 @@ public class BattleView : MonoBehaviour, IBattleView
         if (_curHeroIdx == -1)
             return;
 
-        _serialCor.Add(_CurHeroEndTurn(_curHeroIdx));
+        if(_serialCor.Empty)
+            _serialCor.Add(_CurHeroEndTurn(_curHeroIdx));
     }
 
     private IEnumerator _CurHeroEndTurn(int heroIdx)
@@ -399,7 +405,7 @@ public class BattleView : MonoBehaviour, IBattleView
 
     private void _FreshAllSkillView(int heroIdx)
     {
-        var hero = _playerData.TeamHeroes[heroIdx];
+        var hero = _playerData.TeamHeroes[heroIdx.ToString()];
         var skills = CharacterUtility.Instance.GetSkillsByID(hero.SkillList);
         foreach (var view in _skillViews)
             view.SetSkillViewUseAble(skills[view.ID].MpCost <= hero.CurrentMp);
@@ -476,7 +482,8 @@ public class BattleView : MonoBehaviour, IBattleView
 
     private void _UseItem(int pos)
     {
-        _serialCor.Add(_UseItem(pos, _heroTargetIdx, _heroTargetType));
+        if (_serialCor.Empty)
+            _serialCor.Add(_UseItem(pos, _heroTargetIdx, _heroTargetType));
     }
 
     private IEnumerator _UseItem(int pos, int toIdx,SelectTargetType targetType)
@@ -515,7 +522,7 @@ public class BattleView : MonoBehaviour, IBattleView
         _curUseData = skill;
         _curSelectSkillId = skill.ID;
 
-        var useAble = skill.MpCost <= _playerData.TeamHeroes[_curHeroIdx].CurrentMp;
+        var useAble = skill.MpCost <= _playerData.TeamHeroes[_curHeroIdx.ToString()].CurrentMp;
 
         _infoView.HideArrowAndSelectImage -= _HideHeroTargetArrowAndSkillSelectImage;
         _infoView.OnUseAction -= _UseSelectItemOrSkill;
@@ -554,7 +561,8 @@ public class BattleView : MonoBehaviour, IBattleView
         _heroElements[_curHeroIdx].ShowIndicator(false);
         _heroElements[_curHeroIdx].LockToggle(true);
 
-        _serialCor.Add(_OnUseSkill(skill, fromIdx, toIdx));
+        if (_serialCor.Empty)
+            _serialCor.Add(_OnUseSkill(skill, fromIdx, toIdx));
     }
 
     private IEnumerator _OnUseSkill(Skill skill,int fromIdx,int toIdx)
@@ -563,7 +571,7 @@ public class BattleView : MonoBehaviour, IBattleView
             yield break;
 
         var fromView = _heroViews[fromIdx];
-        var fromData = _playerData.TeamHeroes[fromIdx];
+        var fromData = _playerData.TeamHeroes[fromIdx.ToString()];
 
         toIdx = _CheckTargetIdx(toIdx, _heroTargetType);
         var targetView = _enemyViews[toIdx];
@@ -709,7 +717,7 @@ public class BattleView : MonoBehaviour, IBattleView
         switch (targetType)
         {
             case SelectTargetType.Hero:
-                if (!_playerData.TeamHeroes[pos].IsAlive)
+                if (!_playerData.TeamHeroes[pos.ToString()].IsAlive)
                     pos = _GetAliveEnemyIdx();
                 break;
             case SelectTargetType.Enemy:
@@ -726,7 +734,7 @@ public class BattleView : MonoBehaviour, IBattleView
         switch(targetType)
         {
             case SelectTargetType.Hero:
-                return _playerData.TeamHeroes[pos];
+                return _playerData.TeamHeroes[pos.ToString()];
             case SelectTargetType.Enemy:
                 return _enemiesData[pos];
         }
@@ -738,7 +746,8 @@ public class BattleView : MonoBehaviour, IBattleView
     {
         for (int i = 0; i < 6; i++)
         {
-            if (_playerData.TeamHeroes.ContainsKey(i) && _playerData.TeamHeroes[i].IsAlive)
+            var key = i.ToString();
+            if (_playerData.TeamHeroes.ContainsKey(key) && _playerData.TeamHeroes[key].IsAlive)
                 return i;
         }
         return -1;

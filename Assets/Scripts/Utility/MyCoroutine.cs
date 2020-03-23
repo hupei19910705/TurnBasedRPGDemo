@@ -111,6 +111,7 @@ namespace Utility
         private Queue<IEnumerator> coroutines = new Queue<IEnumerator>();
         private bool _running = false;
         public bool Finished { get { return coroutines == null || coroutines.Count == 0; } }
+        public bool Empty { get { return coroutines != null && coroutines.Count == 0; } }
 
         public IEnumerator Execute()
         {

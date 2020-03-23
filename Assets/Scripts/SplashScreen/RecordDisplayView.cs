@@ -30,7 +30,7 @@ public class RecordDisplayView : MonoBehaviour
 
     public void Show(GameRecord record)
     {
-        _recordId = record.RecordID;
+        _recordId = int.Parse(record.RecordID);
         _title.text = record.RecordName;
         _InitHeroDatas(record.TeamRecord, record.HeroRecord);
         _SetTeamHeroes();
@@ -63,13 +63,14 @@ public class RecordDisplayView : MonoBehaviour
         _removeBtn.onClick.RemoveAllListeners();
     }
 
-    private void _InitHeroDatas(Dictionary<int,string> teamHeroes,Dictionary<string,HeroRecordData> heroRecords)
+    private void _InitHeroDatas(Dictionary<string,string> teamHeroes,Dictionary<string,HeroRecordData> heroRecords)
     {
         _heroDatas = new HeroData[_teamHeroViews.Length];
 
         foreach(var pair in teamHeroes)
         {
-            if (pair.Key < 0)
+            int pos = int.Parse(pair.Key);
+            if (pos < 0)
                 continue;
 
             var heroRecord = heroRecords[pair.Value];
@@ -78,7 +79,7 @@ public class RecordDisplayView : MonoBehaviour
             var skills = CharacterUtility.Instance.GetUnLockHeroSkills(heroRow.Job, heroRecord.Level);
 
             var heroData = new HeroData(heroRecord.UID, heroRow, heroJob, heroRecord.Exp, heroRecord.Level, skills);
-            _heroDatas[pair.Key] = heroData;
+            _heroDatas[pos] = heroData;
         }
     }
 

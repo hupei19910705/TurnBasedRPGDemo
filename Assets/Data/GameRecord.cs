@@ -8,13 +8,13 @@ public class GameRecord : IDisposable
 {
     private static int[] _indexes;
 
-    public int RecordID;
+    public string RecordID;
     public string RecordName;
     public string UpdateTime;
 
     public Dictionary<string, HeroRecordData> HeroRecord;
-    public Dictionary<int, string> TeamRecord;
-    public Dictionary<int,ItemRecordData> ItemRecord;
+    public Dictionary<string, string> TeamRecord;
+    public Dictionary<string,ItemRecordData> ItemRecord;
 
     public static int[] GetIndexes()
     {
@@ -26,13 +26,29 @@ public class GameRecord : IDisposable
         _indexes = indexes;
     }
 
+    public GameRecord()
+    {
+        for (int i = 0; i < _indexes.Length; i++)
+        {
+            if (_indexes[i] == -1)
+            {
+                RecordID = i.ToString();
+                RecordName = "新建存档" + RecordID;
+                _indexes[i] = i;
+                UpdateTime = DateTime.Now.ToLocalTime().ToString();
+                _InitRecord();
+                break;
+            }
+        }
+    }
+
     public GameRecord(string name = "")
     {
         for(int i = 0;i<_indexes.Length;i++)
         {
             if(_indexes[i] == -1)
             {
-                RecordID = i;
+                RecordID = i.ToString();
                 RecordName = string.IsNullOrEmpty(name) ? "新建存档" + RecordID : name;
                 _indexes[i] = i;
                 UpdateTime = DateTime.Now.ToLocalTime().ToString();
@@ -52,7 +68,7 @@ public class GameRecord : IDisposable
         SetTeamHero(3, uid2);
         SetTeamHero(2, uid3);
 
-        ItemRecord = new Dictionary<int, ItemRecordData>();
+        ItemRecord = new Dictionary<string, ItemRecordData>();
         AddItem("10000", 3, 3);
         AddItem("20000", 40, 3);
     }
@@ -63,17 +79,18 @@ public class GameRecord : IDisposable
             return;
 
         if (TeamRecord == null)
-            TeamRecord = new Dictionary<int, string>();
+            TeamRecord = new Dictionary<string, string>();
 
-        if (TeamRecord.ContainsKey(pos))
-            TeamRecord[pos] = uid;
+        var posStr = pos.ToString();
+        if (TeamRecord.ContainsKey(posStr))
+            TeamRecord[posStr] = uid;
         else
-            TeamRecord.Add(pos, uid);
+            TeamRecord.Add(posStr, uid);
     }
 
     public void Dispose()
     {
-        _indexes[RecordID] = -1;
+        _indexes[int.Parse(RecordID)] = -1;
     }
 
     public string AddHero(string id,double exp,int level,string uid = "")
@@ -105,22 +122,23 @@ public class GameRecord : IDisposable
     public void AddItem(string id,int pos,int count)
     {
         if (ItemRecord == null)
-            ItemRecord = new Dictionary<int, ItemRecordData>();
+            ItemRecord = new Dictionary<string, ItemRecordData>();
 
         ItemRecordData item = new ItemRecordData { ID = id, Pos = pos, Count = count };
-        ItemRecord.Add(pos, item);
+        ItemRecord.Add(pos.ToString(), item);
     }
 
     public void RemoveItem(string id,int pos,int count)
     {
-        if(ItemRecord.ContainsKey(pos))
+        var posStr = pos.ToString();
+        if(ItemRecord.ContainsKey(posStr))
         {
-            var item = ItemRecord[pos];
+            var item = ItemRecord[posStr];
             if(string.Equals(item.ID,id))
             {
                 item.Count -= count;
                 if (item.Count <= 0)
-                    ItemRecord.Remove(pos);
+                    ItemRecord.Remove(posStr);
             }
         }
     }
@@ -128,7 +146,7 @@ public class GameRecord : IDisposable
 
 public class GameRecords
 {
-    public Dictionary<int, GameRecord> Records;
+    public Dictionary<string, GameRecord> Records;
     public int[] Indexes;
 
     public GameRecords()
@@ -142,16 +160,17 @@ public class GameRecords
             Indexes = new int[] { -1, -1, -1, -1, -1, -1, -1, -1, -1, -1 };
 
         if (Records == null)
-            Records = new Dictionary<int, GameRecord>();
+            Records = new Dictionary<string, GameRecord>();
 
         GameRecord.InitIndexes(Indexes);
     }
 
     public void RemoveRecord(int id)
     {
-        Records[id].Dispose();
+        var key = id.ToString();
+        Records[key].Dispose();
         Indexes[id] = -1;
-        Records.Remove(id);
+        Records.Remove(key);
     }
 }
 

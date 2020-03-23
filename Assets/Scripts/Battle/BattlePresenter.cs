@@ -104,7 +104,7 @@ public class BattlePresenter : IBattlePresenter
             if(pair.Value.IsAlive)
             {
                 var models = pair.Value.BuffAndDebuffsEffect();
-                _view.AddNumText(SelectTargetType.Hero, pair.Key, models);
+                _view.AddNumText(SelectTargetType.Hero, int.Parse(pair.Key), models);
             }
         }
 
@@ -141,7 +141,7 @@ public class BattlePresenter : IBattlePresenter
     #region Hero
     private void _EndHeroTurn(int pos)
     {
-        _playerData.TeamHeroes[pos].SetEndTurnFlag(true);
+        _playerData.TeamHeroes[pos.ToString()].SetEndTurnFlag(true);
         if (_CheckIsAllHeroTurnEnd())
             _roundStatus = RoundStatus.EnemyTurn;
     }
@@ -162,7 +162,8 @@ public class BattlePresenter : IBattlePresenter
     {
         for (int i = 0; i < 6; i++)
         {
-            if (_playerData.TeamHeroes.ContainsKey(i) && _playerData.TeamHeroes[i].IsAlive)
+            var key = i.ToString();
+            if (_playerData.TeamHeroes.ContainsKey(key) && _playerData.TeamHeroes[key].IsAlive)
                 return i;
         }
         _SetFightResultFlag(false);
@@ -187,7 +188,7 @@ public class BattlePresenter : IBattlePresenter
 
     private void _HeroBeHit(int attack,int heroIdx)
     {
-        var hero = _playerData.TeamHeroes[heroIdx];
+        var hero = _playerData.TeamHeroes[heroIdx.ToString()];
         var model = Skill.GeneralAtkModel(attack);
         var result = hero.ValueEffectByModel(model);
         _view.AddNumText(SelectTargetType.Hero, heroIdx, new List<ResultModel> { result });
@@ -206,7 +207,7 @@ public class BattlePresenter : IBattlePresenter
         switch(targetType)
         {
             case SelectTargetType.Hero:
-                target = _playerData.TeamHeroes[toIdx];
+                target = _playerData.TeamHeroes[toIdx.ToString()];
                 break;
             case SelectTargetType.Enemy:
                 target = _enemiesData[toIdx];
@@ -256,7 +257,7 @@ public class BattlePresenter : IBattlePresenter
             {
                 _HeroBeHit(pair.Value.PAttack, heroIdx);
                 yield return _view.EnemyAttack(pair.Key, heroIdx);
-                if (!_playerData.TeamHeroes[heroIdx].IsAlive)
+                if (!_playerData.TeamHeroes[heroIdx.ToString()].IsAlive)
                     heroIdx = _GetAliveHeroIndex();
 
                 if(_fightStatus == FightStatus.FightResult)

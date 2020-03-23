@@ -18,7 +18,7 @@ public class RecordElementView : MonoBehaviour,IDisposable
 
     public void SetData(GameRecord record,ToggleGroup toggleGroup)
     {
-        _recordId = record.RecordID;
+        _recordId = int.Parse(record.RecordID);
         _name.text = record.RecordName;
         _time.text = record.UpdateTime;
         _heroCount.text = record.HeroRecord.Count.ToString();

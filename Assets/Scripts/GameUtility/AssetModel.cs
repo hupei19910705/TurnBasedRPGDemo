@@ -1,13 +1,13 @@
 ﻿using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
-using Newtonsoft.Json;
 using System.IO;
 using System.Data;
 using Excel;
 using System.Reflection;
 using System;
 using System.Linq;
+using LitJson;
 
 public class AssetModel
 {
@@ -32,7 +32,7 @@ public class AssetModel
 
         StreamReader sr = new StreamReader(filePath);
         string str = sr.ReadToEnd();
-        var data = JsonConvert.DeserializeObject<T>(str);
+        var data = JsonMapper.ToObject<T>(str);
         sr.Close();
         return data;
     }
@@ -40,7 +40,7 @@ public class AssetModel
     public void SaveObjecToJsonFile<T>(T obj,string path)
     {
         var targetPath = Application.persistentDataPath + path;
-        var js = JsonConvert.SerializeObject(obj);
+        var js = JsonMapper.ToJson(obj);
         StreamWriter sw = new StreamWriter(targetPath);
         sw.Write(js);
         sw.Flush();

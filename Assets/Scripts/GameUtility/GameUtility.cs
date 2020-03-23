@@ -20,7 +20,7 @@ public class GameUtility
     private const string GAMERECORD_JSON_FILE_PATH = "/GameRecord.json";
     private static Random _random = new Random();
     private GameRecords _gameRecords;
-    private int _curRecordId = -1;
+    private string _curRecordId = string.Empty;
 
     public static string GenerateOrderId()
     {
@@ -52,7 +52,7 @@ public class GameUtility
 
     public GameRecord SelectCurGameRecord(int recordId)
     {
-        _curRecordId = recordId;
+        _curRecordId = recordId.ToString();
 
         if (recordId == -1)
             return null;
@@ -62,7 +62,7 @@ public class GameUtility
 
     public GameRecord GetCurGameRecord()
     {
-        if (_curRecordId == -1)
+        if (string.IsNullOrEmpty(_curRecordId))
             return null;
 
         return _gameRecords.Records[_curRecordId];

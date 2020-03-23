@@ -97,7 +97,7 @@ public class Main : MonoBehaviour
             heroes.Add(hero.UID, hero);
         }
 
-        Dictionary<int, Item> items = new Dictionary<int, Item>();
+        Dictionary<string, Item> items = new Dictionary<string, Item>();
         foreach(var pair in _curRecord.ItemRecord)
         {
             var itemRecord = pair.Value;
